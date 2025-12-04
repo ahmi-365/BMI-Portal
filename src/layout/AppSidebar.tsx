@@ -33,13 +33,12 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
-    icon: <LayoutDashboard />,
+    icon: <LayoutDashboard className="w-5 h-5" />,
     name: "Dashboard",
-       path: "/",
-
+    path: "/",
   },
   {
-    icon: <Calendar />,
+    icon: <Calendar className="w-5 h-5" />,
     name: "Payment Records",
     subItems: [
       { name: "View Payment Records", path: "/payment-records/view" },
@@ -49,7 +48,7 @@ const navItems: NavItem[] = [
   },
   {
     name: "Invoices",
-    icon: <List />,
+    icon: <List className="w-5 h-5" />,
     subItems: [
       { name: "View Invoices", path: "/invoices/view" },
       { name: "Add Invoices", path: "/invoices/add" },
@@ -58,7 +57,7 @@ const navItems: NavItem[] = [
   },
   {
     name: "Delivery Orders",
-    icon: <Table />,
+    icon: <Table className="w-5 h-5" />,
     subItems: [
       { name: "View Delivery Orders", path: "/delivery-orders/view" },
       { name: "Add Delivery Orders", path: "/delivery-orders/add" },
@@ -67,7 +66,7 @@ const navItems: NavItem[] = [
   },
   {
     name: "Debit Notes",
-    icon: <Box />,
+    icon: <Box className="w-5 h-5" />,
     subItems: [
       { name: "View Debit Notes", path: "/debit-notes/view" },
       { name: "Add Debit Notes", path: "/debit-notes/add" },
@@ -79,7 +78,7 @@ const navItems: NavItem[] = [
 const othersItems: NavItem[] = [
   {
     name: "Credit Notes",
-    icon: <Table />,
+    icon: <Table className="w-5 h-5" />,
     subItems: [
       { name: "View Credit Notes", path: "/credit-notes/view" },
       { name: "Add Credit Notes", path: "/credit-notes/add" },
@@ -88,7 +87,7 @@ const othersItems: NavItem[] = [
   },
   {
     name: "Account Statements",
-    icon: <FileText />,
+    icon: <FileText className="w-5 h-5" />,
     subItems: [
       { name: "View Account Statements", path: "/account-statements/view" },
       { name: "Add Account Statements", path: "/account-statements/add" },
@@ -97,7 +96,7 @@ const othersItems: NavItem[] = [
   },
   {
     name: "Customers",
-    icon: <User />,
+    icon: <User className="w-5 h-5" />,
     subItems: [
       { name: "View Customers", path: "/customers/view" },
       { name: "Add Customers", path: "/customers/add" },
@@ -106,7 +105,7 @@ const othersItems: NavItem[] = [
   },
   {
     name: "Admin Users",
-    icon: <Users />,
+    icon: <Users className="w-5 h-5" />,
     subItems: [
       { name: "View Admin Users", path: "/admin-users/view" },
       { name: "Add Admin Users", path: "/admin-users/add" },
@@ -115,7 +114,7 @@ const othersItems: NavItem[] = [
   },
   {
     name: "Administration",
-    icon: <MoreHorizontal />,
+    icon: <MoreHorizontal className="w-5 h-5" />,
     subItems: [
       { name: "View Administration", path: "/administration/view" },
       { name: "Add Administration", path: "/administration/add" },
@@ -199,77 +198,72 @@ const AppSidebar: React.FC = () => {
   
   const getSubItemIcon = (name: string): React.ReactNode => {
     if (name.startsWith("View")) {
-      return <Eye />;
+      return <Eye className="w-4 h-4" />;
     }
     if (name.startsWith("Add")) {
-      return <Plus />;
+      return <Plus className="w-4 h-4" />;
     }
     if (name === "Batch Upload") {
-      return <Upload />;
+      return <Upload className="w-4 h-4" />;
     }
     return null; 
   };
-  
 
   const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => (
-    <ul className="flex flex-col gap-4">
+    <ul className="flex flex-col gap-2">
       {items.map((nav, index) => (
         <li key={nav.name}>
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group ${
-                openSubmenu?.type === menuType && openSubmenu?.index === index
-                  ? "menu-item-active"
-                  : "menu-item-inactive"
-              } cursor-pointer ${
-                !isExpanded && !isHovered
-                  ? "lg:justify-center"
-                  : "lg:justify-start"
-              }`}
-            >
-              <span
-                className={`menu-item-icon-size  ${
+              className={`
+                w-full group relative flex items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium duration-300 ease-in-out
+                ${
                   openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? "menu-item-icon-active"
-                    : "menu-item-icon-inactive"
-                }`}
-              >
+                    ? "bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400"
+                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+                }
+                ${!isExpanded && !isHovered ? "justify-center" : "justify-start"}
+              `}
+            >
+              <span className={`flex-shrink-0`}>
                 {nav.icon}
               </span>
+              
               {(isExpanded || isHovered || isMobileOpen) && (
-                <span className="menu-item-text">{nav.name}</span>
-              )}
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <ChevronDown 
-                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${
-                    openSubmenu?.type === menuType &&
-                    openSubmenu?.index === index
-                      ? "rotate-180 text-brand-500"
-                      : ""
-                  }`}
-                />
+                <>
+                  <span className="flex-grow text-left text-sm">{nav.name}</span>
+                  <ChevronDown 
+                    className={`flex-shrink-0 w-5 h-5 transition-transform duration-200 ${
+                      openSubmenu?.type === menuType &&
+                      openSubmenu?.index === index
+                        ? "rotate-180 text-brand-600 dark:text-brand-400"
+                        : ""
+                    }`}
+                  />
+                </>
               )}
             </button>
           ) : (
             nav.path && (
               <Link
                 to={nav.path}
-                className={`menu-item group ${
-                  isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-                }`}
-              >
-                <span
-                  className={`menu-item-icon-size ${
+                className={`
+                  group relative flex items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium duration-300 ease-in-out
+                  ${
                     isActive(nav.path)
-                      ? "menu-item-icon-active"
-                      : "menu-item-icon-inactive"
-                  }`}
-                >
+                      ? "bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400"
+                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+                  }
+                  ${!isExpanded && !isHovered ? "justify-center" : "justify-start"}
+                `}
+              >
+                <span className="flex-shrink-0">
                   {nav.icon}
                 </span>
+                
                 {(isExpanded || isHovered || isMobileOpen) && (
-                  <span className="menu-item-text">{nav.name}</span>
+                  <span className="text-left text-sm">{nav.name}</span>
                 )}
               </Link>
             )
@@ -287,40 +281,36 @@ const AppSidebar: React.FC = () => {
                     : "0px",
               }}
             >
-              <ul className="mt-2 space-y-1 ml-9">
+              <ul className="mt-2 space-y-1 ml-5 border-l border-gray-200 dark:border-gray-700">
                 {nav.subItems.map((subItem) => (
                   <li key={subItem.name}>
                     <Link
                       to={subItem.path}
-                      className={`menu-dropdown-item group ${
-                        isActive(subItem.path)
-                          ? "menu-dropdown-item-active"
-                          : "menu-dropdown-item-inactive"
-                      }`}
+                      className={`
+                        group relative flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium duration-300 ease-in-out
+                        ${
+                          isActive(subItem.path)
+                            ? "text-brand-500 bg-brand-50 dark:bg-brand-500/10 dark:text-brand-400"
+                            : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+                        }
+                      `}
                     >
                       <span
-                        className={`w-4 h-4 transition-colors duration-150 mr-1 ${
+                        className={`flex-shrink-0 transition-colors duration-150 ${
                           isActive(subItem.path) 
-                            ? "text-white" 
+                            ? "text-brand-500 dark:text-brand-400" 
                             : "text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         }`}
                       >
                         {getSubItemIcon(subItem.name)}
                       </span>
-                      {subItem.name}
-                      <span className="flex items-center gap-1 ml-auto">
-                        {subItem.new && (
-                          <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge`}
-                          >
-                            new
-                          </span>
-                        )}
-                      </span>
+                      <span className="truncate">{subItem.name}</span>
+                      
+                      {subItem.new && (
+                        <span className="ml-auto rounded bg-brand-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                          new
+                        </span>
+                      )}
                     </Link>
                   </li>
                 ))}
@@ -349,7 +339,7 @@ const AppSidebar: React.FC = () => {
     >
       <div
         className={`py-8 flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+          !isExpanded && !isHovered ? "justify-center" : "justify-start"
         }`}
       >
         <Link to="/">
@@ -385,32 +375,32 @@ const AppSidebar: React.FC = () => {
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
-                    ? "lg:justify-center"
+                    ? "justify-center"
                     : "justify-start"
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
                   "Business Management"
                 ) : (
-                  <MoreHorizontal className="size-6" />
+                  <MoreHorizontal className="w-6 h-6" />
                 )}
               </h2>
               {renderMenuItems(navItems, "main")}
             </div>
             <div className="">
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
-                    ? "lg:justify-center"
+                    ? "justify-center"
                     : "justify-start"
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
                   "User & Financial"
                 ) : (
-                  <MoreHorizontal className="size-6" />
+                  <MoreHorizontal className="w-6 h-6" />
                 )}
               </h2>
               {renderMenuItems(othersItems, "others")}
