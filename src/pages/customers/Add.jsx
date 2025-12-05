@@ -1,4 +1,5 @@
 import { ResourceForm } from "../../components/common/ResourceForm";
+import { customersAPI } from "../../services/api";
 
 const FIELDS = [
   { name: "customerNo", label: "Customer No.", type: "text", required: true },
@@ -29,12 +30,17 @@ const FIELDS = [
 ];
 
 export default function CustomersAdd() {
+  const handleSubmit = async (data) => {
+    return await customersAPI.create(data);
+  };
+
   return (
     <ResourceForm
-      resourceName="customers-approved"
+      resourceName="customers"
       fields={FIELDS}
       title="New Customer"
       mode="add"
+      onSubmit={handleSubmit}
     />
   );
 }

@@ -1,45 +1,30 @@
 import { ResourceForm } from "../../components/common/ResourceForm";
+import { invoicesAPI } from "../../services/api";
 
 const FORM_FIELDS = [
   {
-    name: "customerNo",
-    label: "Customer No.",
-    type: "text",
+    name: "user_id",
+    label: "User ID",
+    type: "number",
     required: true,
   },
   {
-    name: "companyName",
-    label: "Company Name",
-    type: "text",
-    required: true,
-  },
-  {
-    name: "invoiceNo",
-    label: "Invoice No.",
-    type: "text",
-    required: true,
-  },
-  {
-    name: "invoiceDoc",
-    label: "Invoice Document",
-    type: "file",
-    required: true,
-  },
-  {
-    name: "invoiceDate",
-    label: "Invoice Date",
+    name: "date",
+    label: "Date",
     type: "date",
     required: true,
   },
   {
-    name: "poNo",
-    label: "PO No.",
+    name: "invoiceId",
+    label: "Invoice ID",
     type: "text",
+    required: true,
   },
   {
-    name: "doNo",
-    label: "DO No.",
+    name: "customer_no",
+    label: "Customer No.",
     type: "text",
+    required: true,
   },
   {
     name: "amount",
@@ -48,23 +33,43 @@ const FORM_FIELDS = [
     required: true,
   },
   {
-    name: "outstanding",
-    label: "Outstanding",
-    type: "number",
+    name: "do_no",
+    label: "DO No.",
+    type: "text",
   },
   {
-    name: "dueDate",
-    label: "Due Date",
-    type: "date",
+    name: "remarks",
+    label: "Remarks",
+    type: "textarea",
+  },
+  {
+    name: "po_no",
+    label: "PO No.",
+    type: "text",
+  },
+  {
+    name: "do_doc",
+    label: "DO Document",
+    type: "file",
+  },
+  {
+    name: "file",
+    label: "Invoice File",
+    type: "file",
   },
 ];
 
 export default function InvoicesAdd() {
+  const handleSubmit = async (formData) => {
+    return await invoicesAPI.create(formData);
+  };
+
   return (
     <ResourceForm
       resourceName="invoices"
       fields={FORM_FIELDS}
       title="New Invoice"
+      onSubmit={handleSubmit}
     />
   );
 }

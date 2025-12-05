@@ -67,12 +67,14 @@ import CustomersIndex from "./pages/customers/Index";
 
 // Admin Users
 import AdminUsersBatchUpload from "./pages/admin-users/BatchUpload";
+import AdminUsersIndex from "./pages/admin-users/Index";
 
 // Administration
 import AdministrationView from "./pages/administration/View";
 import AdministrationAdd from "./pages/administration/Add";
 import AdministrationEdit from "./pages/administration/Edit";
 import AdministrationShow from "./pages/administration/Show";
+import AdministrationIndex from "./pages/administration/Index";
 
 export default function App() {
   return (
@@ -92,6 +94,7 @@ export default function App() {
             <Route path="/profile" element={<UserProfiles />} />
 
             {/* Admin Users */}
+            <Route path="/admin-users" element={<AdminUsersIndex />} />
             <Route path="/admin-users/view" element={<AdminView />} />
             <Route path="/admin-users/add" element={<AdminCreate />} />
             <Route
@@ -108,6 +111,7 @@ export default function App() {
               path="/payment-records/add"
               element={<PaymentRecordsAdd />}
             />
+            <Route path="/payment-records" element={<PaymentRecordsView />} />
             <Route
               path="/payment-records/edit/:id"
               element={<PaymentRecordsEdit />}
@@ -221,6 +225,7 @@ export default function App() {
             />
 
             {/* Administration */}
+            <Route path="/administration" element={<AdministrationIndex />} />
             <Route
               path="/administration/view"
               element={<AdministrationView />}

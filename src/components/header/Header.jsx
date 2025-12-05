@@ -322,12 +322,12 @@ const Header = ({ onClick, onToggle }) => {
           <Link to="/" className="lg:hidden">
             <img
               className="dark:hidden"
-              src="./images/logo/logo.svg"
+              src="./images/logo/Logo.jpeg"
               alt="Logo"
             />
             <img
               className="hidden dark:block"
-              src="./images/logo/logo-dark.svg"
+              src="./images./images/logo/Logo.jpeg"
               alt="Logo"
             />
           </Link>

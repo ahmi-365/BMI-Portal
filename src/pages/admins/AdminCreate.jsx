@@ -1,9 +1,25 @@
-import Form from "../../components/common/Form"; // Adjust path
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Form from "../../components/common/Form";
+import { adminUsersAPI } from "../../services/api";
 
 const AdminCreate = () => {
-  const handleSubmit = (data) => {
-    console.log("Form Submitted:", data);
-    alert("Check console for data");
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (data) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await adminUsersAPI.create(data);
+      navigate("/admin-users");
+    } catch (err) {
+      console.error("Error creating admin:", err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formFields = [
@@ -63,6 +79,12 @@ const AdminCreate = () => {
         </h2>
       </div>
 
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-800">Error: {error}</p>
+        </div>
+      )}
+
       <div className="rounded-xl border border-gray-200 bg-white shadow-theme-sm dark:border-gray-800 dark:bg-gray-900">
         <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 className="font-medium text-black dark:text-white">
@@ -75,6 +97,7 @@ const AdminCreate = () => {
             fields={formFields}
             onSubmit={handleSubmit}
             submitLabel="Create Admin"
+            isLoading={isLoading}
           />
         </div>
       </div>
