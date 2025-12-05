@@ -3,6 +3,12 @@ layer(base);
 
 @import "tailwindcss";
 
+/* Prevent page-level horizontal scroll */
+body,
+html {
+  overflow-x: hidden;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {

@@ -1,11 +1,257 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ThemeToggleButton } from "../common/ThemeToggleButton";
 import NotificationDropdown from "./NotificationDropdown";
 import UserDropdown from "./UserDropdown";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const Header = ({ onClick, onToggle }) => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const navigate = useNavigate();
+
+  // Define all available pages
+  const pages = useMemo(
+    () => [
+      { name: "Dashboard", path: "/", category: "Dashboard" },
+      { name: "Profile", path: "/profile", category: "User" },
+
+      // Admin Users
+      {
+        name: "Admin Users View",
+        path: "/admin-users/view",
+        category: "Admin",
+      },
+      { name: "Admin Users Add", path: "/admin-users/add", category: "Admin" },
+      {
+        name: "Admin Users Batch Upload",
+        path: "/admin-users/batch-upload",
+        category: "Admin",
+      },
+
+      // Payment Records
+      {
+        name: "Payment Records View",
+        path: "/payment-records/view",
+        category: "Payment",
+      },
+      {
+        name: "Payment Records Add",
+        path: "/payment-records/add",
+        category: "Payment",
+      },
+      {
+        name: "Payment Records Edit",
+        path: "/payment-records/edit/:id",
+        category: "Payment",
+      },
+      {
+        name: "Payment Records Show",
+        path: "/payment-records/show/:id",
+        category: "Payment",
+      },
+      {
+        name: "Payment Records Batch Upload",
+        path: "/payment-records/batch-upload",
+        category: "Payment",
+      },
+
+      // Invoices
+      { name: "Invoices View", path: "/invoices/view", category: "Invoices" },
+      { name: "Invoices Add", path: "/invoices/add", category: "Invoices" },
+      {
+        name: "Invoices Edit",
+        path: "/invoices/edit/:id",
+        category: "Invoices",
+      },
+      {
+        name: "Invoices Show",
+        path: "/invoices/show/:id",
+        category: "Invoices",
+      },
+      {
+        name: "Invoices Batch Upload",
+        path: "/invoices/batch-upload",
+        category: "Invoices",
+      },
+
+      // Delivery Orders
+      {
+        name: "Delivery Orders View",
+        path: "/delivery-orders/view",
+        category: "Delivery",
+      },
+      {
+        name: "Delivery Orders Add",
+        path: "/delivery-orders/add",
+        category: "Delivery",
+      },
+      {
+        name: "Delivery Orders Edit",
+        path: "/delivery-orders/edit/:id",
+        category: "Delivery",
+      },
+      {
+        name: "Delivery Orders Show",
+        path: "/delivery-orders/show/:id",
+        category: "Delivery",
+      },
+      {
+        name: "Delivery Orders Batch Upload",
+        path: "/delivery-orders/batch-upload",
+        category: "Delivery",
+      },
+
+      // Debit Notes
+      {
+        name: "Debit Notes View",
+        path: "/debit-notes/view",
+        category: "Debit Notes",
+      },
+      {
+        name: "Debit Notes Add",
+        path: "/debit-notes/add",
+        category: "Debit Notes",
+      },
+      {
+        name: "Debit Notes Edit",
+        path: "/debit-notes/edit/:id",
+        category: "Debit Notes",
+      },
+      {
+        name: "Debit Notes Show",
+        path: "/debit-notes/show/:id",
+        category: "Debit Notes",
+      },
+      {
+        name: "Debit Notes Batch Upload",
+        path: "/debit-notes/batch-upload",
+        category: "Debit Notes",
+      },
+
+      // Credit Notes
+      {
+        name: "Credit Notes View",
+        path: "/credit-notes/view",
+        category: "Credit Notes",
+      },
+      {
+        name: "Credit Notes Add",
+        path: "/credit-notes/add",
+        category: "Credit Notes",
+      },
+      {
+        name: "Credit Notes Edit",
+        path: "/credit-notes/edit/:id",
+        category: "Credit Notes",
+      },
+      {
+        name: "Credit Notes Show",
+        path: "/credit-notes/show/:id",
+        category: "Credit Notes",
+      },
+      {
+        name: "Credit Notes Batch Upload",
+        path: "/credit-notes/batch-upload",
+        category: "Credit Notes",
+      },
+
+      // Account Statements
+      {
+        name: "Account Statements View",
+        path: "/account-statements/view",
+        category: "Statements",
+      },
+      {
+        name: "Account Statements Add",
+        path: "/account-statements/add",
+        category: "Statements",
+      },
+      {
+        name: "Account Statements Edit",
+        path: "/account-statements/edit/:id",
+        category: "Statements",
+      },
+      {
+        name: "Account Statements Show",
+        path: "/account-statements/show/:id",
+        category: "Statements",
+      },
+      {
+        name: "Account Statements Batch Upload",
+        path: "/account-statements/batch-upload",
+        category: "Statements",
+      },
+
+      // Customers
+      {
+        name: "Customers View",
+        path: "/customers/view",
+        category: "Customers",
+      },
+      { name: "Customers Add", path: "/customers/add", category: "Customers" },
+      {
+        name: "Customers Edit",
+        path: "/customers/edit/:id",
+        category: "Customers",
+      },
+      {
+        name: "Customers Show",
+        path: "/customers/show/:id",
+        category: "Customers",
+      },
+      {
+        name: "Customers Batch Upload",
+        path: "/customers/batch-upload",
+        category: "Customers",
+      },
+
+      // Administration
+      {
+        name: "Administration View",
+        path: "/administration/view",
+        category: "Admin",
+      },
+      {
+        name: "Administration Add",
+        path: "/administration/add",
+        category: "Admin",
+      },
+      {
+        name: "Administration Edit",
+        path: "/administration/edit/:id",
+        category: "Admin",
+      },
+      {
+        name: "Administration Show",
+        path: "/administration/show/:id",
+        category: "Admin",
+      },
+    ],
+    []
+  );
+
+  // Filter pages based on search query
+  const filteredPages = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return pages.filter(
+      (page) =>
+        page.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        page.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery, pages]);
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setShowSearchResults(value.trim() !== "");
+  };
+
+  const handlePageClick = (path) => {
+    navigate(path);
+    setSearchQuery("");
+    setShowSearchResults(false);
+  };
 
   const toggleApplicationMenu = () => {
     setApplicationMenuOpen(!isApplicationMenuOpen);
@@ -107,37 +353,89 @@ const Header = ({ onClick, onToggle }) => {
           </button>
 
           <div className="hidden lg:block">
-            <form action="https://formbold.com/s/unique_form_id" method="POST">
-              <div className="relative">
-                <button className="absolute -translate-y-1/2 left-4 top-1/2">
-                  <svg
-                    className="fill-gray-500 dark:fill-gray-400"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
-                      fill=""
-                    />
-                  </svg>
-                </button>
-                <input
-                  type="text"
-                  placeholder="Search or type command..."
-                  className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
-                />
+            <div className="relative">
+              <button className="absolute -translate-y-1/2 left-4 top-1/2">
+                <svg
+                  className="fill-gray-500 dark:fill-gray-400"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
+                    fill=""
+                  />
+                </svg>
+              </button>
+              <input
+                type="text"
+                placeholder="Search pages..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onFocus={() => searchQuery && setShowSearchResults(true)}
+                onBlur={() =>
+                  setTimeout(() => setShowSearchResults(false), 200)
+                }
+                className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900  dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
+              />
 
-                <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
-                  <span> ⌘ </span>
-                  <span> K </span>
-                </button>
-              </div>
-            </form>
+              <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
+                <span> ⌘ </span>
+                <span> K </span>
+              </button>
+
+              {/* Search Results Dropdown */}
+              {showSearchResults && filteredPages.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                  {filteredPages.map((page, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handlePageClick(page.path)}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-800 last:border-b-0 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {page.name}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {page.category}
+                          </p>
+                        </div>
+                        <svg
+                          className="w-4 h-4 text-gray-400 dark:text-gray-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* No Results Message */}
+              {showSearchResults &&
+                filteredPages.length === 0 &&
+                searchQuery && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50 p-4 text-center">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      No pages found for "{searchQuery}"
+                    </p>
+                  </div>
+                )}
+            </div>
           </div>
         </div>
         <div
