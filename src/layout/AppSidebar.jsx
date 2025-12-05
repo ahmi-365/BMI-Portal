@@ -284,14 +284,25 @@ const AppSidebar = () => {
           !isExpanded && !isHovered ? "justify-center" : "justify-start"
         }`}
       >
-       <Link to="/" className="flex items-center space-x-2 ">
-      {/* Icon */}
-      <ChartBar className="h-8 w-8 bg-blue-600 text-white dark:text-black rounded" />
-      {/* Text */}
-      <span className="text-xl font-bold text-gray-900 dark:text-white">
-        BMI
-      </span>
-    </Link>
+        <Link
+          to="/"
+          className={`flex items-center ${
+            isExpanded || isHovered || isMobileOpen ? "gap-2" : "justify-center"
+          }`}
+        >
+          {/* Icon */}
+          <ChartBar className="h-8 w-8 p-1 bg-blue-600 text-white dark:text-black rounded" />
+          
+          {/* Text - Only visible when open or hovered */}
+          {(isExpanded || isHovered || isMobileOpen) && (
+            <span className="text-xl font-bold text-gray-900 dark:text-white truncate">
+              BMI{" "}
+              <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+                – Modern Roofing Tech
+              </span>
+            </span>
+          )}
+        </Link>
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">

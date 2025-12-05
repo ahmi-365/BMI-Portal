@@ -1,5 +1,5 @@
 export const pages = [
-  { path: "/", name: "Home" },
+  { path: "/", name: "Dashboard" },
   { path: "/profile", name: "User Profiles" },
   { path: "/admin-users/view", name: "Admin Users" },
   { path: "/admin-users/add", name: "Add Admin User" },

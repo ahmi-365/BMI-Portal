@@ -85,9 +85,9 @@ export default function App() {
           {/* Dashboard Layout (protected) */}
           <Route
             element={
-              <ProtectedRoute>
+              // <ProtectedRoute>
                 <AppLayout />
-              </ProtectedRoute>
+              // </ProtectedRoute>
             }
           >
             <Route index path="/" element={<Home />} />

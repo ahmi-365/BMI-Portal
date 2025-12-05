@@ -2,6 +2,7 @@ import React from "react";
 import GridShape from "../../components/common/GridShape";
 import { Link } from "react-router";
 import ThemeTogglerTwo from "../../components/common/ThemeTogglerTwo";
+import { ChartBar } from "lucide-react";
 
 export default function AuthLayout({ children }) {
   return (
@@ -13,16 +14,21 @@ export default function AuthLayout({ children }) {
             {/* <!-- ===== Common Grid Shape Start ===== --> */}
             <GridShape />
             <div className="flex flex-col items-center max-w-xs">
-              <Link to="/" className="block mb-4">
-                <img
-                  width={231}
-                  height={48}
-                  src="/images/logo/auth-logo.svg"
-                  alt="Logo"
-                />
-              </Link>
-              <p className="text-center text-gray-400 dark:text-white/60">
-                Free and Open-Source Tailwind CSS Admin Dashboard Template
+            <Link to="/" className="flex items-center space-x-2">
+  {/* Icon */}
+  <ChartBar className="h-8 w-8 p-1 bg-blue-600 text-white rounded" />
+
+  {/* Text */}
+  <span className="text-xl font-bold text-white">
+    BMI{" "}
+    <span className="text-sm font-normal text-gray-500">
+      – Modern Roofing Tech
+    </span>
+  </span>
+</Link>
+
+              <p className="text-center text-gray-400 dark:text-white/60 mt-8">
+                New Horizons in roofing and waterproofing
               </p>
             </div>
           </div>

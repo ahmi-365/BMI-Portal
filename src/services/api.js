@@ -228,21 +228,21 @@ export const authAPI = {
 
 // Admin Users APIs
 export const adminUsersAPI = {
-  list: () => apiCall("/admins"),
+  list: () => apiCall("/admin/users"),
 
   create: (data) =>
-    apiCall("/admins/create", {
+    apiCall("/admin/users/create", {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
-  show: (id) => apiCall(`/admins/show/${id}`),
+  show: (id) => apiCall(`/admin/users/show/${id}`),
 
   update: (id, formData) =>
-    apiCallFormData(`/admins/update/${id}`, formData, "POST"),
+    apiCallFormData(`/admin/users/update/${id}`, formData, "POST"),
 
   delete: (id) =>
-    apiCall(`/admins/delete/${id}`, {
+    apiCall(`/admin/users/delete/${id}`, {
       method: "DELETE",
     }),
 };
@@ -257,7 +257,7 @@ export const customersAPI = {
       body: JSON.stringify(data),
     }),
 
-  update: (id, data) =>
+  update: (data) =>
     apiCall("/admin/users/create", {
       method: "POST",
       body: JSON.stringify(data),
@@ -266,7 +266,7 @@ export const customersAPI = {
   show: (id) => apiCall(`/admin/users/show/${id}`),
 
   delete: (id) =>
-    apiCall("/admin/users/delete/" + id, {
+    apiCall(`/admin/users/delete/${id}`, {
       method: "DELETE",
     }),
 
@@ -289,7 +289,7 @@ export const invoicesAPI = {
     apiCallFormData(`/invoices/update/${id}`, formData, "POST"),
 
   delete: (id) =>
-    apiCall(`/admin/users/delete/${id}`, {
+    apiCall(`/invoices/delete/${id}`, {
       method: "DELETE",
     }),
 
@@ -308,10 +308,10 @@ export const debitNotesAPI = {
 
   show: (id) => apiCall(`/debitnotes/${id}`),
 
-  create: (formData) => apiCallFormData("/invoices/create", formData, "POST"),
+  create: (formData) => apiCallFormData("/debitnotes/create", formData, "POST"),
 
   update: (id, formData) =>
-    apiCallFormData(`/invoices/create`, formData, "POST"),
+    apiCallFormData(`/debitnotes/update/${id}`, formData, "POST"),
 
   delete: (id) =>
     apiCall(`/debitnotes/delete/${id}`, {
@@ -333,10 +333,11 @@ export const creditNotesAPI = {
 
   show: (id) => apiCall(`/creditnotes/${id}`),
 
-  create: (formData) => apiCallFormData("/invoices/create", formData, "POST"),
+  create: (formData) =>
+    apiCallFormData("/creditnotes/create", formData, "POST"),
 
   update: (id, formData) =>
-    apiCallFormData("/invoices/create", formData, "POST"),
+    apiCallFormData(`/creditnotes/update/${id}`, formData, "POST"),
 
   delete: (id) =>
     apiCall(`/creditnotes/delete/${id}`, {
@@ -358,10 +359,10 @@ export const statementsAPI = {
 
   show: (id) => apiCall(`/statements/${id}`),
 
-  create: (formData) => apiCallFormData("/invoices/create", formData, "POST"),
+  create: (formData) => apiCallFormData("/statements/create", formData, "POST"),
 
   update: (id, formData) =>
-    apiCallFormData("/invoices/create", formData, "POST"),
+    apiCallFormData(`/statements/update/${id}`, formData, "POST"),
 
   delete: (id) =>
     apiCall(`/statements/delete/${id}`, {
@@ -371,7 +372,7 @@ export const statementsAPI = {
   download: (id) => apiCall(`/statements/download/${id}`),
 
   bulkDelete: (ids) =>
-    apiCall("/creditnotes/delete/bulk", {
+    apiCall("/statements/delete/bulk", {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
@@ -390,14 +391,14 @@ export const deliveryOrdersAPI = {
     apiCallFormData("/deliveryorders/create", formData, "POST"),
 
   update: (id, formData) =>
-    apiCallFormData("/invoices/create", formData, "POST"),
+    apiCallFormData(`/deliveryorders/update/${id}`, formData, "POST"),
 
   delete: (id) =>
     apiCall(`/deliveryorders/delete/${id}`, {
       method: "DELETE",
     }),
 
-  download: (id) => apiCall(`/statements/download/${id}`),
+  download: (id) => apiCall(`/deliveryorders/download/${id}`),
 
   bulkDelete: (ids) =>
     apiCall("/deliveryorders/delete/bulk", {
