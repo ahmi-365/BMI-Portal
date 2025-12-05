@@ -23,6 +23,7 @@ import InvoicesAdd from "./pages/invoices/Add";
 import InvoicesEdit from "./pages/invoices/Edit";
 import InvoicesShow from "./pages/invoices/Show";
 import InvoicesBatchUpload from "./pages/invoices/BatchUpload";
+import InvoicesIndex from "./pages/invoices/Index";
 
 // Delivery Orders
 import DeliveryOrdersView from "./pages/delivery-orders/View";
@@ -30,6 +31,7 @@ import DeliveryOrdersAdd from "./pages/delivery-orders/Add";
 import DeliveryOrdersEdit from "./pages/delivery-orders/Edit";
 import DeliveryOrdersShow from "./pages/delivery-orders/Show";
 import DeliveryOrdersBatchUpload from "./pages/delivery-orders/BatchUpload";
+import DeliveryOrdersIndex from "./pages/delivery-orders/Index";
 
 // Debit Notes
 import DebitNotesView from "./pages/debit-notes/View";
@@ -37,6 +39,7 @@ import DebitNotesAdd from "./pages/debit-notes/Add";
 import DebitNotesEdit from "./pages/debit-notes/Edit";
 import DebitNotesShow from "./pages/debit-notes/Show";
 import DebitNotesBatchUpload from "./pages/debit-notes/BatchUpload";
+import DebitNotesIndex from "./pages/debit-notes/Index";
 
 // Credit Notes
 import CreditNotesView from "./pages/credit-notes/View";
@@ -44,6 +47,7 @@ import CreditNotesAdd from "./pages/credit-notes/Add";
 import CreditNotesEdit from "./pages/credit-notes/Edit";
 import CreditNotesShow from "./pages/credit-notes/Show";
 import CreditNotesBatchUpload from "./pages/credit-notes/BatchUpload";
+import CreditNotesIndex from "./pages/credit-notes/Index";
 
 // Account Statements
 import AccountStatementsView from "./pages/account-statements/View";
@@ -51,6 +55,7 @@ import AccountStatementsAdd from "./pages/account-statements/Add";
 import AccountStatementsEdit from "./pages/account-statements/Edit";
 import AccountStatementsShow from "./pages/account-statements/Show";
 import AccountStatementsBatchUpload from "./pages/account-statements/BatchUpload";
+import AccountStatementsIndex from "./pages/account-statements/Index";
 
 // Customers
 import CustomersView from "./pages/customers/View";
@@ -58,6 +63,7 @@ import CustomersAdd from "./pages/customers/Add";
 import CustomersEdit from "./pages/customers/Edit";
 import CustomersShow from "./pages/customers/Show";
 import CustomersBatchUpload from "./pages/customers/BatchUpload";
+import CustomersIndex from "./pages/customers/Index";
 
 // Admin Users
 import AdminUsersBatchUpload from "./pages/admin-users/BatchUpload";
@@ -116,6 +122,7 @@ export default function App() {
             />
 
             {/* Invoices */}
+            <Route path="/invoices" element={<InvoicesIndex />} />
             <Route path="/invoices/view" element={<InvoicesView />} />
             <Route path="/invoices/add" element={<InvoicesAdd />} />
             <Route path="/invoices/edit/:id" element={<InvoicesEdit />} />
@@ -126,6 +133,7 @@ export default function App() {
             />
 
             {/* Delivery Orders */}
+            <Route path="/delivery-orders" element={<DeliveryOrdersIndex />} />
             <Route
               path="/delivery-orders/view"
               element={<DeliveryOrdersView />}
@@ -148,6 +156,7 @@ export default function App() {
             />
 
             {/* Debit Notes */}
+            <Route path="/debit-notes" element={<DebitNotesIndex />} />
             <Route path="/debit-notes/view" element={<DebitNotesView />} />
             <Route path="/debit-notes/add" element={<DebitNotesAdd />} />
             <Route path="/debit-notes/edit/:id" element={<DebitNotesEdit />} />
@@ -158,6 +167,7 @@ export default function App() {
             />
 
             {/* Credit Notes */}
+            <Route path="/credit-notes" element={<CreditNotesIndex />} />
             <Route path="/credit-notes/view" element={<CreditNotesView />} />
             <Route path="/credit-notes/add" element={<CreditNotesAdd />} />
             <Route
@@ -174,6 +184,10 @@ export default function App() {
             />
 
             {/* Account Statements */}
+            <Route
+              path="/account-statements"
+              element={<AccountStatementsIndex />}
+            />
             <Route
               path="/account-statements/view"
               element={<AccountStatementsView />}
@@ -196,6 +210,7 @@ export default function App() {
             />
 
             {/* Customers */}
+            <Route path="/customers" element={<CustomersIndex />} />
             <Route path="/customers/view" element={<CustomersView />} />
             <Route path="/customers/add" element={<CustomersAdd />} />
             <Route path="/customers/edit/:id" element={<CustomersEdit />} />

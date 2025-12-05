@@ -26,38 +26,18 @@ const navItems = [
   {
     icon: <Calendar className="w-5 h-5" />,
     name: "Payment Records",
-    subItems: [
-      { name: "View Payment Records", path: "/payment-records/view" },
-      { name: "Add Payment Records", path: "/payment-records/add" },
-      { name: "Batch Upload", path: "/payment-records/batch-upload" },
-    ],
+    path: "/payment-records",
   },
-  {
-    name: "Invoices",
-    icon: <List className="w-5 h-5" />,
-    subItems: [
-      { name: "View Invoices", path: "/invoices/view" },
-      { name: "Add Invoices", path: "/invoices/add" },
-      { name: "Batch Upload", path: "/invoices/batch-upload" },
-    ],
-  },
+  { name: "Invoices", icon: <List className="w-5 h-5" />, path: "/invoices" },
   {
     name: "Delivery Orders",
     icon: <Table className="w-5 h-5" />,
-    subItems: [
-      { name: "View Delivery Orders", path: "/delivery-orders/view" },
-      { name: "Add Delivery Orders", path: "/delivery-orders/add" },
-      { name: "Batch Upload", path: "/delivery-orders/batch-upload" },
-    ],
+    path: "/delivery-orders",
   },
   {
     name: "Debit Notes",
     icon: <Box className="w-5 h-5" />,
-    subItems: [
-      { name: "View Debit Notes", path: "/debit-notes/view" },
-      { name: "Add Debit Notes", path: "/debit-notes/add" },
-      { name: "Batch Upload", path: "/debit-notes/batch-upload" },
-    ],
+    path: "/debit-notes",
   },
 ];
 
@@ -65,47 +45,23 @@ const othersItems = [
   {
     name: "Credit Notes",
     icon: <Table className="w-5 h-5" />,
-    subItems: [
-      { name: "View Credit Notes", path: "/credit-notes/view" },
-      { name: "Add Credit Notes", path: "/credit-notes/add" },
-      { name: "Batch Upload", path: "/credit-notes/batch-upload" },
-    ],
+    path: "/credit-notes",
   },
   {
     name: "Account Statements",
     icon: <FileText className="w-5 h-5" />,
-    subItems: [
-      { name: "View Account Statements", path: "/account-statements/view" },
-      { name: "Add Account Statements", path: "/account-statements/add" },
-      { name: "Batch Upload", path: "/account-statements/batch-upload" },
-    ],
+    path: "/account-statements",
   },
-  {
-    name: "Customers",
-    icon: <User className="w-5 h-5" />,
-    subItems: [
-      { name: "View Customers", path: "/customers/view" },
-      { name: "Add Customers", path: "/customers/add" },
-      { name: "Batch Upload", path: "/customers/batch-upload" },
-    ],
-  },
+  { name: "Customers", icon: <User className="w-5 h-5" />, path: "/customers" },
   {
     name: "Admin Users",
     icon: <Users className="w-5 h-5" />,
-    subItems: [
-      { name: "View Admin Users", path: "/admin-users/view" },
-      { name: "Add Admin Users", path: "/admin-users/add" },
-      { name: "Batch Upload", path: "/admin-users/batch-upload" },
-    ],
+    path: "/admin-users",
   },
   {
     name: "Administration",
     icon: <MoreHorizontal className="w-5 h-5" />,
-    subItems: [
-      { name: "View Administration", path: "/administration/view" },
-      { name: "Add Administration", path: "/administration/add" },
-      { name: "Batch Upload", path: "/administration/batch-upload" },
-    ],
+    path: "/administration",
   },
 ];
 
@@ -361,9 +317,7 @@ const AppSidebar = () => {
             <div>
               <h2
                 className={`mb-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "justify-center"
-                    : "justify-start"
+                  !isExpanded && !isHovered ? "justify-center" : "justify-start"
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
@@ -377,9 +331,7 @@ const AppSidebar = () => {
             <div className="">
               <h2
                 className={`mb-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "justify-center"
-                    : "justify-start"
+                  !isExpanded && !isHovered ? "justify-center" : "justify-start"
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
