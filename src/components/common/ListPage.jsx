@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Search } from "lucide-react";
 import { DataTable, createActionColumn } from "./DataTable";
 import { getMockData, searchData } from "../../services/api";
+import Loader from "./Loader";
 
 export const ListPage = ({
   resourceName,
@@ -111,7 +112,7 @@ export const ListPage = ({
 
       {isLoading ? (
         <div className="flex justify-center items-center h-96">
-          <div className="text-gray-500">Loading...</div>
+          <Loader/>
         </div>
       ) : (
         <>

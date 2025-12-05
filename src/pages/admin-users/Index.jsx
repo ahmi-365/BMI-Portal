@@ -1,3 +1,4 @@
+import PageMeta from "../../components/common/PageMeta";
 import TabbedResource from "../../components/common/TabbedResource";
 import AdminView from "../admins/AdminView";
 import AdminCreate from "../admins/AdminCreate";
@@ -10,5 +11,13 @@ export default function AdminUsersIndex() {
     { key: "batch", label: "Batch Upload", component: BatchUpload },
   ];
 
-  return <TabbedResource tabs={tabs} />;
+  return (
+    <>
+      <PageMeta
+        title="Admin Users - BMI Invoice Management System"
+        description="View and manage admin users."
+      />
+      <TabbedResource tabs={tabs} />
+    </>
+  );
 }

@@ -14,6 +14,7 @@ import {
   Eye,
   Plus,
   Upload,
+  ChartBar,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -283,33 +284,14 @@ const AppSidebar = () => {
           !isExpanded && !isHovered ? "justify-center" : "justify-start"
         }`}
       >
-        <Link to="/">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <img
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
-          ) : (
-            <img
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
-          )}
-        </Link>
+       <Link to="/" className="flex items-center space-x-2 ">
+      {/* Icon */}
+      <ChartBar className="h-8 w-8 bg-blue-600 text-white dark:text-black rounded" />
+      {/* Text */}
+      <span className="text-xl font-bold text-gray-900 dark:text-white">
+        BMI
+      </span>
+    </Link>
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">

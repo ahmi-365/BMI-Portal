@@ -1,30 +1,42 @@
 import { Eye, Pencil, Trash } from "lucide-react";
+import { useState, useEffect } from "react";
 import Table from "../../components/ui/table/Table";
+import { adminUsersAPI } from "../../services/api";
 
 const AdminView = () => {
-  const adminUsers = [
-    {
-      id: 1,
-      name: "Musharof Chy",
-      email: "musharof@example.com",
-      mailable: true,
-      createdAt: "Dec 01, 2024",
-    },
-    {
-      id: 2,
-      name: "Naimur Rahman",
-      email: "naimur@example.com",
-      mailable: false,
-      createdAt: "Dec 02, 2024",
-    },
-    {
-      id: 3,
-      name: "Shafiqul Islam",
-      email: "shafiqul@example.com",
-      mailable: true,
-      createdAt: "Dec 03, 2024",
-    },
-  ];
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadAdminUsers();
+  }, []);
+
+  const loadAdminUsers = async () => {
+    try {
+      setIsLoading(true);
+      const response = await adminUsersAPI.list();
+      const data = response?.data ?? response ?? [];
+      setAdminUsers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error loading admin users:", err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this admin?")) {
+      try {
+        await adminUsersAPI.delete(id);
+        setAdminUsers(adminUsers.filter((user) => user.id !== id));
+      } catch (err) {
+        console.error("Error deleting admin:", err);
+        setError(err.message);
+      }
+    }
+  };
 
   const columns = [
     {
@@ -61,7 +73,7 @@ const AdminView = () => {
     },
     {
       header: "Actions",
-      render: () => (
+      render: (user) => (
         <div className="flex items-center gap-3">
           <button className="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 transition-colors">
             <Eye className="w-4 h-4" />
@@ -69,13 +81,36 @@ const AdminView = () => {
           <button className="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 transition-colors">
             <Pencil className="w-4 h-4" />
           </button>
-          <button className="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors">
+          <button
+            onClick={() => handleDelete(user.id)}
+            className="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+          >
             <Trash className="w-4 h-4" />
           </button>
         </div>
       ),
     },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-96">
+          <div className="text-gray-500">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-96">
+          <div className="text-red-500">Error: {error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
