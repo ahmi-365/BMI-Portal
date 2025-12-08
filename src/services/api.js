@@ -100,6 +100,43 @@ const buildQueryString = (params = {}) => {
   return s ? `?${s}` : "";
 };
 
+// Normalize backend pagination shape to a common structure
+const normalizePagination = (res, fallbackPage = 1, fallbackPerPage = 25) => {
+  const envelope = res?.data && typeof res.data === "object" ? res.data : res;
+  const list = envelope?.data ?? res?.data ?? res ?? [];
+  const page = envelope?.current_page ?? envelope?.page ?? fallbackPage;
+  const perPage = envelope?.per_page ?? envelope?.perPage ?? fallbackPerPage;
+  const total = envelope?.total ?? list?.length ?? 0;
+  const lastPage =
+    envelope?.last_page ??
+    envelope?.lastPage ??
+    (perPage ? Math.ceil(total / perPage) : 1);
+
+  return {
+    rows: Array.isArray(list) ? list : [],
+    page,
+    perPage,
+    total,
+    lastPage,
+    nextPageUrl: envelope?.next_page_url ?? envelope?.nextPageUrl ?? null,
+    prevPageUrl: envelope?.prev_page_url ?? envelope?.prevPageUrl ?? null,
+  };
+};
+
+// Unified list helper with search + pagination
+export const listResource = async (
+  resource,
+  { page = 1, perPage = 25, search = "" } = {}
+) => {
+  const qs = buildQueryString({
+    page,
+    per_page: perPage,
+    ...(search ? { search } : {}),
+  });
+  const res = await apiCall(`/${resource}${qs}`);
+  return normalizePagination(res, page, perPage);
+};
+
 // Helper to send FormData (for file uploads)
 const apiCallFormData = async (endpoint, formData, method = "POST") => {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -228,28 +265,28 @@ export const authAPI = {
 
 // Admin Users APIs
 export const adminUsersAPI = {
-  list: () => apiCall("/admin/users"),
+  list: (params) => listResource("admins", params),
 
   create: (data) =>
-    apiCall("/admin/users/create", {
+    apiCall("/admins/create", {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
-  show: (id) => apiCall(`/admin/users/show/${id}`),
+  show: (id) => apiCall(`/admins/show/${id}`),
 
   update: (id, formData) =>
-    apiCallFormData(`/admin/users/update/${id}`, formData, "POST"),
+    apiCallFormData(`/admins/update/${id}`, formData, "put"),
 
   delete: (id) =>
-    apiCall(`/admin/users/delete/${id}`, {
+    apiCall(`/admins/delete/${id}`, {
       method: "DELETE",
     }),
 };
 
 // Customers APIs
 export const customersAPI = {
-  list: () => apiCall("/admin/users"),
+  list: (params) => listResource("customers", params),
 
   create: (data) =>
     apiCall("/customers/create", {
@@ -279,7 +316,7 @@ export const customersAPI = {
 
 // Invoices APIs
 export const invoicesAPI = {
-  list: () => apiCall("/invoices"),
+  list: (params) => listResource("invoices", params),
 
   show: (id) => apiCall(`/invoices/${id}`),
 
@@ -304,7 +341,7 @@ export const invoicesAPI = {
 
 // Debit Notes APIs
 export const debitNotesAPI = {
-  list: () => apiCall("/debitnotes"),
+  list: (params) => listResource("debitnotes", params),
 
   show: (id) => apiCall(`/debitnotes/${id}`),
 
@@ -329,7 +366,7 @@ export const debitNotesAPI = {
 
 // Credit Notes APIs
 export const creditNotesAPI = {
-  list: () => apiCall("/creditnotes"),
+  list: (params) => listResource("creditnotes", params),
 
   show: (id) => apiCall(`/creditnotes/${id}`),
 
@@ -355,7 +392,7 @@ export const creditNotesAPI = {
 
 // Account Statements APIs
 export const statementsAPI = {
-  list: () => apiCall("/statements"),
+  list: (params) => listResource("statements", params),
 
   show: (id) => apiCall(`/statements/${id}`),
 
@@ -380,10 +417,7 @@ export const statementsAPI = {
 
 // Delivery Orders APIs
 export const deliveryOrdersAPI = {
-  list: () =>
-    apiCall("/deliveryorders", {
-      method: "POST",
-    }),
+  list: (params) => listResource("deliveryorders", params),
 
   show: (id) => apiCall(`/deliveryorders/${id}`),
 
@@ -409,7 +443,7 @@ export const deliveryOrdersAPI = {
 
 // Payments APIs
 export const paymentsAPI = {
-  list: () => apiCall("/payments"),
+  list: (params) => listResource("payments", params),
 
   pending: () => apiCall("/payments/pending"),
 

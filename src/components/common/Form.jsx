@@ -6,25 +6,37 @@ const Form = ({
   onSubmit,
   submitLabel = "Submit",
   initialValues = {},
+  isLoading = false,
+  onCancel,
 }) => {
   const [formData, setFormData] = useState({});
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    const initialData = { ...initialValues };
-    fields.forEach((field) => {
-      if (initialData[field.name] === undefined) {
-        initialData[field.name] =
-          field.defaultValue ?? (field.type === "toggle" ? false : "");
-      }
-    });
-    setFormData(initialData);
-  }, [fields, initialValues]);
+    // Only initialize form once or when initialValues change
+    if (!hasInitialized || Object.keys(initialValues).length > 0) {
+      const initialData = { ...initialValues };
+      fields.forEach((field) => {
+        if (initialData[field.name] === undefined) {
+          initialData[field.name] =
+            field.defaultValue ?? (field.type === "toggle" ? false : "");
+        }
+      });
+      setFormData(initialData);
+      setHasInitialized(true);
+    }
+  }, [initialValues]);
 
   const handleChange = (e) => {
-    const { name, value, type } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? parseFloat(value) : value,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : type === "number"
+          ? parseFloat(value)
+          : value,
     }));
   };
 
@@ -129,15 +141,18 @@ const Form = ({
       <div className="mt-6 flex justify-end gap-4">
         <button
           type="button"
-          className="flex justify-center rounded-lg border border-stroke px-6 py-2.5 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+          onClick={onCancel}
+          disabled={isLoading}
+          className="flex justify-center rounded-lg border border-stroke px-6 py-2.5 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="flex justify-center rounded-lg bg-brand-500 px-6 py-2.5 font-medium text-gray-100 hover:bg-opacity-90"
+          disabled={isLoading}
+          className="flex justify-center rounded-lg bg-brand-500 px-6 py-2.5 font-medium text-gray-100 hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {submitLabel}
+          {isLoading ? "Saving..." : submitLabel}
         </button>
       </div>
     </form>

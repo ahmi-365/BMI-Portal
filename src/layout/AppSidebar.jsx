@@ -269,9 +269,9 @@ const AppSidebar = () => {
       className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
         ${
           isExpanded || isMobileOpen
-            ? "w-[290px]"
+            ? "w-[250px]"
             : isHovered
-            ? "w-[290px]"
+            ? "w-[250px]"
             : "w-[90px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
@@ -292,7 +292,7 @@ const AppSidebar = () => {
         >
           {/* Icon */}
           <ChartBar className="h-8 w-8 p-1 bg-blue-600 text-white dark:text-black rounded" />
-          
+
           {/* Text - Only visible when open or hovered */}
           {(isExpanded || isHovered || isMobileOpen) && (
             <span className="text-xl font-bold text-gray-900 dark:text-white truncate">

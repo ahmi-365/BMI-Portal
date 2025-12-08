@@ -9,6 +9,7 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import AdminView from "./pages/admins/AdminView";
 import AdminCreate from "./pages/admins/AdminCreate";
+import AdminShow from "./pages/admins/AdminShow";
 
 // Payment Records
 import PaymentRecordsView from "./pages/payment-records/View";
@@ -85,9 +86,9 @@ export default function App() {
           {/* Dashboard Layout (protected) */}
           <Route
             element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <AppLayout />
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           >
             <Route index path="/" element={<Home />} />
@@ -101,6 +102,8 @@ export default function App() {
               path="/admin-users/batch-upload"
               element={<AdminUsersBatchUpload />}
             />
+            <Route path="/admins/show/:id" element={<AdminShow />} />
+            <Route path="/admins/edit/:id" element={<AdminCreate />} />
 
             {/* Payment Records */}
             <Route
