@@ -27,7 +27,7 @@ export default function CustomersView() {
 
   return (
     <div>
-      <div className="border-b border-gray-200 dark:border-gray-700 px-6 pt-4">
+      {/* <div className="border-b border-gray-200 dark:border-gray-700 px-6 pt-4">
         <div className="flex gap-4">
           <button
             onClick={() => setActiveTab("approved")}
@@ -50,7 +50,7 @@ export default function CustomersView() {
             Pending
           </button>
         </div>
-      </div>
+      </div> */}
 
       {activeTab === "approved" && (
         <ListPage

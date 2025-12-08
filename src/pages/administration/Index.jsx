@@ -5,8 +5,8 @@ import Add from "./Add";
 
 export default function AdministrationIndex() {
   const tabs = [
-    { key: "view", label: "View Administration", component: View },
-    { key: "add", label: "Add Administration", component: Add },
+    { key: "view", label: "Change Password", component: View },
+    { key: "add", label: "System Logs", component: Add },
   ];
 
   return (

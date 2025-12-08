@@ -156,13 +156,11 @@ const AppSidebar = () => {
               onClick={() => handleSubmenuToggle(index, menuType)}
               className={`
                 w-full group relative flex items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium duration-300 ease-in-out
-                ${
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? "bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400"
-                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+                ${openSubmenu?.type === menuType && openSubmenu?.index === index
+                  ? "bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400"
+                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                 }
-                ${
-                  !isExpanded && !isHovered ? "justify-center" : "justify-start"
+                ${!isExpanded && !isHovered ? "justify-center" : "justify-start"
                 }
               `}
             >
@@ -174,12 +172,11 @@ const AppSidebar = () => {
                     {nav.name}
                   </span>
                   <ChevronDown
-                    className={`flex-shrink-0 w-5 h-5 transition-transform duration-200 ${
-                      openSubmenu?.type === menuType &&
-                      openSubmenu?.index === index
+                    className={`flex-shrink-0 w-5 h-5 transition-transform duration-200 ${openSubmenu?.type === menuType &&
+                        openSubmenu?.index === index
                         ? "rotate-180 text-brand-600 dark:text-brand-400"
                         : ""
-                    }`}
+                      }`}
                   />
                 </>
               )}
@@ -190,15 +187,13 @@ const AppSidebar = () => {
                 to={nav.path}
                 className={`
                   group relative flex items-center gap-2.5 rounded-lg px-3 py-2.5 font-medium duration-300 ease-in-out
-                  ${
-                    isActive(nav.path)
-                      ? "bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400"
-                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+                  ${isActive(nav.path)
+                    ? "bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400"
+                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                   }
-                  ${
-                    !isExpanded && !isHovered
-                      ? "justify-center"
-                      : "justify-start"
+                  ${!isExpanded && !isHovered
+                    ? "justify-center"
+                    : "justify-start"
                   }
                 `}
               >
@@ -230,19 +225,17 @@ const AppSidebar = () => {
                       to={subItem.path}
                       className={`
                         group relative flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium duration-300 ease-in-out
-                        ${
-                          isActive(subItem.path)
-                            ? "text-brand-500 bg-brand-50 dark:bg-brand-500/10 dark:text-brand-400"
-                            : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+                        ${isActive(subItem.path)
+                          ? "text-brand-500 bg-brand-50 dark:bg-brand-500/10 dark:text-brand-400"
+                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                         }
                       `}
                     >
                       <span
-                        className={`flex-shrink-0 transition-colors duration-150 ${
-                          isActive(subItem.path)
+                        className={`flex-shrink-0 transition-colors duration-150 ${isActive(subItem.path)
                             ? "text-brand-500 dark:text-brand-400"
                             : "text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                        }`}
+                          }`}
                       >
                         {getSubItemIcon(subItem.name)}
                       </span>
@@ -267,10 +260,9 @@ const AppSidebar = () => {
   return (
     <aside
       className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
-        ${
-          isExpanded || isMobileOpen
-            ? "w-[250px]"
-            : isHovered
+        ${isExpanded || isMobileOpen
+          ? "w-[250px]"
+          : isHovered
             ? "w-[250px]"
             : "w-[90px]"
         }
@@ -280,15 +272,13 @@ const AppSidebar = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex ${
-          !isExpanded && !isHovered ? "justify-center" : "justify-start"
-        }`}
+        className={`py-8 flex ${!isExpanded && !isHovered ? "justify-center" : "justify-start"
+          }`}
       >
         <Link
           to="/"
-          className={`flex items-center ${
-            isExpanded || isHovered || isMobileOpen ? "gap-2" : "justify-center"
-          }`}
+          className={`flex items-center ${isExpanded || isHovered || isMobileOpen ? "gap-2" : "justify-center"
+            }`}
         >
           {/* Icon */}
           <ChartBar className="h-8 w-8 p-1 bg-blue-600 text-white dark:text-black rounded" />
@@ -309,9 +299,8 @@ const AppSidebar = () => {
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered ? "justify-center" : "justify-start"
-                }`}
+                className={`mb-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered ? "justify-center" : "justify-start"
+                  }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
                   "Business Management"
@@ -323,9 +312,8 @@ const AppSidebar = () => {
             </div>
             <div className="">
               <h2
-                className={`mb-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered ? "justify-center" : "justify-start"
-                }`}
+                className={`mb-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered ? "justify-center" : "justify-start"
+                  }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
                   "User & Financial"
