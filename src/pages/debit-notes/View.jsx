@@ -2,17 +2,19 @@ import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 
 const COLUMNS = [
-  { header: "Customer No.", accessor: "customerNo" },
-  { header: "Company Name", accessor: "companyName" },
-  { header: "DN No.", accessor: "dnNo" },
-  { header: "DN Doc", accessor: "dnDoc" },
-  { header: "DN Date", accessor: "dnDate" },
-  { header: "PO No.", accessor: "poNo" },
-  { header: "Ref No.", accessor: "refNo" },
+  { header: "Customer No.", accessor: "customer_no" },
+  { header: "DN No.", accessor: "dn_no" },
+  { header: "DN Document", accessor: "dn_doc" },
+  { header: "DN Date", accessor: "dn_date" },
+  { header: "PO No.", accessor: "po_no" },
+  { header: "Ref No.", accessor: "ref_no" },
   { header: "Amount", accessor: "amount" },
-  { header: "Uploaded at", accessor: "uploadedAt" },
-  { header: "Uploaded By", accessor: "uploadedBy" },
+  { header: "Payment Term", accessor: "payment_term" },
+  { header: "Remarks", accessor: "remarks" },
+  { header: "Uploaded At", accessor: "created_at" },
+  { header: "Uploaded By", accessor: "admin_id" },
 ];
+
 
 export default function DebitNotesView() {
   return (
@@ -22,7 +24,7 @@ export default function DebitNotesView() {
         description="Manage and track all debit notes. View debit note details and associated financial records."
       />
       <ListPage
-        resourceName="debit-notes"
+        resourceName="debitnotes"
         columns={COLUMNS}
         title="Debit Notes"
         addButtonText="New Debit Note"

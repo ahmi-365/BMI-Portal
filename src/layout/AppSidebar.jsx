@@ -38,7 +38,7 @@ const navItems = [
   {
     name: "Debit Notes",
     icon: <Box className="w-5 h-5" />,
-    path: "/debit-notes",
+    path: "/debitnotes",
   },
 ];
 
@@ -46,7 +46,7 @@ const othersItems = [
   {
     name: "Credit Notes",
     icon: <Table className="w-5 h-5" />,
-    path: "/credit-notes",
+    path: "/creditnotes",
   },
   {
     name: "Account Statements",

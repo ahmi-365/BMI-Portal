@@ -10,6 +10,7 @@ export default function DebitNotesIndex() {
     { key: "add", label: "Add Debit Note", component: Add },
     { key: "batch", label: "Batch Upload", component: BatchUpload },
   ];
+  
 
   return (
     <>

@@ -142,18 +142,18 @@ export default function App() {
             />
 
             {/* Debit Notes (wildcard so TabbedResource routes work) */}
-            <Route path="/debit-notes/*" element={<DebitNotesIndex />} />
-            <Route path="/debit-notes/edit/:id" element={<DebitNotesEdit />} />
-            <Route path="/debit-notes/show/:id" element={<DebitNotesShow />} />
+            <Route path="/debitnotes/*" element={<DebitNotesIndex />} />
+            <Route path="/debitnotes/edit/:id" element={<DebitNotesEdit />} />
+            <Route path="/debitnotes/show/:id" element={<DebitNotesShow />} />
 
             {/* Credit Notes (wildcard so TabbedResource routes work) */}
-            <Route path="/credit-notes/*" element={<CreditNotesIndex />} />
+            <Route path="/creditnotes/*" element={<CreditNotesIndex />} />
             <Route
-              path="/credit-notes/edit/:id"
+              path="/creditnotes/edit/:id"
               element={<CreditNotesEdit />}
             />
             <Route
-              path="/credit-notes/show/:id"
+              path="/creditnotes/show/:id"
               element={<CreditNotesShow />}
             />
 

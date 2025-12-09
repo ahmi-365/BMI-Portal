@@ -7,7 +7,7 @@ const COLUMNS = [
   { header: "DO No.", accessor: "doNo" },
   { header: "DO Doc", accessor: "doDoc" },
   { header: "Invoice No.", accessor: "invoiceNo" },
-  { header: "PO No.", accessor: "poNo" },
+  { header: "PO No.", accessor: "po_no" },
   { header: "Invoice Date", accessor: "invoiceDate" },
   { header: "Uploaded at", accessor: "uploadedAt" },
   { header: "Uploaded By", accessor: "uploadedBy" },
@@ -21,7 +21,7 @@ export default function DeliveryOrdersView() {
         description="Manage and track all delivery orders. Monitor shipments, delivery status, and associated documentation."
       />
       <ListPage
-        resourceName="delivery-orders"
+        resourceName="deliveryorders"
         columns={COLUMNS}
         title="Delivery Orders"
         subtitle="View and manage all delivery orders"

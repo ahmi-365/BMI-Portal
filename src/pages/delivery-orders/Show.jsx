@@ -26,7 +26,7 @@ const FIELDS = [
 export default function DeliveryOrdersShow() {
   return (
     <ShowPage
-      resourceName="delivery-orders"
+      resourceName="deliveryorders"
       fields={FIELDS}
       title="Delivery Order"
     />

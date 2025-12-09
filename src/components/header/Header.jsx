@@ -105,27 +105,27 @@ const Header = ({ onClick, onToggle }) => {
       // Debit Notes
       {
         name: "Debit Notes View",
-        path: "/debit-notes/view",
+        path: "/debitnotes/view",
         category: "Debit Notes",
       },
       {
         name: "Debit Notes Add",
-        path: "/debit-notes/add",
+        path: "/debitnotes/add",
         category: "Debit Notes",
       },
       {
         name: "Debit Notes Edit",
-        path: "/debit-notes/edit/:id",
+        path: "/debitnotes/edit/:id",
         category: "Debit Notes",
       },
       {
         name: "Debit Notes Show",
-        path: "/debit-notes/show/:id",
+        path: "/debitnotes/show/:id",
         category: "Debit Notes",
       },
       {
         name: "Debit Notes Batch Upload",
-        path: "/debit-notes/batch-upload",
+        path: "/debitnotes/batch-upload",
         category: "Debit Notes",
       },
 

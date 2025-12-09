@@ -66,7 +66,7 @@ export default function PaymentRecordsAdd() {
 
   return (
     <ResourceForm
-      resourceName="payment-records"
+      resourceName="payments"
       fields={FORM_FIELDS}
       title="Payment Record"
       onSubmit={handleSubmit}

@@ -40,7 +40,7 @@ const FORM_FIELDS = [
 export default function DeliveryOrdersEdit() {
   return (
     <ResourceForm
-      resourceName="delivery-orders"
+      resourceName="deliveryorders"
       fields={FORM_FIELDS}
       title="Edit Delivery Order"
     />

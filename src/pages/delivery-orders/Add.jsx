@@ -66,7 +66,7 @@ export default function DeliveryOrdersAdd() {
 
   return (
     <ResourceForm
-      resourceName="delivery-orders"
+      resourceName="deliveryorders"
       fields={FORM_FIELDS}
       title="New Delivery Order"
       onSubmit={handleSubmit}

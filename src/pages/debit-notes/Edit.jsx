@@ -1,20 +1,22 @@
 import { ResourceForm } from "../../components/common/ResourceForm";
 
 const FIELDS = [
-  { name: "customerNo", label: "Customer No.", type: "text", required: true },
-  { name: "companyName", label: "Company Name", type: "text", required: true },
-  { name: "dnNo", label: "DN No.", type: "text", required: true },
-  { name: "dnDoc", label: "DN Document", type: "file", required: true },
-  { name: "dnDate", label: "DN Date", type: "date", required: true },
-  { name: "poNo", label: "PO No.", type: "text" },
-  { name: "refNo", label: "Ref No.", type: "text" },
+  { name: "user_id", label: "User ID", type: "number", required: true },
+  { name: "date", label: "Date", type: "date", required: true },
+  { name: "invoiceId", label: "Invoice ID", type: "text", required: true },
+  { name: "customer_no", label: "Customer No.", type: "text", required: true },
   { name: "amount", label: "Amount", type: "number", required: true },
+  { name: "do_no", label: "DO No.", type: "text" },
+  { name: "remarks", label: "Remarks", type: "textarea" },
+  { name: "po_no", label: "PO No.", type: "text" },
+  { name: "do_doc", label: "DO Document", type: "file" },
+  { name: "file", label: "File", type: "file" },
 ];
 
 export default function DebitNotesEdit() {
   return (
     <ResourceForm
-      resourceName="debit-notes"
+      resourceName="debitnotes"
       fields={FIELDS}
       title="Edit Debit Note"
       mode="edit"
