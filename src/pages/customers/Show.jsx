@@ -3,35 +3,18 @@ import { downloadBlob } from "../../services/api";
 
 const fileRender = (filename, data) =>
   filename ? (
-    <button
-      onClick={async () => {
-        try {
-          const blob = await downloadBlob(
-            `/customers/download/${data.id}/${filename}`
-          );
-          const url = URL.createObjectURL(blob);
-          const newWin = window.open(url, "_blank");
-          if (!newWin) {
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-          }
-          setTimeout(() => URL.revokeObjectURL(url), 10000);
-        } catch (err) {
-          console.error(err);
-          alert("Failed to download file. Please sign in or try again.");
-        }
-      }}
+    <a
+      href={`${filename}`}
+      target="_blank"
+      rel="noopener noreferrer"
       className="text-brand-500 hover:underline"
     >
       {filename}
-    </button>
+    </a>
   ) : (
     "-"
   );
+
 
 const FIELDS = [
   { name: "id", label: "ID" },
