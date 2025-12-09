@@ -6,7 +6,7 @@ export default function SignIn() {
   return (
     <>
       <PageMeta
-        title="Sign In - BMI Invoice Management System"
+        title="Login - BMI Invoice Management System"
         description="Secure login portal for BMI Invoice Management System. Access your invoices, payments, and business data."
       />
       <AuthLayout>

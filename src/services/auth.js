@@ -1,7 +1,7 @@
 // Simple auth helper using localStorage and API endpoints
-const TOKEN_KEY = "bmi_token";
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE ;
+const TOKEN_KEY = "bmi_admin_token";
+const USER_TOKEN_KEY = "bmi_user_token";
+const API_BASE_URL = import.meta.env.VITE_API_BASE;
 
 export const auth = {
   getToken() {
@@ -43,5 +43,18 @@ export const auth = {
       // ignore
     }
     this.clear();
+  },
+};
+
+// User-specific auth helper
+export const userAuth = {
+  getToken() {
+    return localStorage.getItem(USER_TOKEN_KEY);
+  },
+  setToken(token) {
+    localStorage.setItem(USER_TOKEN_KEY, token);
+  },
+  clear() {
+    localStorage.removeItem(USER_TOKEN_KEY);
   },
 };

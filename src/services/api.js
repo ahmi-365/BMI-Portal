@@ -1,5 +1,5 @@
 // API service: real HTTP client for backend endpoints
-import { auth } from "./auth";
+import { auth, userAuth } from "./auth";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE || "http://localhost:3000/api";
@@ -10,12 +10,17 @@ const apiCall = async (endpoint, options = {}) => {
   const token = auth?.getToken?.();
 
   const config = {
+    method: options.method || "GET",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
     },
-    ...options,
   };
+
+  if (options.body) {
+    config.body = options.body;
+  }
 
   try {
     const response = await fetch(url, config);
@@ -168,6 +173,20 @@ export const listResource = async (
   return normalizePagination(res, page, perPage);
 };
 
+// User Panel list helper (uses userAuth)
+export const userListResource = async (
+  resource,
+  { page = 1, perPage = 25, search = "" } = {}
+) => {
+  const qs = buildQueryString({
+    page,
+    per_page: perPage,
+    ...(search ? { search } : {}),
+  });
+  const res = await userApiCall(`/${resource}${qs}`);
+  return normalizePagination(res, page, perPage);
+};
+
 // Helper to send FormData (for file uploads)
 export const apiCallFormData = async (endpoint, formData, method = "POST") => {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -199,6 +218,115 @@ export const apiCallFormData = async (endpoint, formData, method = "POST") => {
     return await response.text();
   } catch (error) {
     console.error("API Error:", error);
+    throw error;
+  }
+};
+
+// User Panel API Helpers (with userAuth token)
+export const userApiCall = async (endpoint, options = {}) => {
+  const url = `${API_BASE_URL}${endpoint}`;
+  const token = userAuth?.getToken?.();
+
+  const config = {
+    method: options.method || "GET",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  };
+
+  // Only add body if it exists
+  if (options.body) {
+    config.body = options.body;
+  }
+
+  try {
+    const response = await fetch(url, config);
+    if (response.status === 401) {
+      // Don't redirect on login endpoint - let it handle the error
+      if (endpoint !== "/user/login") {
+        try {
+          userAuth.clear();
+        } catch (e) {}
+        if (typeof window !== "undefined") window.location.href = "/user/login";
+        throw new Error("Unauthorized");
+      }
+    }
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`API Error: ${response.status} ${text}`);
+    }
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) return await response.json();
+    return await response.text();
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
+
+export const userApiCallFormData = async (
+  endpoint,
+  formData,
+  method = "POST"
+) => {
+  const url = `${API_BASE_URL}${endpoint}`;
+  const token = userAuth?.getToken?.();
+
+  const config = {
+    method,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  };
+
+  try {
+    const response = await fetch(url, config);
+    if (response.status === 401) {
+      try {
+        userAuth.clear();
+      } catch (e) {}
+      if (typeof window !== "undefined") window.location.href = "/user/login";
+      throw new Error("Unauthorized");
+    }
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`API Error: ${response.status} ${text}`);
+    }
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) return await response.json();
+    return await response.text();
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
+
+export const userDownloadBlob = async (endpoint) => {
+  const url = `${API_BASE_URL}${endpoint}`;
+  const token = userAuth?.getToken?.();
+
+  const config = {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  };
+
+  try {
+    const response = await fetch(url, config);
+    if (response.status === 401) {
+      try {
+        userAuth.clear();
+      } catch (e) {}
+      if (typeof window !== "undefined") window.location.href = "/user/login";
+      throw new Error("Unauthorized");
+    }
+    if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+    return await response.blob();
+  } catch (error) {
+    console.error("Download Error:", error);
     throw error;
   }
 };
@@ -538,11 +666,108 @@ export const paymentsAPI = {
 // USER PANEL APIs
 // ============================================================================
 
-// User Payments APIs
-export const userPaymentsAPI = {
-  add: (formData) =>
-    apiCallFormData("/deliveryorders/create", formData, "POST"),
+// User Auth APIs
+export const userAuthAPI = {
+  login: (email, password) =>
+    userApiCall("/user/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+
+  logout: () =>
+    userApiCall("/logout", {
+      method: "POST",
+    }),
+
+  profile: () =>
+    userApiCall("/user/profile", {
+      method: "GET",
+    }),
 };
 
-// User Auth APIs (reuse from admin)
-export const userAuthAPI = authAPI;
+// User Invoices APIs
+export const userInvoicesAPI = {
+  list: (params) => userListResource("user/invoices", params),
+
+  show: (id) => userApiCall(`/user/invoices/show/${id}`),
+
+  download: (id) => userDownloadBlob(`/user/invoices/download/${id}`),
+
+  bulkDownload: (ids) =>
+    userApiCall("/user/invoices/bulk-download", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+};
+
+// User Delivery Orders APIs
+export const userDeliveryOrdersAPI = {
+  list: (params) => userListResource("user/delivery-orders", params),
+
+  show: (id) => userApiCall(`/user/delivery-orders/show/${id}`),
+
+  download: (id) => userDownloadBlob(`/user/delivery-orders/download/${id}`),
+
+  bulkDownload: (ids) =>
+    userApiCall("/user/delivery-orders/bulk-download", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+};
+
+// User Debit Notes APIs
+export const userDebitNotesAPI = {
+  list: (params) => userListResource("user/debit-notes", params),
+
+  show: (id) => userApiCall(`/user/debit-notes/show/${id}`),
+
+  download: (id) => userDownloadBlob(`/user/debit-notes/download/${id}`),
+
+  bulkDownload: (ids) =>
+    userApiCall("/user/debit-notes/bulk-download", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+};
+
+// User Credit Notes APIs
+export const userCreditNotesAPI = {
+  list: (params) => userListResource("user/credit-notes", params),
+
+  show: (id) => userApiCall(`/user/credit-notes/show/${id}`),
+
+  download: (id) => userDownloadBlob(`/user/credit-notes/download/${id}`),
+
+  bulkDownload: (ids) =>
+    userApiCall("/user/credit-notes/bulk-download", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+};
+
+// User Payments APIs
+export const userPaymentsAPI = {
+  list: (params) => userListResource("user/payments", params),
+
+  show: (id) => userApiCall(`/user/payments/show/${id}`),
+
+  add: (formData) =>
+    userApiCallFormData("/user/payments/add", formData, "POST"),
+
+  download: (id) => userDownloadBlob(`/user/payments/download/${id}`),
+};
+
+// User Statements APIs
+export const userStatementsAPI = {
+  list: (params) => userListResource("user/statements", params),
+
+  show: (id) => userApiCall(`/user/statements/show/${id}`),
+
+  download: (id) => userDownloadBlob(`/user/statements/download/${id}`),
+
+  bulkDownload: (ids) =>
+    userApiCall("/user/statements/bulk-download", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+};

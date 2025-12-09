@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
+import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
-import { auth } from "../../services/auth";
-import { ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { userAuthAPI } from "../../services/api";
+import { userAuth } from "../../services/auth";
 
-export default function SignInForm() {
+export default function UserLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [email, setEmail] = useState("");
@@ -22,8 +22,18 @@ export default function SignInForm() {
     setError("");
     setLoading(true);
     try {
-      await auth.login(email, password);
-      navigate("/");
+      const res = await userAuthAPI.login(email, password);
+      const token = res?.token || res?.data?.token;
+      if (token) {
+        userAuth.setToken(token);
+        // Add a small delay to ensure state updates before navigation
+        setTimeout(() => {
+          navigate("/user/invoices", { replace: true });
+        }, 0);
+      } else {
+        setError("No token received from server");
+        setLoading(false);
+      }
     } catch (err) {
       // Extract error message from different formats
       let errorMessage = err.message || "Login failed";
@@ -44,7 +54,6 @@ export default function SignInForm() {
       }
 
       setError(errorMessage);
-    } finally {
       setLoading(false);
     }
   };
@@ -56,10 +65,10 @@ export default function SignInForm() {
         <div>
           <div className="mb-5 sm:mb-8">
             <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-              Login
+              Customer Login
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Enter your email and password to login!
+              Enter your email and password to access your account!
             </p>
           </div>
           <div>
@@ -68,17 +77,19 @@ export default function SignInForm() {
               <div className="space-y-6">
                 <div>
                   <Label>
-                    Email <span className="text-error-500">*</span>{" "}
+                    Email <span className="text-error-500">*</span>
                   </Label>
                   <Input
-                    placeholder="info@gmail.com"
+                    type="email"
+                    placeholder="testK@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
                 <div>
                   <Label>
-                    Password <span className="text-error-500">*</span>{" "}
+                    Password <span className="text-error-500">*</span>
                   </Label>
                   <div className="relative">
                     <Input
@@ -86,8 +97,8 @@ export default function SignInForm() {
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      required
                     />
-
                     <span
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
@@ -109,14 +120,23 @@ export default function SignInForm() {
                   </div>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm" disabled={loading}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    size="sm"
+                    disabled={loading}
+                  >
                     {loading ? "Logging in..." : "Login"}
                   </Button>
                 </div>
               </div>
             </form>
 
-            {error && <div className="mt-3 text-sm text-red-600">{error}</div>}
+            {error && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400">
+                {error}
+              </div>
+            )}
           </div>
         </div>
       </div>

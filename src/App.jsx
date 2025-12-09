@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
-import SignUp from "./pages/AuthPages/SignUp";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import UserProtectedRoute from "./components/common/UserProtectedRoute";
 import NotFound from "./pages/OtherPage/NotFound";
 import UserProfiles from "./pages/UserProfiles";
 import AppLayout from "./layout/AppLayout";
@@ -10,6 +10,7 @@ import Home from "./pages/Dashboard/Home";
 import AdminView from "./pages/admins/AdminView";
 import AdminCreate from "./pages/admins/AdminCreate";
 import AdminShow from "./pages/admins/AdminShow";
+import UserLayout from "./layout/UserLayout";
 
 // Payment Records
 import PaymentRecordsView from "./pages/payment-records/View";
@@ -76,6 +77,24 @@ import AdministrationAdd from "./pages/administration/Add";
 import AdministrationEdit from "./pages/administration/Edit";
 import AdministrationShow from "./pages/administration/Show";
 import AdministrationIndex from "./pages/administration/Index";
+
+// User Panel Auth
+import UserLogin from "./pages/UserPages/UserLogin";
+
+// User Panel Pages
+import UserDashboard from "./pages/UserPages/UserDashboard";
+import UserInvoices from "./pages/UserPages/UserInvoices";
+import UserInvoiceShow from "./pages/UserPages/UserInvoiceShow";
+import UserDeliveryOrders from "./pages/UserPages/UserDeliveryOrders";
+import UserDeliveryOrderShow from "./pages/UserPages/UserDeliveryOrderShow";
+import UserDebitNotes from "./pages/UserPages/UserDebitNotes";
+import UserDebitNoteShow from "./pages/UserPages/UserDebitNoteShow";
+import UserCreditNotes from "./pages/UserPages/UserCreditNotes";
+import UserCreditNoteShow from "./pages/UserPages/UserCreditNoteShow";
+import UserPayments from "./pages/UserPages/UserPayments";
+import UserPaymentShow from "./pages/UserPages/UserPaymentShow";
+import UserStatements from "./pages/UserPages/UserStatements";
+import UserStatementShow from "./pages/UserPages/UserStatementShow";
 
 export default function App() {
   return (
@@ -148,14 +167,8 @@ export default function App() {
 
             {/* Credit Notes (wildcard so TabbedResource routes work) */}
             <Route path="/creditnotes/*" element={<CreditNotesIndex />} />
-            <Route
-              path="/creditnotes/edit/:id"
-              element={<CreditNotesEdit />}
-            />
-            <Route
-              path="/creditnotes/show/:id"
-              element={<CreditNotesShow />}
-            />
+            <Route path="/creditnotes/edit/:id" element={<CreditNotesEdit />} />
+            <Route path="/creditnotes/show/:id" element={<CreditNotesShow />} />
 
             {/* Account Statements (use wildcard so TabbedResource routes work)
                 - The Index component contains the TabbedResource and will render
@@ -204,7 +217,47 @@ export default function App() {
 
           {/* Auth Layout */}
           <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
+
+          {/* User Panel */}
+          <Route path="/user/login" element={<UserLogin />} />
+
+          {/* User Panel Protected Routes */}
+          <Route
+            element={
+              <UserProtectedRoute>
+                <UserLayout />
+              </UserProtectedRoute>
+            }
+          >
+            <Route path="/user/dashboard" element={<UserDashboard />} />
+            <Route path="/user/invoices" element={<UserInvoices />} />
+            <Route path="/user/invoices/:id" element={<UserInvoiceShow />} />
+            <Route
+              path="/user/delivery-orders"
+              element={<UserDeliveryOrders />}
+            />
+            <Route
+              path="/user/delivery-orders/:id"
+              element={<UserDeliveryOrderShow />}
+            />
+            <Route path="/user/debit-notes" element={<UserDebitNotes />} />
+            <Route
+              path="/user/debit-notes/:id"
+              element={<UserDebitNoteShow />}
+            />
+            <Route path="/user/credit-notes" element={<UserCreditNotes />} />
+            <Route
+              path="/user/credit-notes/:id"
+              element={<UserCreditNoteShow />}
+            />
+            <Route path="/user/payments" element={<UserPayments />} />
+            <Route path="/user/payments/:id" element={<UserPaymentShow />} />
+            <Route path="/user/statements" element={<UserStatements />} />
+            <Route
+              path="/user/statements/:id"
+              element={<UserStatementShow />}
+            />
+          </Route>
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
