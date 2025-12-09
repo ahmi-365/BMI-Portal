@@ -1,7 +1,7 @@
 import { ResourceForm } from "../../components/common/ResourceForm";
 
 const FIELDS = [
-  { name: "customerNo", label: "Customer No.", type: "text", required: true },
+  { name: "customer_no", label: "Customer No.", type: "text", required: true },
   {
     name: "company",
     label: "Company/Business Name",
@@ -11,27 +11,36 @@ const FIELDS = [
   { name: "name", label: "Contact Name", type: "text", required: true },
   { name: "email", label: "Email", type: "email", required: true },
   {
-    name: "businessContactNumber",
+    name: "phone",
     label: "Business Contact Number",
     type: "text",
   },
-  { name: "paymentTerm", label: "Payment Term", type: "text" },
+  { name: "payment_term", label: "Payment Term", type: "text" },
   {
     name: "status",
     label: "Status",
     type: "select",
     options: [
-      { value: "Pending", label: "Pending" },
-      { value: "Approved", label: "Approved" },
+      { value: "0", label: "Pending" },
+      { value: "1", label: "Approved" },
     ],
     required: true,
   },
+  { name: "cc1", label: "Upload Credit Application Form (CC1)", type: "file" },
+  { name: "form_24", label: "Upload Form 24", type: "file" },
+  { name: "form_9", label: "Upload Form 9", type: "file" },
+  {
+    name: "financial_statement",
+    label: "Upload Financial Statements",
+    type: "file",
+  },
+  { name: "pdpa", label: "Upload PDPA", type: "file" },
 ];
 
 export default function CustomersEdit() {
   return (
     <ResourceForm
-      resourceName="customers-approved"
+      resourceName="customers"
       fields={FIELDS}
       title="Edit Customer"
       mode="edit"

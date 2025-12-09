@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { getMockDataById } from "../../services/api";
+import { getResourceById } from "../../services/api";
 
 export const ShowPage = ({ resourceName, fields, title = "Details" }) => {
   const { id } = useParams();
@@ -15,7 +15,7 @@ export const ShowPage = ({ resourceName, fields, title = "Details" }) => {
 
   const loadData = async () => {
     try {
-      const result = await getMockDataById(resourceName, id);
+      const result = await getResourceById(resourceName, id);
       setData(result);
     } catch (error) {
       console.error("Error loading data:", error);
@@ -74,7 +74,8 @@ export const ShowPage = ({ resourceName, fields, title = "Details" }) => {
                       {data[field.name] ? "Yes" : "No"}
                     </span>
                   ) : field.render ? (
-                    field.render(data[field.name])
+                    // Pass both the field value and the whole record to render functions
+                    field.render(data[field.name], data)
                   ) : (
                     data[field.name] || "-"
                   )}

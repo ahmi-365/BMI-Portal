@@ -2,31 +2,26 @@ import { ShowPage } from "../../components/common/ShowPage";
 
 const FIELDS = [
   { name: "id", label: "ID" },
-  { name: "name", label: "Statement Name" },
-  { name: "email", label: "Email" },
+  { name: "customer_no", label: "Customer No" },
   {
-    name: "mailable",
-    label: "Mailable",
-    type: "checkbox",
-    render: (value) => (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          value
-            ? "bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-400"
-            : "bg-red-100 text-red-800 dark:bg-red-500/10 dark:text-red-400"
-        }`}
-      >
-        {value ? "Yes" : "No"}
-      </span>
-    ),
+    name: "user",
+    label: "Company Name",
+    render: (user) => user?.company || "-",
   },
-  { name: "createdAt", label: "Created At" },
+  { name: "statement_doc", label: "Statement Document", type: "file" },
+  { name: "statement_date", label: "Statement Date" },
+  { name: "updated_at", label: "Updated At" },
+  {
+    name: "user",
+    label: "Uploaded By",
+    render: (user, data) => data.admin?.name || user?.name || "-",
+  },
 ];
 
 export default function AccountStatementsShow() {
   return (
     <ShowPage
-      resourceName="account-statements"
+      resourceName="statements"
       fields={FIELDS}
       title="Account Statement"
     />

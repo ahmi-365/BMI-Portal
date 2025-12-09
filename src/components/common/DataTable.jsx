@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "../ui/modal"; // Ensure this path is correct for your project
-import { deleteMockData } from "../../services/api"; // Ensure this path is correct
+import { deleteResource } from "../../services/api";
 
 export const DataTable = ({
   columns,
@@ -39,7 +39,7 @@ export const DataTable = ({
 
     setIsLoading(true);
     try {
-      await deleteMockData(resourceName, selectedRow.id);
+      await deleteResource(resourceName, selectedRow.id);
       setIsDeleteModalOpen(false);
       setSelectedRow(null);
       if (onDelete) {

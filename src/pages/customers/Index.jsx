@@ -6,9 +6,8 @@ import BatchUpload from "./BatchUpload";
 
 export default function CustomersIndex() {
   const tabs = [
-    { key: "view", label: "Add Customer", component: View },
-    { key: "add", label: "Approved Customers", component: Add },
-    { key: "batch", label: "Pending Approval", component: BatchUpload },
+    { key: "view", label: "All Customers", component: View },
+    { key: "add", label: "Add Customer", component: Add },
   ];
 
   return (

@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  createMockData,
-  updateMockData,
-  getMockDataById,
+  createResource,
+  updateResource,
+  getResourceById,
+  apiCallFormData,
 } from "../../services/api";
+import SearchableSelect from "./SearchableSelect";
 
 export const ResourceForm = ({
   resourceName,
   fields,
   onSubmitSuccess,
+  onSubmit,
   title = "Add Record",
 }) => {
   const navigate = useNavigate();
@@ -29,9 +32,22 @@ export const ResourceForm = ({
 
   const loadData = async () => {
     try {
-      const data = await getMockDataById(resourceName, id);
+      const data = await getResourceById(resourceName, id);
       if (data) {
-        setFormData(data);
+        // Flatten some nested relations so form fields can bind to simple names
+        const flat = { ...data };
+        if (data.user && data.user.id) flat.user_id = data.user.id;
+        if (data.user && data.user.company)
+          flat.company_name = data.user.company;
+        // Normalize ISO datetime strings to YYYY-MM-DD for date inputs
+        const isoDateRE = /^\d{4}-\d{2}-\d{2}T/;
+        Object.keys(flat).forEach((k) => {
+          const v = flat[k];
+          if (typeof v === "string" && isoDateRE.test(v)) {
+            flat[k] = v.split("T")[0];
+          }
+        });
+        setFormData(flat);
       }
     } catch (error) {
       console.error("Error loading data:", error);
@@ -44,9 +60,10 @@ export const ResourceForm = ({
     const { name, value, type, checked, files } = e.target;
 
     if (type === "file") {
+      // store the File object so callers can build FormData when needed
       setFormData((prev) => ({
         ...prev,
-        [name]: files?.[0]?.name || "",
+        [name]: files?.[0] || null,
       }));
     } else {
       setFormData((prev) => ({
@@ -85,10 +102,42 @@ export const ResourceForm = ({
     setSubmitLoading(true);
     try {
       let result;
-      if (isEditMode) {
-        result = await updateMockData(resourceName, id, formData);
+      if (onSubmit) {
+        // Allow callers to override submit behavior (useful for FormData/file uploads)
+        result = await onSubmit(formData);
+      } else if (isEditMode) {
+        // If any File objects are present, submit as multipart/form-data
+        const hasFile = Object.values(formData).some((v) => v instanceof File);
+        if (hasFile) {
+          const fd = new FormData();
+          Object.keys(formData).forEach((key) => {
+            const val = formData[key];
+            if (val instanceof File) fd.append(key, val, val.name);
+            else if (val !== undefined && val !== null)
+              fd.append(key, String(val));
+          });
+          result = await apiCallFormData(
+            `/${resourceName}/update/${id}`,
+            fd,
+            "POST"
+          );
+        } else {
+          result = await updateResource(resourceName, id, formData);
+        }
       } else {
-        result = await createMockData(resourceName, formData);
+        const hasFile = Object.values(formData).some((v) => v instanceof File);
+        if (hasFile) {
+          const fd = new FormData();
+          Object.keys(formData).forEach((key) => {
+            const val = formData[key];
+            if (val instanceof File) fd.append(key, val, val.name);
+            else if (val !== undefined && val !== null)
+              fd.append(key, String(val));
+          });
+          result = await apiCallFormData(`/${resourceName}/create`, fd, "POST");
+        } else {
+          result = await createResource(resourceName, formData);
+        }
       }
 
       if (onSubmitSuccess) {
@@ -161,7 +210,8 @@ export const ResourceForm = ({
                       />
                       {formData[field.name] && (
                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          Selected: {formData[field.name]}
+                          Selected:{" "}
+                          {formData[field.name]?.name || formData[field.name]}
                         </p>
                       )}
                     </div>
@@ -174,19 +224,33 @@ export const ResourceForm = ({
                       className="w-full rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 active:border-brand-500 disabled:cursor-default disabled:bg-whiter dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
                     />
                   ) : field.type === "select" ? (
-                    <select
-                      name={field.name}
-                      value={formData[field.name] || ""}
-                      onChange={handleChange}
-                      className="relative z-20 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 active:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
-                    >
-                      <option value="">Select {field.label}</option>
-                      {field.options?.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    field.searchable ? (
+                      <SearchableSelect
+                        id={`select-${field.name}`}
+                        options={field.options || []}
+                        value={formData[field.name]}
+                        onChange={(v) =>
+                          setFormData((prev) => ({ ...prev, [field.name]: v }))
+                        }
+                        placeholder={
+                          field.placeholder || `Select ${field.label}`
+                        }
+                      />
+                    ) : (
+                      <select
+                        name={field.name}
+                        value={formData[field.name] || ""}
+                        onChange={handleChange}
+                        className="relative z-20 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 active:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
+                      >
+                        <option value="">Select {field.label}</option>
+                        {field.options?.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    )
                   ) : field.type === "checkbox" ? (
                     <div className="flex items-center">
                       <input

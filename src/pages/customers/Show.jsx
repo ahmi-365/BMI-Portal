@@ -1,4 +1,37 @@
 import { ShowPage } from "../../components/common/ShowPage";
+import { downloadBlob } from "../../services/api";
+
+const fileRender = (filename, data) =>
+  filename ? (
+    <button
+      onClick={async () => {
+        try {
+          const blob = await downloadBlob(
+            `/customers/download/${data.id}/${filename}`
+          );
+          const url = URL.createObjectURL(blob);
+          const newWin = window.open(url, "_blank");
+          if (!newWin) {
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          }
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+        } catch (err) {
+          console.error(err);
+          alert("Failed to download file. Please sign in or try again.");
+        }
+      }}
+      className="text-brand-500 hover:underline"
+    >
+      {filename}
+    </button>
+  ) : (
+    "-"
+  );
 
 const FIELDS = [
   { name: "id", label: "ID" },
@@ -21,6 +54,15 @@ const FIELDS = [
     ),
   },
   { name: "createdAt", label: "Created At" },
+  { name: "cc1", label: "Credit App (CC1)", render: fileRender },
+  { name: "form_24", label: "Form 24", render: fileRender },
+  { name: "form_9", label: "Form 9", render: fileRender },
+  {
+    name: "financial_statement",
+    label: "Financial Statement",
+    render: fileRender,
+  },
+  { name: "pdpa", label: "PDPA", render: fileRender },
 ];
 
 export default function CustomersShow() {

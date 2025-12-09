@@ -68,12 +68,23 @@ export const apiService = {
       method: "DELETE",
     }),
 };
-
+// Generic delete helper for resources (uses /<resource>/delete/:id pattern)
+export const deleteResource = async (resource, id) => {
+  // Many backend endpoints expect DELETE at /<resource>/delete/:id
+  // Accept both resourceName (eg. 'customers-approved') or raw resource ('customers')
+  const { resource: parsed } = parseResourceName(resource);
+  const res = await apiCall(`/${parsed}/delete/${id}`, {
+    method: "DELETE",
+  });
+  return res?.data ?? res;
+};
 // Helper to map special resource names (eg. "payment-records-paid")
+// Helper to map special resource names (eg. "approve-customer")
 const parseResourceName = (resourceName) => {
   const params = {};
   let resource = resourceName;
 
+  // Handle generic suffixes
   if (resourceName.endsWith("-paid")) {
     resource = resourceName.replace(/-paid$/, "");
     params.status = "paid";
@@ -82,18 +93,38 @@ const parseResourceName = (resourceName) => {
     resource = resourceName.replace(/-not-acknowledged$/, "");
     params.status = "not-acknowledged";
   }
-  if (resourceName === "customers-approved") {
+
+  // --- FIXES START HERE ---
+
+  // Handle "approve-customer" -> Customers resource with status=approved
+  if (
+    resourceName === "approve-customer" ||
+    resourceName === "approve-customers"
+  ) {
     resource = "customers";
     params.status = "approved";
   }
-  if (resourceName === "customers-pending") {
+
+  // Handle "pending-customer" -> Customers resource with status=pending
+  if (
+    resourceName === "pending-customer" ||
+    resourceName === "pending-customers"
+  ) {
+    resource = "customers";
+    params.status = "pending";
+  }
+  // Support alternative endpoint names used by backend
+  if (resourceName === "approved-customers") {
+    resource = "customers";
+    params.status = "approved";
+  }
+  if (resourceName === "pending-customers") {
     resource = "customers";
     params.status = "pending";
   }
 
   return { resource, params };
 };
-
 const buildQueryString = (params = {}) => {
   const qs = new URLSearchParams(params);
   const s = qs.toString();
@@ -138,7 +169,7 @@ export const listResource = async (
 };
 
 // Helper to send FormData (for file uploads)
-const apiCallFormData = async (endpoint, formData, method = "POST") => {
+export const apiCallFormData = async (endpoint, formData, method = "POST") => {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = auth?.getToken?.();
 
@@ -173,36 +204,30 @@ const apiCallFormData = async (endpoint, formData, method = "POST") => {
 };
 
 // Former mock functions now call real API endpoints.
-export const getMockData = async (resourceName) => {
-  const { resource, params } = parseResourceName(resourceName);
-  const qs = buildQueryString(params);
-  const res = await apiService.getAll(resource, qs);
-  // If API returns wrapper { data: [...] } handle both shapes
-  return res?.data ?? res ?? [];
-};
-
-export const getMockDataById = async (resourceName, id) => {
+// Generic resource helpers that call the real API endpoints
+export const getResourceById = async (resourceName, id) => {
   const { resource } = parseResourceName(resourceName);
-  const res = await apiService.getById(resource, id);
+  // Many backend endpoints expose a show route at /<resource>/show/:id
+  const res = await apiCall(`/${resource}/show/${id}`);
   return res?.data ?? res;
 };
 
-export const createMockData = async (resourceName, data) => {
+export const createResource = async (resourceName, data) => {
   const { resource } = parseResourceName(resourceName);
-  const res = await apiService.create(resource, data);
+  const res = await apiCall(`/${resource}/create`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
   return res?.data ?? res;
 };
 
-export const updateMockData = async (resourceName, id, data) => {
+export const updateResource = async (resourceName, id, data) => {
   const { resource } = parseResourceName(resourceName);
-  const res = await apiService.update(resource, id, data);
+  const res = await apiCall(`/${resource}/update/${id}`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
   return res?.data ?? res;
-};
-
-export const deleteMockData = async (resourceName, id) => {
-  const { resource } = parseResourceName(resourceName);
-  const res = await apiService.delete(resource, id);
-  return res;
 };
 
 export const getPaginatedData = async (
@@ -276,7 +301,7 @@ export const adminUsersAPI = {
   show: (id) => apiCall(`/admins/show/${id}`),
 
   update: (id, formData) =>
-    apiCallFormData(`/admins/update/${id}`, formData, "put"),
+    apiCallFormData(`/admins/update/${id}`, formData, "POST"),
 
   delete: (id) =>
     apiCall(`/admins/delete/${id}`, {
@@ -288,22 +313,31 @@ export const adminUsersAPI = {
 export const customersAPI = {
   list: (params) => listResource("customers", params),
 
-  create: (data) =>
-    apiCall("/customers/create", {
+  create: (data) => {
+    // If caller passed a FormData (file uploads), use FormData helper
+    if (typeof FormData !== "undefined" && data instanceof FormData) {
+      return apiCallFormData("/customers/create", data, "POST");
+    }
+    return apiCall("/customers/create", {
       method: "POST",
       body: JSON.stringify(data),
-    }),
+    });
+  },
 
-  update: (data) =>
-    apiCall("/admin/users/create", {
+  update: (id, data) => {
+    if (typeof FormData !== "undefined" && data instanceof FormData) {
+      return apiCallFormData(`/customers/update/${id}`, data, "POST");
+    }
+    return apiCall(`/customers/update/${id}`, {
       method: "POST",
       body: JSON.stringify(data),
-    }),
+    });
+  },
 
-  show: (id) => apiCall(`/admin/users/show/${id}`),
+  show: (id) => apiCall(`/customers/show/${id}`),
 
   delete: (id) =>
-    apiCall(`/admin/users/delete/${id}`, {
+    apiCall(`/customers/delete/${id}`, {
       method: "DELETE",
     }),
 
@@ -312,6 +346,11 @@ export const customersAPI = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+};
+
+// Companies API (for dropdowns and lookups)
+export const companiesAPI = {
+  list: () => apiCall("/companies"),
 };
 
 // Invoices APIs
@@ -394,7 +433,7 @@ export const creditNotesAPI = {
 export const statementsAPI = {
   list: (params) => listResource("statements", params),
 
-  show: (id) => apiCall(`/statements/${id}`),
+  show: (id) => apiCall(`/statements/show/${id}`),
 
   create: (formData) => apiCallFormData("/statements/create", formData, "POST"),
 
@@ -413,6 +452,37 @@ export const statementsAPI = {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
+};
+
+// Helper to download binary content (blob) from an endpoint with auth handling
+export const downloadBlob = async (endpoint) => {
+  const url = `${API_BASE_URL}${endpoint}`;
+  const token = auth?.getToken?.();
+
+  const config = {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  };
+
+  try {
+    const response = await fetch(url, config);
+    if (response.status === 401) {
+      try {
+        auth.clear();
+      } catch (e) {}
+      if (typeof window !== "undefined") window.location.href = "/signin";
+      throw new Error("Unauthorized");
+    }
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`API Error: ${response.status} ${text}`);
+    }
+    return await response.blob();
+  } catch (error) {
+    console.error("API Error (blob):", error);
+    throw error;
+  }
 };
 
 // Delivery Orders APIs

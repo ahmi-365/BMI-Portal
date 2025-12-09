@@ -118,19 +118,7 @@ const AdminShow = () => {
             <p className="text-black dark:text-white">{admin.email || "—"}</p>
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Phone Number
-            </label>
-            <p className="text-black dark:text-white">{admin.phone || "—"}</p>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Role
-            </label>
-            <p className="text-black dark:text-white">{admin.role || "—"}</p>
-          </div>
+         
         </div>
 
         {/* Bio Section */}

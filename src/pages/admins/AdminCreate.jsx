@@ -53,18 +53,61 @@ const AdminCreate = () => {
     }
   }, [success, navigate, id, isEditing]);
 
+  // Helpers to normalize is_mailable values between the form and API
+  const toBooleanIsMailable = (val) => {
+    // Accept strings/numbers/booleans: '1'|'0', 1|0, true|false, 'on'|'off', 'true'|'false'
+    if (val === "on") return true;
+    if (val === "off") return false;
+    if (val === "1" || val === 1) return true;
+    if (val === "0" || val === 0) return false;
+    if (typeof val === "boolean") return val;
+    if (val === "true") return true;
+    if (val === "false") return false;
+    return false;
+  };
+
+  const normalizeIsMailable = (val) => {
+    // Backend expects numeric 1 for enabled, 0 for disabled.
+    if (val === "on") return 1;
+    if (val === "off") return 0;
+    if (typeof val === "boolean") return val ? 1 : 0;
+    if (val === "1" || val === 1) return 1;
+    if (val === "0" || val === 0) return 0;
+    if (val === "true") return 1;
+    if (val === "false") return 0;
+    return 0;
+  };
+
   const handleSubmit = async (data) => {
-    console.log("Submitting data:", data);
+    // Clean payload - only send necessary fields
+    const payload = {
+      name: data.name,
+      email: data.email,
+      // Ensure API always receives 'on' or 'off'
+      is_mailable: normalizeIsMailable(data.is_mailable),
+    };
+
+    // Only add password for create mode
+    if (!isEditing && data.password) {
+      payload.password = data.password;
+    }
+
+    console.log("Submitting payload:", payload);
     setIsSaving(true);
     setError(null);
     try {
       let response;
       if (isEditing) {
-        await adminUsersAPI.update(id, data);
+        // Convert payload to FormData for PUT request
+        const formData = new FormData();
+        Object.keys(payload).forEach((key) => {
+          formData.append(key, payload[key]);
+        });
+        await adminUsersAPI.update(id, formData);
         console.log("Admin updated successfully");
-        response = { data: { name: data.name, email: data.email } };
+        response = { data: { name: payload.name, email: payload.email } };
       } else {
-        response = await adminUsersAPI.create(data);
+        response = await adminUsersAPI.create(payload);
       }
       console.log("Response:", response);
       const createdAdmin = response.data || response;
@@ -74,6 +117,7 @@ const AdminCreate = () => {
         email: createdAdmin.email,
         id: createdAdmin.id,
       });
+      navigate(-1);
     } catch (err) {
       console.error("Error:", err);
       setError(err.message);
@@ -186,7 +230,14 @@ const AdminCreate = () => {
               onSubmit={handleSubmit}
               submitLabel={isEditing ? "Update Admin" : "Create Admin"}
               isLoading={isSaving}
-              initialValues={admin || {}}
+              initialValues={
+                admin
+                  ? {
+                      ...admin,
+                      is_mailable: toBooleanIsMailable(admin.is_mailable),
+                    }
+                  : {}
+              }
               onCancel={() =>
                 navigate(isEditing ? "/admin-users" : "/admin-users")
               }
