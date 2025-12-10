@@ -43,7 +43,7 @@ export const ShowPage = ({ resourceName, fields, title = "Details" }) => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 animate-fade-in-up">
       <div className="mb-6 flex items-center gap-4">
         <button
           onClick={() => navigate(`/${resourceName}/view`)}
@@ -54,7 +54,7 @@ export const ShowPage = ({ resourceName, fields, title = "Details" }) => {
         </button>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white shadow-theme-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-theme-sm dark:border-gray-800 dark:bg-gray-900 animate-slide-up">
         <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h2 className="text-xl font-bold text-black dark:text-white">
             {title} Details

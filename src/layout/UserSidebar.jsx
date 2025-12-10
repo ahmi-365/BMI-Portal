@@ -76,10 +76,7 @@ const UserSidebar = () => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
             if (isActive(subItem.path)) {
-              setOpenSubmenu({
-                type: menuType,
-                index,
-              });
+              setOpenSubmenu({ type: menuType, index });
               submenuMatched = true;
             }
           });
@@ -87,9 +84,7 @@ const UserSidebar = () => {
       });
     });
 
-    if (!submenuMatched) {
-      setOpenSubmenu(null);
-    }
+    if (!submenuMatched) setOpenSubmenu(null);
   }, [location, isActive]);
 
   useEffect(() => {
@@ -105,9 +100,7 @@ const UserSidebar = () => {
         return () => clearTimeout(timeout);
       }
     }
-    if (openSubmenu === null) {
-      setSubMenuHeight({});
-    }
+    if (openSubmenu === null) setSubMenuHeight({});
   }, [openSubmenu]);
 
   const handleSubmenuToggle = (index, menuType) => {
@@ -124,9 +117,9 @@ const UserSidebar = () => {
   };
 
   const renderMenuItems = (items, menuType) => (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-2 stagger">
       {items.map((nav, index) => (
-        <li key={nav.name}>
+        <li key={nav.name} className="animate-fade-in-up">
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
@@ -186,6 +179,7 @@ const UserSidebar = () => {
               </Link>
             )
           )}
+
           {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
             <div
               ref={(el) => {
@@ -199,7 +193,7 @@ const UserSidebar = () => {
                     : "0px",
               }}
             >
-              <ul className="mt-2 space-y-1 ml-5 border-l border-gray-200 dark:border-gray-700">
+              <ul className="mt-2 space-y-1 ml-5 border-l border-gray-200 dark:border-gray-700 stagger">
                 {nav.subItems.map((subItem) => (
                   <li key={subItem.name}>
                     <Link
@@ -227,7 +221,7 @@ const UserSidebar = () => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200
         ${
           isExpanded || isMobileOpen
             ? "w-[250px]"
@@ -243,7 +237,7 @@ const UserSidebar = () => {
       <div
         className={`py-8 flex ${
           !isExpanded && !isHovered ? "justify-center" : "justify-start"
-        }`}
+        } animate-pop`}
       >
         <Link
           to="/user/dashboard"
@@ -251,10 +245,7 @@ const UserSidebar = () => {
             isExpanded || isHovered || isMobileOpen ? "gap-2" : "justify-center"
           }`}
         >
-          {/* Icon */}
           <ChartBar className="h-8 w-8 p-1 bg-blue-600 text-white dark:text-black rounded" />
-
-          {/* Text - Only visible when open or hovered */}
           {(isExpanded || isHovered || isMobileOpen) && (
             <span className="text-xl font-bold text-gray-900 dark:text-white truncate">
               BMI{" "}
@@ -265,7 +256,8 @@ const UserSidebar = () => {
           )}
         </Link>
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
+
+      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar animate-fade-in-up">
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
             <div>
@@ -282,7 +274,8 @@ const UserSidebar = () => {
               </h2>
               {renderMenuItems(navItems, "main")}
             </div>
-            <div className="">
+
+            <div>
               <h2
                 className={`mb-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered ? "justify-center" : "justify-start"

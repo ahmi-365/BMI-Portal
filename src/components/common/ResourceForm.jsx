@@ -162,14 +162,14 @@ export const ResourceForm = ({
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 animate-fade-in-up">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-title-md2 font-bold text-black dark:text-white">
           {isEditMode ? `Edit ${title}` : `Add ${title}`}
         </h2>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white shadow-theme-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-xl border border-gray-200 bg-white shadow-theme-sm dark:border-gray-800 dark:bg-gray-900 animate-slide-up card-hover">
         <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 className="font-medium text-black dark:text-white">
             {isEditMode ? "Edit Information" : "Enter Information"}

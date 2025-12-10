@@ -25,22 +25,27 @@ html {
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
 
-  --text-title-2xl: 72px;
-  --text-title-2xl--line-height: 90px;
-  --text-title-xl: 60px;
-  --text-title-xl--line-height: 72px;
-  --text-title-lg: 48px;
-  --text-title-lg--line-height: 60px;
-  --text-title-md: 36px;
-  --text-title-md--line-height: 44px;
-  --text-title-sm: 30px;
-  --text-title-sm--line-height: 38px;
-  --text-theme-xl: 20px;
-  --text-theme-xl--line-height: 30px;
-  --text-theme-sm: 14px;
-  --text-theme-sm--line-height: 20px;
-  --text-theme-xs: 12px;
-  --text-theme-xs--line-height: 18px;
+  /* Global spacing scale (used by compiled Tailwind utilities) */
+  /* Reduced from .25rem to .20rem to tighten paddings/margins across UI */
+  --spacing: 0.2rem;
+
+  /* Typography (scaled down ~15% for a tighter layout) */
+  --text-title-2xl: 62px;
+  --text-title-2xl--line-height: 78px;
+  --text-title-xl: 51px;
+  --text-title-xl--line-height: 61px;
+  --text-title-lg: 41px;
+  --text-title-lg--line-height: 51px;
+  --text-title-md: 31px;
+  --text-title-md--line-height: 38px;
+  --text-title-sm: 26px;
+  --text-title-sm--line-height: 32px;
+  --text-theme-xl: 17px;
+  --text-theme-xl--line-height: 26px;
+  --text-theme-sm: 12px;
+  --text-theme-sm--line-height: 18px;
+  --text-theme-xs: 10px;
+  --text-theme-xs--line-height: 15px;
 
   --color-current: currentColor;
   --color-transparent: transparent;
@@ -791,6 +796,140 @@ span.flatpickr-weekday,
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+/* -----------------------------
+   Animation Utilities (reusable)
+   ----------------------------- */
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up-small {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Fade-in + small upward motion */
+.animate-fade-in-up {
+  animation: fade-in-up 360ms cubic-bezier(0.2, 0.9, 0.35, 1) both;
+}
+
+/* Gentle slide and pop for cards */
+.animate-slide-up {
+  animation: slide-up-small 300ms cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+
+.animate-pop {
+  animation: pop-in 280ms cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+
+/* Hover micro-interaction for cards */
+.card-hover {
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+.card-hover:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: var(--shadow-theme-lg);
+}
+
+/* Subtle button press */
+.btn-press {
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.btn-press:active {
+  transform: translateY(1px) scale(0.997);
+}
+
+/* Shimmer placeholder */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+/* Stagger children: use on parent to animate child items with delay */
+.stagger {
+  --stagger-index: 0;
+}
+.stagger > * {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: fade-in-up 360ms cubic-bezier(0.2, 0.9, 0.35, 1) both;
+  animation-delay: calc(var(--stagger-index) * 60ms);
+}
+.stagger > *:nth-child(1) {
+  --stagger-index: 0;
+}
+.stagger > *:nth-child(2) {
+  --stagger-index: 1;
+}
+.stagger > *:nth-child(3) {
+  --stagger-index: 2;
+}
+.stagger > *:nth-child(4) {
+  --stagger-index: 3;
+}
+.stagger > *:nth-child(5) {
+  --stagger-index: 4;
+}
+.stagger > *:nth-child(6) {
+  --stagger-index: 5;
+}
+
+/* Utility to reduce motion for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-slide-up,
+  .animate-pop,
+  .stagger > * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
   }
 }
 

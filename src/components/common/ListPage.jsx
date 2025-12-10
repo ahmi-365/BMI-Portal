@@ -197,7 +197,7 @@ export const ListPage = ({
   const endIndex = Math.min(currentPage * perPageState, total);
 
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fade-in-up">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -249,7 +249,7 @@ export const ListPage = ({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] overflow-hidden">
+          <div className="grid grid-cols-1 rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] overflow-hidden card-hover animate-slide-up">
             <DataTable
               columns={columns}
               data={data}

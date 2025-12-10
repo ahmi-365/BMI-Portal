@@ -47,7 +47,7 @@ export default function TabbedResource({
   };
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       <div className="border-b border-gray-200 dark:border-gray-700 px-6 pt-4">
         <div className="flex gap-4">
           {tabs.map((t, idx) => (
@@ -66,7 +66,9 @@ export default function TabbedResource({
         </div>
       </div>
 
-      <div className="mt-4">{ActiveComponent ? <ActiveComponent /> : null}</div>
+      <div className="mt-4 stagger">
+        {ActiveComponent ? <ActiveComponent /> : null}
+      </div>
     </div>
   );
 }

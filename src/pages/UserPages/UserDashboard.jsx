@@ -12,7 +12,7 @@ export default function UserDashboard() {
 
   return (
     <UserLayout>
-      <div className="flex justify-center items-center h-96">
+      <div className="flex justify-center items-center h-96 animate-fade-in-up">
         <p className="text-gray-500">Redirecting...</p>
       </div>
     </UserLayout>
