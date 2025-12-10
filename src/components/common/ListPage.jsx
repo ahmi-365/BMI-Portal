@@ -60,6 +60,7 @@ export const ListPage = ({
   subtitle = "Manage your records",
   perPage = 25,
   basePath,
+  showEdit = true,
 }) => {
   const navigate = useNavigate();
 
@@ -160,8 +161,8 @@ export const ListPage = ({
 
   const columns = [
     ...baseColumns,
-    // Pass promptDelete instead of direct delete
-    createActionColumn(handleView, handleEdit, promptDelete),
+    // Pass promptDelete instead of direct delete. Make edit handler optional via `showEdit` prop.
+    createActionColumn(handleView, showEdit ? handleEdit : null, promptDelete),
   ];
 
   // Pagination Helper

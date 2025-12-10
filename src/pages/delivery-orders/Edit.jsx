@@ -2,36 +2,36 @@ import { ResourceForm } from "../../components/common/ResourceForm";
 
 const FORM_FIELDS = [
   {
-    name: "customerNo",
+    name: "customer_no",
     label: "Customer No.",
     type: "text",
     required: true,
   },
   {
-    name: "companyName",
+    name: "company_name",
     label: "Company Name",
     type: "text",
     required: true,
   },
   {
-    name: "doNo",
+    name: "do_no",
     label: "DO No.",
     type: "text",
     required: true,
   },
   {
-    name: "doDoc",
+    name: "do_doc",
     label: "DO Document",
     type: "file",
     required: true,
   },
   {
-    name: "invoiceNo",
+    name: "invoice_no",
     label: "Invoice No.",
     type: "text",
   },
   {
-    name: "poNo",
+    name: "po_no",
     label: "PO No.",
     type: "text",
   },

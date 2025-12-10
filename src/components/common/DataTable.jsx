@@ -181,27 +181,35 @@ export const createActionColumn = (onView, onEdit, onDelete) => ({
   // No 'accessor' means no filter input will be rendered for this column
   render: (row) => (
     <div className="flex items-center gap-3">
-      <button
-        onClick={() => onView(row)}
-        className="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 transition-colors"
-        title="View"
-      >
-        <Eye className="w-4 h-4" />
-      </button>
-      <button
-        onClick={() => onEdit(row)}
-        className="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 transition-colors"
-        title="Edit"
-      >
-        <Pencil className="w-4 h-4" />
-      </button>
-      <button
-        onClick={() => onDelete(row)}
-        className="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
-        title="Delete"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
+      {onView && (
+        <button
+          onClick={() => onView(row)}
+          className="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 transition-colors"
+          title="View"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
+      )}
+
+      {onEdit && (
+        <button
+          onClick={() => onEdit(row)}
+          className="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 transition-colors"
+          title="Edit"
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
+      )}
+
+      {onDelete && (
+        <button
+          onClick={() => onDelete(row)}
+          className="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+          title="Delete"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      )}
     </div>
   ),
 });

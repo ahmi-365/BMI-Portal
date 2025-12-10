@@ -1,34 +1,15 @@
 import { ResourceForm } from "../../components/common/ResourceForm";
-
-const FORM_FIELDS = [
-  {
-    name: "name",
-    label: "Record Name",
-    type: "text",
-    placeholder: "Enter record name",
-    required: true,
-  },
-  {
-    name: "email",
-    label: "Email",
-    type: "email",
-    placeholder: "Enter email",
-    required: true,
-  },
-  {
-    name: "mailable",
-    label: "Mailable",
-    type: "checkbox",
-    required: false,
-  },
-];
+import { FORM_FIELDS } from "./Add";
 
 export default function PaymentRecordsEdit() {
+  // Do NOT pass `onSubmit` here — ResourceForm will detect `id` and use the
+  // generic updateResource path so the same form UI is used for edit.
   return (
     <ResourceForm
-      resourceName="payment-records"
+      resourceName="payments"
       fields={FORM_FIELDS}
-      title="Payment Record"
+      title="Edit Payment Record"
+      mode="edit"
     />
   );
 }

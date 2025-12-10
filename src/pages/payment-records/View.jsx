@@ -1,34 +1,201 @@
 import { useState } from "react";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
+import { downloadBlob } from "../../services/api";
 
+const openPdf = async (path, filename) => {
+  try {
+    const blob = await downloadBlob(path);
+    const blobUrl = URL.createObjectURL(blob);
+
+    const newWin = window.open(blobUrl, "_blank");
+
+    if (!newWin) {
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename || "file.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+  } catch (err) {
+    console.error("Download failed:", err);
+    alert("Failed to download document. Please try again.");
+  }
+};
+
+// ---------- PDF RENDER BUTTON ----------
+const PdfButton = ({ label, file, id, endpoint }) =>
+  file ? (
+    <button
+      onClick={() =>
+        openPdf(`/${endpoint}/download-proof/${id}`, file)
+      }
+      className="text-brand-500 hover:underline"
+    >
+      {file}
+    </button>
+  ) : (
+    "-"
+  );
 const PAID_COLUMNS = [
-  { header: "Customer No.", accessor: "customerNo" },
-  { header: "Company Name", accessor: "companyName" },
   { header: "Amount (MYR)", accessor: "amount" },
-  { header: "Payment Date", accessor: "paymentDate" },
-  { header: "Proof Of Payment", accessor: "proofOfPayment" },
-  { header: "Reference No.", accessor: "referenceNo" },
-  { header: "Invoice Doc", accessor: "invoiceDoc" },
-  { header: "DO DOC", accessor: "doDoc" },
-  { header: "DN DOC", accessor: "dnDoc" },
-  { header: "CN DOC", accessor: "cnDoc" },
+
+  {
+    header: "Customer No.",
+    accessor: "invoice",
+    render: (row) => row.user?.customer_no ?? "-",
+  },
+
+  {
+    header: "Company Name",
+    accessor: "company",
+    render: (row) => row.user?.company ?? "-",
+  },
+
+  { header: "Payment Date", accessor: "payment_date" },
+
+  {
+    header: "Proof of Payment",
+    accessor: "proof",
+    render: (row) => (
+      <PdfButton
+        label="Proof"
+        file={row.proof}
+        id={row.id}
+        endpoint="payments"
+      />
+    ),
+  },
+
+  { header: "Reference No.", accessor: "reference_id" },
+
+  {
+    header: "Invoice Doc",
+    accessor: "invoice_doc",
+    render: (row) => (
+      <PdfButton
+        file={row.invoice_doc}
+        id={row.id}
+        endpoint="payments"
+      />
+    ),
+  },
+
+  {
+    header: "DO Doc",
+    accessor: "do_doc",
+    render: (row) => (
+      <PdfButton
+        file={row.do_doc}
+        id={row.id}
+        endpoint="payments"
+      />
+    ),
+  },
+
+  {
+    header: "DN Doc",
+    accessor: "dn_doc",
+    render: (row) => (
+      <PdfButton
+        file={row.dn_doc}
+        id={row.id}
+        endpoint="payments"
+      />
+    ),
+  },
+
+  {
+    header: "CN Doc",
+    accessor: "cn_doc",
+    render: (row) => (
+      <PdfButton
+        file={row.cn_doc}
+        id={row.id}
+        endpoint="payments"
+      />
+    ),
+  },
+
   { header: "Status", accessor: "status" },
 ];
 
+// ===================================================================
+// NOT ACKNOWLEDGED COLUMNS
+// ===================================================================
 const NOT_ACKNOWLEDGED_COLUMNS = [
-  { header: "Customer No.", accessor: "customerNo" },
-  { header: "Company Name", accessor: "companyName" },
+  {
+    header: "Customer No.",
+    accessor: "customerNo",
+    render: (row) => row.user?.customer_no ?? row.user?.id ?? "-",
+  },
+
+  {
+    header: "Company Name",
+    accessor: "companyName",
+    render: (row) => row.user?.company ?? "-",
+  },
+
   { header: "Amount", accessor: "amount" },
   { header: "Outstanding", accessor: "outstanding" },
   { header: "Payment Date", accessor: "paymentDate" },
-  { header: "Proof Of Payment", accessor: "proofOfPayment" },
+
+  {
+    header: "Proof Of Payment",
+    accessor: "proofOfPayment",
+    render: (row) => (
+      <PdfButton
+        file={row.proof}
+        id={row.id}
+        endpoint="payments"
+      />
+    ),
+  },
+
   { header: "Reference No.", accessor: "referenceNo" },
-  { header: "DO DOC", accessor: "doDoc" },
-  { header: "DN DOC", accessor: "dnDoc" },
-  { header: "CN DOC", accessor: "cnDoc" },
+
+  {
+    header: "DO DOC",
+    accessor: "doDoc",
+    render: (row) => (
+      <PdfButton
+        file={row.do_doc}
+        id={row.id}
+        endpoint="payments"
+      />
+    ),
+  },
+
+  {
+    header: "DN DOC",
+    accessor: "dnDoc",
+    render: (row) => (
+      <PdfButton
+        file={row.dn_doc}
+        id={row.id}
+        endpoint="payments"
+      />
+    ),
+  },
+
+  {
+    header: "CN DOC",
+    accessor: "cnDoc",
+    render: (row) => (
+      <PdfButton
+        file={row.cn_doc}
+        id={row.id}
+        endpoint="payments"
+      />
+    ),
+  },
+
   { header: "Status", accessor: "status" },
 ];
+
 
 export default function PaymentRecordsView() {
   const [activeTab, setActiveTab] = useState("paid");
@@ -37,8 +204,10 @@ export default function PaymentRecordsView() {
     <div>
       <PageMeta
         title="Payment Records - BMI Invoice Management System"
-        description="Manage payment records including paid invoices and not acknowledged payments. Track all payment transactions and reconciliations."
+        description="Manage payment records including paid invoices and not acknowledged payments."
       />
+
+      {/* ---------- TABS ---------- */}
       <div className="border-b border-gray-200 dark:border-gray-700 px-6 pt-4">
         <div className="flex gap-4">
           <button
@@ -51,6 +220,7 @@ export default function PaymentRecordsView() {
           >
             Paid Invoices
           </button>
+
           <button
             onClick={() => setActiveTab("not-acknowledged")}
             className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
@@ -64,11 +234,13 @@ export default function PaymentRecordsView() {
         </div>
       </div>
 
+      {/* ---------- TABLES ---------- */}
       {activeTab === "paid" && (
         <ListPage
-          resourceName="payment-records-paid"
+          resourceName="payments"
           columns={PAID_COLUMNS}
           title="Paid Invoices"
+          showEdit={false}
         />
       )}
 
@@ -77,6 +249,7 @@ export default function PaymentRecordsView() {
           resourceName="payment-records-not-acknowledged"
           columns={NOT_ACKNOWLEDGED_COLUMNS}
           title="Not Acknowledged"
+          showEdit={false}
         />
       )}
     </div>

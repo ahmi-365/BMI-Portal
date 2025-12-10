@@ -1,7 +1,7 @@
 import { ResourceForm } from "../../components/common/ResourceForm";
 import { paymentsAPI } from "../../services/api";
 
-const FORM_FIELDS = [
+export const FORM_FIELDS = [
   {
     name: "user_id",
     label: "User ID",
@@ -9,21 +9,9 @@ const FORM_FIELDS = [
     required: true,
   },
   {
-    name: "date",
-    label: "Date",
+    name: "payment_date",
+    label: "Payment Date",
     type: "date",
-    required: true,
-  },
-  {
-    name: "invoice_id",
-    label: "Invoice ID",
-    type: "text",
-    required: true,
-  },
-  {
-    name: "customer_no",
-    label: "Customer No.",
-    type: "text",
     required: true,
   },
   {
@@ -33,29 +21,25 @@ const FORM_FIELDS = [
     required: true,
   },
   {
-    name: "do_no",
-    label: "DO No.",
+    name: "reference_id",
+    label: "Reference ID",
     type: "text",
+    required: true,
+  },
+  {
+    name: "invoice_id",
+    label: "Invoice ID",
+    type: "text",
+  },
+  {
+    name: "proof",
+    label: "Proof Document",
+    type: "file",
   },
   {
     name: "remarks",
     label: "Remarks",
     type: "textarea",
-  },
-  {
-    name: "po_no",
-    label: "PO No.",
-    type: "text",
-  },
-  {
-    name: "do_doc",
-    label: "DO Document",
-    type: "file",
-  },
-  {
-    name: "file",
-    label: "File",
-    type: "file",
   },
 ];
 
