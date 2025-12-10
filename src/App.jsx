@@ -120,24 +120,24 @@ export default function App() {
 
             {/* Payment Records */}
             <Route
-              path="/payment-records/view"
+              path="/payments/view"
               element={<PaymentRecordsView />}
             />
             <Route
-              path="/payment-records/add"
+              path="/payments/add"
               element={<PaymentRecordsAdd />}
             />
-            <Route path="/payment-records" element={<PaymentRecordsView />} />
+            <Route path="/payments" element={<PaymentRecordsView />} />
             <Route
-              path="/payment-records/edit/:id"
-              element={<PaymentRecordsEdit />}
+              path="/payments/edit/:id"
+              element={<PaymentRecordsAdd />}
             />
             <Route
-              path="/payment-records/show/:id"
+              path="/payments/show/:id"
               element={<PaymentRecordsShow />}
             />
             <Route
-              path="/payment-records/batch-upload"
+              path="/payments/batch-upload"
               element={<PaymentRecordsBatchUpload />}
             />
 

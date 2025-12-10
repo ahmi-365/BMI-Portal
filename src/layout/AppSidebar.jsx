@@ -27,7 +27,7 @@ const navItems = [
   {
     icon: <Calendar className="w-5 h-5" />,
     name: "Payment Records",
-    path: "/payment-records",
+    path: "/payments",
   },
   { name: "Invoices", icon: <List className="w-5 h-5" />, path: "/invoices" },
   {

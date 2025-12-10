@@ -3,59 +3,62 @@ import { invoicesAPI } from "../../services/api";
 
 const FORM_FIELDS = [
   {
-    name: "user_id",
-    label: "User ID",
-    type: "number",
-    required: true,
-  },
-  {
-    name: "date",
-    label: "Date",
-    type: "date",
-    required: true,
-  },
-  {
-    name: "invoiceId",
-    label: "Invoice ID",
+    name: "companyName",
+    label: "Company Name",
     type: "text",
-    required: true,
   },
   {
-    name: "customer_no",
+    name: "customerNo",
     label: "Customer No.",
     type: "text",
     required: true,
   },
   {
-    name: "amount",
-    label: "Amount",
-    type: "number",
+    name: "poNo",
+    label: "Customer PO No.",
+    type: "text",
     required: true,
   },
   {
-    name: "do_no",
-    label: "DO No.",
+    name: "invoiceNo",
+    label: "Invoice No.",
     type: "text",
+    required: true,
+  },
+  {
+    name: "doNo",
+    label: "Delivery Order No. (Can add multiple comma separated DO No's)",
+    type: "text",
+    placeholder: "DO123, DO124",
+  },
+  {
+    name: "invoiceDate",
+    label: "Invoice Date",
+    type: "date",
+    required: true,
+  },
+  {
+    name: "dueDate",
+    label: "Due Date",
+    type: "date",
+    required: true,
+  },
+  {
+    name: "invoiceDoc",
+    label: "Invoice Document",
+    type: "file",
+    required: true,
+  },
+  {
+    name: "amount",
+    label: "Amount (MYR)",
+    type: "number",
+    required: true,
   },
   {
     name: "remarks",
     label: "Remarks",
     type: "textarea",
-  },
-  {
-    name: "po_no",
-    label: "PO No.",
-    type: "text",
-  },
-  {
-    name: "do_doc",
-    label: "DO Document",
-    type: "file",
-  },
-  {
-    name: "file",
-    label: "Invoice File",
-    type: "file",
   },
 ];
 
