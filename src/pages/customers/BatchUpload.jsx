@@ -1,5 +1,11 @@
 import { BatchUploadPage } from "../../components/common/BatchUploadPage";
 
 export default function CustomersBatchUpload() {
-  return <BatchUploadPage resourceName="customers" title="Customers" />;
+  return (
+    <BatchUploadPage
+      resourceName="customers"
+      title="Customers"
+      enableOCR={true}
+    />
+  );
 }
