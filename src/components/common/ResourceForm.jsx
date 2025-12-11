@@ -98,7 +98,7 @@ export const ResourceForm = ({
     if (!validateForm()) {
       return;
     }
-
+console.log("Submitting form data:", formData);
     setSubmitLoading(true);
     try {
       let result;

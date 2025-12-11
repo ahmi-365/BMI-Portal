@@ -71,13 +71,6 @@ import CustomersIndex from "./pages/customers/Index";
 import AdminUsersBatchUpload from "./pages/admin-users/BatchUpload";
 import AdminUsersIndex from "./pages/admin-users/Index";
 
-// Administration
-import AdministrationView from "./pages/administration/View";
-import AdministrationAdd from "./pages/administration/Add";
-import AdministrationEdit from "./pages/administration/Edit";
-import AdministrationShow from "./pages/administration/Show";
-import AdministrationIndex from "./pages/administration/Index";
-
 // User Panel Auth
 import UserLogin from "./pages/UserPages/UserLogin";
 
@@ -95,6 +88,7 @@ import UserPayments from "./pages/UserPages/UserPayments";
 import UserPaymentShow from "./pages/UserPages/UserPaymentShow";
 import UserStatements from "./pages/UserPages/UserStatements";
 import UserStatementShow from "./pages/UserPages/UserStatementShow";
+import AdministrationIndex from "./pages/administration/Index";
 
 export default function App() {
   return (
@@ -112,40 +106,24 @@ export default function App() {
           >
             <Route index path="/" element={<Home />} />
             <Route path="/profile" element={<UserProfiles />} />
-
             {/* Admin Users (wildcard so TabbedResource routes work) */}
             <Route path="/admin-users/*" element={<AdminUsersIndex />} />
             <Route path="/admins/show/:id" element={<AdminShow />} />
             <Route path="/admins/edit/:id" element={<AdminCreate />} />
-
             {/* Payment Records */}
-            <Route
-              path="/payments/view"
-              element={<PaymentRecordsView />}
-            />
-            <Route
-              path="/payments/add"
-              element={<PaymentRecordsAdd />}
-            />
+            <Route path="/payments/view" element={<PaymentRecordsView />} />
+            <Route path="/payments/add" element={<PaymentRecordsAdd />} />
             <Route path="/payments" element={<PaymentRecordsView />} />
-            <Route
-              path="/payments/edit/:id"
-              element={<PaymentRecordsAdd />}
-            />
-            <Route
-              path="/payments/show/:id"
-              element={<PaymentRecordsShow />}
-            />
+            <Route path="/payments/edit/:id" element={<PaymentRecordsAdd />} />
+            <Route path="/payments/show/:id" element={<PaymentRecordsShow />} />
             <Route
               path="/payments/batch-upload"
               element={<PaymentRecordsBatchUpload />}
             />
-
             {/* Invoices (wildcard so TabbedResource routes work) */}
             <Route path="/invoices/*" element={<InvoicesIndex />} />
             <Route path="/invoices/edit/:id" element={<InvoicesEdit />} />
             <Route path="/invoices/show/:id" element={<InvoicesShow />} />
-
             {/* Delivery Orders (wildcard so TabbedResource routes work) */}
             <Route
               path="/delivery-orders/*"
@@ -159,17 +137,14 @@ export default function App() {
               path="/delivery-orders/show/:id"
               element={<DeliveryOrdersShow />}
             />
-
             {/* Debit Notes (wildcard so TabbedResource routes work) */}
             <Route path="/debitnotes/*" element={<DebitNotesIndex />} />
             <Route path="/debitnotes/edit/:id" element={<DebitNotesEdit />} />
             <Route path="/debitnotes/show/:id" element={<DebitNotesShow />} />
-
             {/* Credit Notes (wildcard so TabbedResource routes work) */}
             <Route path="/creditnotes/*" element={<CreditNotesIndex />} />
             <Route path="/creditnotes/edit/:id" element={<CreditNotesEdit />} />
             <Route path="/creditnotes/show/:id" element={<CreditNotesShow />} />
-
             {/* Account Statements (use wildcard so TabbedResource routes work)
                 - The Index component contains the TabbedResource and will render
                   correct tab based on the subpath (e.g. /account-statements/add).
@@ -197,22 +172,11 @@ export default function App() {
               path="/statements/show/:id"
               element={<AccountStatementsShow />}
             />
-
             {/* Customers (wildcard so TabbedResource routes work) */}
             <Route path="/customers/*" element={<CustomersIndex />} />
             <Route path="/customers/edit/:id" element={<CustomersEdit />} />
             <Route path="/customers/show/:id" element={<CustomersShow />} />
-
-            {/* Administration (wildcard so TabbedResource routes work) */}
             <Route path="/administration/*" element={<AdministrationIndex />} />
-            <Route
-              path="/administration/edit/:id"
-              element={<AdministrationEdit />}
-            />
-            <Route
-              path="/administration/show/:id"
-              element={<AdministrationShow />}
-            />
           </Route>
 
           {/* Auth Layout */}

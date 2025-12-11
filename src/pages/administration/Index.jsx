@@ -1,12 +1,16 @@
 import PageMeta from "../../components/common/PageMeta";
 import TabbedResource from "../../components/common/TabbedResource";
-import View from "./View";
-import Add from "./Add";
+import ChangePassword from "./ChangePassword";
+import ActivityLogs from "./ActivityLogs";
 
 export default function AdministrationIndex() {
   const tabs = [
-    { key: "view", label: "Change Password", component: View },
-    { key: "add", label: "System Logs", component: Add },
+    {
+      key: "changepassword",
+      label: "Change Password",
+      component: ChangePassword,
+    },
+    { key: "activitylogs", label: "Activity Logs", component: ActivityLogs },
   ];
 
   return (

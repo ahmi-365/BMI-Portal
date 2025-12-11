@@ -1,23 +1,64 @@
 import { ResourceForm } from "../../components/common/ResourceForm";
-import { creditNotesAPI } from "../../services/api";
-
-const FIELDS = [
-  { name: "user_id", label: "Company Name", type: "number", required: true },
-  { name: "cn_no", label: "Customer No.", type: "text", required: true },
-  { name: "customer_no", label: "Customer PO No.", type: "text", required: true },
-  { name: "po_no", label: "Amount (MYR)", type: "text" },
-  { name: "ref_no", label: "CN No.", type: "text" },
-  { name: "amount", label: "Reference No.", type: "number", required: true },
-  { name: "cn_date", label: "CN Document", type: "date", required: true },
-  { name: "payment_term", label: "CN Date", type: "number" },
-  { name: "remarks", label: "Due Date", type: "textarea" },
-  { name: "do_doc", label: "Remarks", type: "file" },
-  // { name: "file", label: "File", type: "file" },
-];
+import { creditNotesAPI, companiesAPI } from "../../services/api";
+import { useState, useEffect } from "react";
 
 export default function CreditNotesAdd() {
+  const [companyOptions, setCompanyOptions] = useState([]);
+
+  useEffect(() => {
+    const loadCompanies = async () => {
+      try {
+        const res = await companiesAPI.list();
+        const list = res?.data ?? res ?? [];
+        const opts = Array.isArray(list)
+          ? list.map((c) => ({ value: c.id, label: c.company || c.name }))
+          : [];
+        setCompanyOptions(opts);
+      } catch (err) {
+        console.error("Error loading companies:", err);
+        setCompanyOptions([]);
+      }
+    };
+    loadCompanies();
+  }, []);
+
+  const FIELDS = [
+    {
+      name: "user_id",
+      label: "Company Name",
+      type: "select",
+      searchable: true,
+      required: true,
+      options: companyOptions,
+      placeholder: "Select a company...",
+    },
+    {
+      name: "customer_no",
+      label: "Customer No.",
+      type: "text",
+      required: true,
+    },
+    { name: "po_no", label: "Customer PO No.", type: "text", required: true },
+    { name: "amount", label: "Amount (MYR)", type: "number", required: true },
+    { name: "cn_no", label: "CN No.", type: "text", required: true },
+    { name: "ref_no", label: "Reference No.", type: "text", required: true },
+    { name: "do_doc", label: "CN Document", type: "file" },
+    { name: "cn_date", label: "CN Date", type: "date", required: true },
+    { name: "due_date", label: "Due Date", type: "date", required: true },
+    { name: "remarks", label: "Remarks", type: "textarea" },
+  ];
+
   const handleSubmit = async (formData) => {
-    return await creditNotesAPI.create(formData);
+    const fd = new FormData();
+    Object.keys(formData).forEach((key) => {
+      const val = formData[key];
+      if (val instanceof File) {
+        fd.append(key, val, val.name);
+      } else if (val !== undefined && val !== null && val !== "") {
+        fd.append(key, String(val));
+      }
+    });
+    return await creditNotesAPI.create(fd);
   };
 
   return (

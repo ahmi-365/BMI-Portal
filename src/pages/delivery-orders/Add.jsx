@@ -3,35 +3,11 @@ import { deliveryOrdersAPI } from "../../services/api";
 
 const FORM_FIELDS = [
   {
-    name: "user_id",
-    label: "User ID",
-    type: "number",
-    required: true,
-  },
-  {
-    name: "date",
-    label: "Date",
-    type: "date",
-    required: true,
-  },
-  {
-    name: "invoice_id",
-    label: "Invoice ID",
+    name: "do_nos",
+    label: "Invoice No",
     type: "text",
-    required: true,
   },
-  {
-    name: "customer_no",
-    label: "Customer No.",
-    type: "text",
-    required: true,
-  },
-  {
-    name: "amount",
-    label: "Amount",
-    type: "number",
-    required: true,
-  },
+
   {
     name: "do_no",
     label: "DO No.",
@@ -42,26 +18,26 @@ const FORM_FIELDS = [
     label: "Remarks",
     type: "textarea",
   },
-  {
-    name: "po_no",
-    label: "PO No.",
-    type: "text",
-  },
-  {
-    name: "do_doc",
-    label: "DO Document",
-    type: "file",
-  },
+
   {
     name: "file",
-    label: "File",
+    label: "DO Document",
     type: "file",
   },
 ];
 
 export default function DeliveryOrdersAdd() {
   const handleSubmit = async (formData) => {
-    return await deliveryOrdersAPI.create(formData);
+    const fd = new FormData();
+    Object.keys(formData).forEach((key) => {
+      const val = formData[key];
+      if (val instanceof File) {
+        fd.append(key, val, val.name);
+      } else if (val !== undefined && val !== null && val !== "") {
+        fd.append(key, String(val));
+      }
+    });
+    return await deliveryOrdersAPI.create(fd);
   };
 
   return (
