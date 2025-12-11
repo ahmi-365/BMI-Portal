@@ -33,7 +33,7 @@ const navItems = [
   {
     name: "Delivery Orders",
     icon: <Table className="w-5 h-5" />,
-    path: "/delivery-orders",
+    path: "/deliveryorders",
   },
   {
     name: "Debit Notes",

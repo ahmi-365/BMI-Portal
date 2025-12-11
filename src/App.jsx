@@ -126,15 +126,15 @@ export default function App() {
             <Route path="/invoices/show/:id" element={<InvoicesShow />} />
             {/* Delivery Orders (wildcard so TabbedResource routes work) */}
             <Route
-              path="/delivery-orders/*"
+              path="/deliveryorders/*"
               element={<DeliveryOrdersIndex />}
             />
             <Route
-              path="/delivery-orders/edit/:id"
+              path="/deliveryorders/edit/:id"
               element={<DeliveryOrdersEdit />}
             />
             <Route
-              path="/delivery-orders/show/:id"
+              path="/deliveryorders/show/:id"
               element={<DeliveryOrdersShow />}
             />
             {/* Debit Notes (wildcard so TabbedResource routes work) */}

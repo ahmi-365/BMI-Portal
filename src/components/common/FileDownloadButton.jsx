@@ -1,13 +1,7 @@
 import React from "react";
 import { downloadBlob } from "../../services/api";
 
-// Generic file download / open button used across list pages.
-// Props:
-// - file: filename (string)
-// - id: resource id used to build download URL
-// - endpoint: API endpoint base (e.g. 'invoices' or 'payments')
-// - path: action path after endpoint (defaults to 'download')
-// - children: optional label
+
 export default function FileDownloadButton({ file, id, endpoint, path = "download", children }) {
   if (!file) return "-";
 
