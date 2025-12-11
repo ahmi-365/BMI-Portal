@@ -1,8 +1,12 @@
 import { ResourceForm } from "../../components/common/ResourceForm";
 import { creditNotesAPI, companiesAPI } from "../../services/api";
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
 export default function CreditNotesAdd() {
+  const { id } = useParams();
+  const isEditMode = !!id;
+
   const [companyOptions, setCompanyOptions] = useState([]);
 
   useEffect(() => {
@@ -42,22 +46,33 @@ export default function CreditNotesAdd() {
     { name: "amount", label: "Amount (MYR)", type: "number", required: true },
     { name: "cn_no", label: "CN No.", type: "text", required: true },
     { name: "ref_no", label: "Reference No.", type: "text", required: true },
-    { name: "do_doc", label: "CN Document", type: "file" },
+    { name: "file", label: "CN Document", type: "file" },
     { name: "cn_date", label: "CN Date", type: "date", required: true },
-    { name: "due_date", label: "Due Date", type: "date", required: true },
+    { name: "payment_term", label: "Due Date", type: "date", required: true },
     { name: "remarks", label: "Remarks", type: "textarea" },
   ];
 
+  // Get list of field names defined in FIELDS
+  const fieldNames = new Set(FIELDS.map(f => f.name));
+
   const handleSubmit = async (formData) => {
     const fd = new FormData();
+    
+    // Only include fields that are defined in FIELDS array
     Object.keys(formData).forEach((key) => {
-      const val = formData[key];
-      if (val instanceof File) {
-        fd.append(key, val, val.name);
-      } else if (val !== undefined && val !== null && val !== "") {
-        fd.append(key, String(val));
+      if (fieldNames.has(key)) {
+        const val = formData[key];
+        if (val instanceof File) {
+          fd.append(key, val, val.name);
+        } else if (val !== undefined && val !== null && val !== "") {
+          fd.append(key, String(val));
+        }
       }
     });
+
+    if (isEditMode) {
+      return await creditNotesAPI.update(id, fd);
+    }
     return await creditNotesAPI.create(fd);
   };
 
@@ -65,8 +80,7 @@ export default function CreditNotesAdd() {
     <ResourceForm
       resourceName="creditnotes"
       fields={FIELDS}
-      title="New Credit Note"
-      mode="add"
+      title={isEditMode ? "Edit Credit Note" : "New Credit Note"}
       onSubmit={handleSubmit}
     />
   );

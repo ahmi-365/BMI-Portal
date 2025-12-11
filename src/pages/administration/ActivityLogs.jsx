@@ -12,6 +12,8 @@ export default function SystemLogsViewer() {
   const [expandedLogs, setExpandedLogs] = useState({});
   const logsPerPage = 10;
 
+
+  
   useEffect(() => {
     fetchLogs();
   }, []);

@@ -1,50 +1,46 @@
 import { ResourceForm } from "../../components/common/ResourceForm";
 import { invoicesAPI } from "../../services/api";
+import { useParams } from "react-router-dom";
 
 const FORM_FIELDS = [
   {
-    name: "companyName",
-    label: "Company Name",
-    type: "text",
-  },
-  {
-    name: "customerNo",
+    name: "customer_no",
     label: "Customer No.",
     type: "text",
     required: true,
   },
   {
-    name: "poNo",
+    name: "po_no",
     label: "Customer PO No.",
     type: "text",
     required: true,
   },
   {
-    name: "invoiceNo",
+    name: "invoiceId",
     label: "Invoice No.",
     type: "text",
     required: true,
   },
   {
-    name: "doNo",
+    name: "do_no",
     label: "Delivery Order No. (Can add multiple comma separated DO No's)",
     type: "text",
     placeholder: "DO123, DO124",
   },
   {
-    name: "invoiceDate",
+    name: "invoice_date",
     label: "Invoice Date",
     type: "date",
     required: true,
   },
   {
-    name: "dueDate",
+    name: "date",
     label: "Due Date",
     type: "date",
     required: true,
   },
   {
-    name: "invoiceDoc",
+    name: "invoice_doc",
     label: "Invoice Document",
     type: "file",
     required: true,
@@ -63,15 +59,32 @@ const FORM_FIELDS = [
 ];
 
 export default function InvoicesAdd() {
+  const { id } = useParams();
+  const isEditMode = !!id;
+
   const handleSubmit = async (formData) => {
-    return await invoicesAPI.create(formData);
+    // Build FormData for file uploads
+    const fd = new FormData();
+    Object.keys(formData).forEach((key) => {
+      const val = formData[key];
+      if (val instanceof File) {
+        fd.append(key, val, val.name);
+      } else if (val !== undefined && val !== null) {
+        fd.append(key, String(val));
+      }
+    });
+
+    if (isEditMode) {
+      return await invoicesAPI.update(id, fd);
+    }
+    return await invoicesAPI.create(fd);
   };
 
   return (
     <ResourceForm
       resourceName="invoices"
       fields={FORM_FIELDS}
-      title="New Invoice"
+      title={isEditMode ? " Invoice" : "New Invoice"}
       onSubmit={handleSubmit}
     />
   );

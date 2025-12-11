@@ -2,9 +2,9 @@ import { ResourceForm } from "../../components/common/ResourceForm";
 import { customersAPI } from "../../services/api";
 
 const FIELDS = [
-  { name: "name", label: "Name", type: "text", required: true },
-  { name: "company", label: "Company", type: "text", required: true },
-  { name: "email", label: "Email", type: "email", required: true },
+  { name: "name", label: "Company/Business Name", type: "text", required: true },
+  { name: "company", label: "Business Contact Name ", type: "text", required: true },
+  { name: "email", label: "Business E-mail (Primary) ", type: "email", required: true },
   { name: "password", label: "Password", type: "password", required: true },
   {
     name: "password_confirmation",
@@ -24,10 +24,10 @@ const FIELDS = [
   },
   { name: "customer_no", label: "Customer No.", type: "text" },
   { name: "phone", label: "Phone", type: "text" },
-  { name: "address", label: "Address", type: "textarea" },
-  { name: "email2", label: "Email 2", type: "email" },
-  { name: "email3", label: "Email 3", type: "email" },
-  { name: "payment_term", label: "Payment Term", type: "text" },
+  { name: "address", label: "Billing Address", type: "textarea" },
+  { name: "email2", label: "Business E-mail 2", type: "email" },
+  { name: "email3", label: "Business E-mail 3", type: "email" },
+  { name: "payment_term", label: "Payment Term (EOM)", type: "text" },
   { name: "cc1", label: "Upload Credit Application Form (CC1)", type: "file" },
   { name: "form_24", label: "Upload Form 24", type: "file" },
   { name: "form_9", label: "Upload Form 9", type: "file" },

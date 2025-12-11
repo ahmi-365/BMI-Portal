@@ -7,6 +7,7 @@ const FORM_FIELDS = [
     type: "password",
     required: true,
   },
+  
   {
     name: "newPassword",
     label: "New Password",
@@ -52,7 +53,7 @@ export default function ChangePassword() {
 
   return (
     <ResourceForm
-      resourceName="changepassword"
+      resourceName="change-password"
       fields={FORM_FIELDS}
       title="Change Your Password"
       subtitle="Change your's password here."

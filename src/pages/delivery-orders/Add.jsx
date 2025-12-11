@@ -3,15 +3,15 @@ import { deliveryOrdersAPI } from "../../services/api";
 
 const FORM_FIELDS = [
   {
-    name: "do_nos",
+    name: "invoice_id",
     label: "Invoice No",
-    type: "text",
+    type: "number",
   },
 
   {
     name: "do_no",
     label: "DO No.",
-    type: "text",
+    type: "number",
   },
   {
     name: "remarks",

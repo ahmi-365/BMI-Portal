@@ -7,5 +7,6 @@ export default function InvoicesBatchUpload() {
       title="Invoices"
       enableOCR={true}
     />
+    
   );
 }

@@ -474,6 +474,11 @@ export const customersAPI = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+
+  approve: (id) =>
+    apiCall(`/customers/${id}/approve`, {
+      method: "POST",
+    }),
 };
 
 // Companies API (for dropdowns and lookups)

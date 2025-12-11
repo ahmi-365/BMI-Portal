@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
+import { customersAPI } from "../../services/api";
+import { toast } from "react-toastify";
 
 const APPROVED_COLUMNS = [
   {
@@ -20,7 +22,12 @@ const APPROVED_COLUMNS = [
     accessor: "payment_term",
     render: (row) => row.payment_term ?? row.paymentTerm ?? "-",
   },
-  { header: "Status", accessor: "status", render: (row) => row.status ?? "-" },
+  {
+  header: "Status",
+  accessor: "form_status",
+  render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
+}
+  ,
   {
     header: "Created At",
     accessor: "created_at",
@@ -49,7 +56,12 @@ const PENDING_COLUMNS = [
     accessor: "company",
     render: (row) => row.company || "-",
   },
-  { header: "Status", accessor: "status", render: (row) => row.status ?? "-" },
+  {
+  header: "Status",
+  accessor: "form_status",
+  render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
+}
+  ,
   {
     header: "Business Contact Number",
     accessor: "phone",
@@ -59,6 +71,45 @@ const PENDING_COLUMNS = [
     header: "Created At",
     accessor: "created_at",
     render: (row) => row.created_at || "-",
+  },
+  {
+    header: "Approve",
+    accessor: "id",
+    render: (row) => (
+      <div className="flex items-center gap-2">
+        
+        {/* Approve Button */}
+        <button
+          onClick={async (e) => {
+            e.stopPropagation();
+            try {
+              await customersAPI.approve(row.id);
+              toast.success("Customer approved successfully");
+              window.location.reload();
+            } catch (error) {
+              toast.error("Failed to approve customer");
+              console.error(error);
+            }
+          }}
+          className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
+          title="Approve Customer"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        </button>
+      </div>
+    ),
   },
 ];
 

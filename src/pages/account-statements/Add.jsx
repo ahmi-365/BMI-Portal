@@ -1,8 +1,12 @@
 import { ResourceForm } from "../../components/common/ResourceForm";
 import { statementsAPI, companiesAPI } from "../../services/api";
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
 export default function AccountStatementsAdd() {
+  const { id } = useParams();
+  const isEditMode = !!id;
+
   const [companyOptions, setCompanyOptions] = useState([]);
 
   useEffect(() => {
@@ -47,13 +51,24 @@ export default function AccountStatementsAdd() {
     },
   ];
 
+  // Get list of field names defined in FIELDS
+  const fieldNames = new Set(FIELDS.map(f => f.name));
+
   const handleSubmit = async (formData) => {
     const fd = new FormData();
+    
+    // Only include fields that are defined in FIELDS array
     Object.keys(formData).forEach((key) => {
-      const val = formData[key];
-      if (val instanceof File) fd.append(key, val, val.name);
-      else if (val !== undefined && val !== null) fd.append(key, String(val));
+      if (fieldNames.has(key)) {
+        const val = formData[key];
+        if (val instanceof File) fd.append(key, val, val.name);
+        else if (val !== undefined && val !== null) fd.append(key, String(val));
+      }
     });
+
+    if (isEditMode) {
+      return await statementsAPI.update(id, fd);
+    }
     return await statementsAPI.create(fd);
   };
 
@@ -61,8 +76,7 @@ export default function AccountStatementsAdd() {
     <ResourceForm
       resourceName="statements"
       fields={FIELDS}
-      title="New Account Statement"
-      mode="add"
+      title={isEditMode ? "Edit Account Statement" : "New Account Statement"}
       onSubmit={handleSubmit}
     />
   );

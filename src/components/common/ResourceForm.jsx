@@ -144,6 +144,7 @@ console.log("Submitting form data:", formData);
         onSubmitSuccess(result);
       } else {
         navigate(`/${resourceName}/view`);
+        window.location.reload();
       }
     } catch (error) {
       console.error("Error submitting form:", error);
