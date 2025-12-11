@@ -22,37 +22,31 @@ const Header = ({ onClick, onToggle }) => {
         path: "/admin-users/view",
         category: "Admin",
       },
-      { name: "Admin Users Add", path: "/admin-users/add", category: "Admin" },
+      {
+        name: "Admin Users Add",
+        path: "/admin-users/add",
+        category: "Admin",
+      },
       {
         name: "Admin Users Batch Upload",
         path: "/admin-users/batch-upload",
         category: "Admin",
       },
 
-      // Payment Records
+      // Payment Records (routes use /payments)
       {
         name: "Payment Records View",
-        path: "/payment-records/view",
+        path: "/payments/view",
         category: "Payment",
       },
       {
         name: "Payment Records Add",
-        path: "/payment-records/add",
-        category: "Payment",
-      },
-      {
-        name: "Payment Records Edit",
-        path: "/payment-records/edit/:id",
-        category: "Payment",
-      },
-      {
-        name: "Payment Records Show",
-        path: "/payment-records/show/:id",
+        path: "/payments/add",
         category: "Payment",
       },
       {
         name: "Payment Records Batch Upload",
-        path: "/payment-records/batch-upload",
+        path: "/payments/batch-upload",
         category: "Payment",
       },
 
@@ -60,49 +54,29 @@ const Header = ({ onClick, onToggle }) => {
       { name: "Invoices View", path: "/invoices/view", category: "Invoices" },
       { name: "Invoices Add", path: "/invoices/add", category: "Invoices" },
       {
-        name: "Invoices Edit",
-        path: "/invoices/edit/:id",
-        category: "Invoices",
-      },
-      {
-        name: "Invoices Show",
-        path: "/invoices/show/:id",
-        category: "Invoices",
-      },
-      {
         name: "Invoices Batch Upload",
         path: "/invoices/batch-upload",
         category: "Invoices",
       },
 
-      // Delivery Orders
+      // Delivery Orders (routes use /deliveryorders)
       {
         name: "Delivery Orders View",
-        path: "/delivery-orders/view",
+        path: "/deliveryorders/view",
         category: "Delivery",
       },
       {
         name: "Delivery Orders Add",
-        path: "/delivery-orders/add",
-        category: "Delivery",
-      },
-      {
-        name: "Delivery Orders Edit",
-        path: "/delivery-orders/edit/:id",
-        category: "Delivery",
-      },
-      {
-        name: "Delivery Orders Show",
-        path: "/delivery-orders/show/:id",
+        path: "/deliveryorders/add",
         category: "Delivery",
       },
       {
         name: "Delivery Orders Batch Upload",
-        path: "/delivery-orders/batch-upload",
+        path: "/deliveryorders/batch-upload",
         category: "Delivery",
       },
 
-      // Debit Notes
+      // Debit Notes (routes use /debitnotes)
       {
         name: "Debit Notes View",
         path: "/debitnotes/view",
@@ -114,49 +88,29 @@ const Header = ({ onClick, onToggle }) => {
         category: "Debit Notes",
       },
       {
-        name: "Debit Notes Edit",
-        path: "/debitnotes/edit/:id",
-        category: "Debit Notes",
-      },
-      {
-        name: "Debit Notes Show",
-        path: "/debitnotes/show/:id",
-        category: "Debit Notes",
-      },
-      {
         name: "Debit Notes Batch Upload",
         path: "/debitnotes/batch-upload",
         category: "Debit Notes",
       },
 
-      // Credit Notes
+      // Credit Notes (routes use /creditnotes)
       {
         name: "Credit Notes View",
-        path: "/credit-notes/view",
+        path: "/creditnotes/view",
         category: "Credit Notes",
       },
       {
         name: "Credit Notes Add",
-        path: "/credit-notes/add",
-        category: "Credit Notes",
-      },
-      {
-        name: "Credit Notes Edit",
-        path: "/credit-notes/edit/:id",
-        category: "Credit Notes",
-      },
-      {
-        name: "Credit Notes Show",
-        path: "/credit-notes/show/:id",
+        path: "/creditnotes/add",
         category: "Credit Notes",
       },
       {
         name: "Credit Notes Batch Upload",
-        path: "/credit-notes/batch-upload",
+        path: "/creditnotes/batch-upload",
         category: "Credit Notes",
       },
 
-      // Account Statements
+      // Account Statements (routes use both /account-statements and /statements)
       {
         name: "Account Statements View",
         path: "/account-statements/view",
@@ -165,16 +119,6 @@ const Header = ({ onClick, onToggle }) => {
       {
         name: "Account Statements Add",
         path: "/account-statements/add",
-        category: "Statements",
-      },
-      {
-        name: "Account Statements Edit",
-        path: "/account-statements/edit/:id",
-        category: "Statements",
-      },
-      {
-        name: "Account Statements Show",
-        path: "/account-statements/show/:id",
         category: "Statements",
       },
       {
@@ -191,16 +135,6 @@ const Header = ({ onClick, onToggle }) => {
       },
       { name: "Customers Add", path: "/customers/add", category: "Customers" },
       {
-        name: "Customers Edit",
-        path: "/customers/edit/:id",
-        category: "Customers",
-      },
-      {
-        name: "Customers Show",
-        path: "/customers/show/:id",
-        category: "Customers",
-      },
-      {
         name: "Customers Batch Upload",
         path: "/customers/batch-upload",
         category: "Customers",
@@ -215,16 +149,6 @@ const Header = ({ onClick, onToggle }) => {
       {
         name: "Administration Add",
         path: "/administration/add",
-        category: "Admin",
-      },
-      {
-        name: "Administration Edit",
-        path: "/administration/edit/:id",
-        category: "Admin",
-      },
-      {
-        name: "Administration Show",
-        path: "/administration/show/:id",
         category: "Admin",
       },
     ],

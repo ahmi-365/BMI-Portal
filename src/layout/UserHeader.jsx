@@ -1,21 +1,57 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
-import { ChartBar, LogOut } from "lucide-react";
+import { ChartBar, LogOut, User } from "lucide-react";
 import { userAuth } from "../services/auth";
 
 const UserHeader = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
-  // Ref for the search container to detect clicks outside
-  const searchContainerRef = useRef(null);
-  const inputRef = useRef(null);
+  // Refs
+  const profileDropdownRef = useRef(null);
+
+  // Define user pages
+  const pages = useMemo(
+    () => [
+      { name: "Dashboard", path: "/user/dashboard", category: "Dashboard" },
+      { name: "Profile", path: "/user/profile", category: "User" },
+      { name: "Invoices", path: "/user/invoices", category: "Documents" },
+      {
+        name: "Delivery Orders",
+        path: "/user/delivery-orders",
+        category: "Documents",
+      },
+      { name: "Debit Notes", path: "/user/debit-notes", category: "Documents" },
+      {
+        name: "Credit Notes",
+        path: "/user/credit-notes",
+        category: "Documents",
+      },
+      {
+        name: "Account Statements",
+        path: "/user/account-statements",
+        category: "Documents",
+      },
+    ],
+    []
+  );
+
+  // Filter pages based on search query
+  const filteredPages = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return pages.filter(
+      (page) =>
+        page.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        page.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery, pages]);
 
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
@@ -34,27 +70,30 @@ const UserHeader = () => {
     }
   };
 
-  // Keyboard shortcut (Cmd+K / Ctrl+K)
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
-        event.preventDefault();
-        inputRef.current?.focus();
-        setIsSearchOpen(true);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setShowSearchResults(value.trim() !== "");
+  };
 
-  // Click Outside Logic (Fixes the navigation issue)
+  const handlePageClick = (path) => {
+    navigate(path);
+    setSearchQuery("");
+    setShowSearchResults(false);
+  };
+
+  const toggleApplicationMenu = () => {
+    setApplicationMenuOpen(!isApplicationMenuOpen);
+  };
+
+  // Click outside to close profile dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        searchContainerRef.current &&
-        !searchContainerRef.current.contains(event.target)
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target)
       ) {
-        setIsSearchOpen(false);
+        setIsProfileDropdownOpen(false);
       }
     };
 
@@ -121,8 +160,113 @@ const UserHeader = () => {
             </span>
           </Link>
 
-          {/* Placeholder for alignment */}
-          <div className="hidden lg:block"></div>
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={toggleApplicationMenu}
+            className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M5.99902 10.4951C6.82745 10.4951 7.49902 11.1667 7.49902 11.9951V12.0051C7.49902 12.8335 6.82745 13.5051 5.99902 13.5051C5.1706 13.5051 4.49902 12.8335 4.49902 12.0051V11.9951C4.49902 11.1667 5.1706 10.4951 5.99902 10.4951ZM17.999 10.4951C18.8275 10.4951 19.499 11.1667 19.499 11.9951V12.0051C19.499 12.8335 18.8275 13.5051 17.999 13.5051C17.1706 13.5051 16.499 12.8335 16.499 12.0051V11.9951C16.499 11.1667 17.1706 10.4951 17.999 10.4951ZM13.499 11.9951C13.499 11.1667 12.8275 10.4951 11.999 10.4951C11.1706 10.4951 10.499 11.1667 10.499 11.9951V12.0051C10.499 12.8335 11.1706 13.5051 11.999 13.5051C12.8275 13.5051 13.499 12.8335 13.499 12.0051V11.9951Z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+
+          {/* Search Bar - Desktop */}
+          <div className="hidden lg:block">
+            <div className="relative">
+              <button className="absolute -translate-y-1/2 left-4 top-1/2">
+                <svg
+                  className="fill-gray-500 dark:fill-gray-400"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
+                    fill=""
+                  />
+                </svg>
+              </button>
+              <input
+                type="text"
+                placeholder="Search pages..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onFocus={() => searchQuery && setShowSearchResults(true)}
+                onBlur={() =>
+                  setTimeout(() => setShowSearchResults(false), 200)
+                }
+                className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
+              />
+
+              <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
+                <span> ⌘ </span>
+                <span> K </span>
+              </button>
+
+              {/* Search Results Dropdown */}
+              {showSearchResults && filteredPages.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                  {filteredPages.map((page, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handlePageClick(page.path)}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-800 last:border-b-0 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {page.name}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {page.category}
+                          </p>
+                        </div>
+                        <svg
+                          className="w-4 h-4 text-gray-400 dark:text-gray-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* No Results Message */}
+              {showSearchResults &&
+                filteredPages.length === 0 &&
+                searchQuery && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50 p-4 text-center">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      No pages found for "{searchQuery}"
+                    </p>
+                  </div>
+                )}
+            </div>
+          </div>
         </div>
 
         <div
@@ -134,14 +278,60 @@ const UserHeader = () => {
             <ThemeToggleButton />
           </div>
 
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center gap-2.5 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs duration-300 ease-in-out hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
+          {/* User Profile Dropdown */}
+          <div className="relative" ref={profileDropdownRef}>
+            <button
+              onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+              className="inline-flex items-center gap-2.5 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs duration-300 ease-in-out hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">My Account</span>
+              <svg
+                className={`w-4 h-4 transition-transform ${
+                  isProfileDropdownOpen ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            {/* Dropdown Menu */}
+            {isProfileDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50">
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      navigate("/user/profile");
+                      setIsProfileDropdownOpen(false);
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Profile
+                  </button>
+                  <div className="border-t border-gray-200 dark:border-gray-800"></div>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsProfileDropdownOpen(false);
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

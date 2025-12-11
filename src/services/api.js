@@ -546,6 +546,15 @@ export const debitNotesAPI = {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
+
+  bulkParse: (formData) =>
+    apiCallFormData("/debitnotes/bulk-parse", formData, "POST"),
+
+  bulkUpload: (data) =>
+    apiCall("/debitnotes/bulk-upload", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
 
 // Credit Notes APIs
@@ -572,6 +581,15 @@ export const creditNotesAPI = {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
+
+  bulkParse: (formData) =>
+    apiCallFormData("/creditnotes/bulk-parse", formData, "POST"),
+
+  bulkUpload: (data) =>
+    apiCall("/creditnotes/bulk-upload", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
 
 // Account Statements APIs
@@ -596,6 +614,15 @@ export const statementsAPI = {
     apiCall("/statements/delete/bulk", {
       method: "POST",
       body: JSON.stringify({ ids }),
+    }),
+
+  bulkParse: (formData) =>
+    apiCallFormData("/statements/bulk-parse", formData, "POST"),
+
+  bulkUpload: (data) =>
+    apiCall("/statements/bulk-upload", {
+      method: "POST",
+      body: JSON.stringify(data),
     }),
 };
 
@@ -653,6 +680,15 @@ export const deliveryOrdersAPI = {
     apiCall("/deliveryorders/delete/bulk", {
       method: "POST",
       body: JSON.stringify({ ids }),
+    }),
+
+  bulkParse: (formData) =>
+    apiCallFormData("/deliveryorders/bulk-parse", formData, "POST"),
+
+  bulkUpload: (data) =>
+    apiCall("/deliveryorders/bulk-upload", {
+      method: "POST",
+      body: JSON.stringify(data),
     }),
 };
 
