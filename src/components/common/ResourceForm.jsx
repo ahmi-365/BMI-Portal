@@ -55,7 +55,7 @@ export const ResourceForm = ({
             flat[k] = v.split("T")[0];
           }
         });
-        setFormData(flat);
+        setFormData(pickFieldValues(flat));
       }
     } catch (error) {
       console.error("Error loading data:", error);
@@ -89,6 +89,14 @@ export const ResourceForm = ({
     }
   };
 
+  const pickFieldValues = (data = {}) => {
+    const allowed = new Set(fields.map((f) => f.name));
+    return Object.keys(data).reduce((acc, key) => {
+      if (allowed.has(key)) acc[key] = data[key];
+      return acc;
+    }, {});
+  };
+
   const validateForm = () => {
     const newErrors = {};
     fields.forEach((field) => {
@@ -106,20 +114,21 @@ export const ResourceForm = ({
     if (!validateForm()) {
       return;
     }
-    console.log("Submitting form data:", formData);
+    const payload = pickFieldValues(formData);
+    console.log("Submitting form data:", payload);
     setSubmitLoading(true);
     try {
       let result;
       if (onSubmit) {
         // Allow callers to override submit behavior (useful for FormData/file uploads)
-        result = await onSubmit(formData);
+        result = await onSubmit(payload);
       } else if (isEditMode) {
         // If any File objects are present, submit as multipart/form-data
-        const hasFile = Object.values(formData).some((v) => v instanceof File);
+        const hasFile = Object.values(payload).some((v) => v instanceof File);
         if (hasFile) {
           const fd = new FormData();
-          Object.keys(formData).forEach((key) => {
-            const val = formData[key];
+          Object.keys(payload).forEach((key) => {
+            const val = payload[key];
             if (val instanceof File) fd.append(key, val, val.name);
             else if (val !== undefined && val !== null)
               fd.append(key, String(val));
@@ -130,21 +139,21 @@ export const ResourceForm = ({
             "POST"
           );
         } else {
-          result = await updateResource(resourceName, id, formData);
+          result = await updateResource(resourceName, id, payload);
         }
       } else {
-        const hasFile = Object.values(formData).some((v) => v instanceof File);
+        const hasFile = Object.values(payload).some((v) => v instanceof File);
         if (hasFile) {
           const fd = new FormData();
-          Object.keys(formData).forEach((key) => {
-            const val = formData[key];
+          Object.keys(payload).forEach((key) => {
+            const val = payload[key];
             if (val instanceof File) fd.append(key, val, val.name);
             else if (val !== undefined && val !== null)
               fd.append(key, String(val));
           });
           result = await apiCallFormData(`/${resourceName}/create`, fd, "POST");
         } else {
-          result = await createResource(resourceName, formData);
+          result = await createResource(resourceName, payload);
         }
       }
 
@@ -152,7 +161,7 @@ export const ResourceForm = ({
         onSubmitSuccess(result);
       } else {
         navigate(`/${resourceName}/view`);
-        window.location.reload();
+        // window.location.reload();
       }
     } catch (error) {
       console.error("Error submitting form:", error);

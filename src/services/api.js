@@ -1,8 +1,7 @@
 // API service: real HTTP client for backend endpoints
 import { auth, userAuth } from "./auth";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE || "http://localhost:3000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE;
 
 // Helper function to make API requests with auth header
 const apiCall = async (endpoint, options = {}) => {
@@ -665,8 +664,7 @@ export const paymentsAPI = {
 
   approved: () => apiCall("/payments/approved"),
 
-  approve: (formData) =>
-    apiCallFormData("/deliveryorders/create", formData, "POST"),
+  approve: (formData) => apiCallFormData("/payments/approve", formData, "POST"),
 
   download: (id) => apiCall(`/statements/download/${id}`),
 

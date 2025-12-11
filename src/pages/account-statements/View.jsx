@@ -48,12 +48,17 @@ const COLUMNS = [
         "-"
       ),
   },
-  { header: "Statement Date", accessor: "statement_date" },
-  {
-    header: "Updated At",
-    accessor: "updated_at",
-    render: (row) => row.updated_at || row.created_at || "-",
-  },
+ {
+  header: "Statement Date",
+  accessor: "statement_date",
+  render: (row) => row.statement_date ? row.statement_date.split("T")[0] : "-",
+},
+{
+  header: "Updated At",
+  accessor: "updated_at",
+  render: (row) => (row.updated_at || row.created_at) ? (row.updated_at || row.created_at).split("T")[0] : "-",
+},
+
   {
     header: "Uploaded By",
     accessor: "uploaded_by",

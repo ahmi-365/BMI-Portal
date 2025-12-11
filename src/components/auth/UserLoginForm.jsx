@@ -81,7 +81,7 @@ export default function UserLoginForm() {
                   </Label>
                   <Input
                     type="email"
-                    placeholder="testK@gmail.com"
+                    placeholder="user@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required

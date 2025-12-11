@@ -28,11 +28,12 @@ const APPROVED_COLUMNS = [
   render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
 }
   ,
-  {
-    header: "Created At",
-    accessor: "created_at",
-    render: (row) => row.created_at || row.createdAt || "-",
-  },
+ {
+  header: "Created At",
+  accessor: "created_at",
+  render: (row) => (row.created_at || row.createdAt) ? (row.created_at || row.createdAt).split("T")[0] : "-",
+}
+,
   {
     header: "Added By",
     accessor: "admin_id",
@@ -68,10 +69,11 @@ const PENDING_COLUMNS = [
     render: (row) => row.phone || "-",
   },
   {
-    header: "Created At",
-    accessor: "created_at",
-    render: (row) => row.created_at || "-",
-  },
+  header: "Created At",
+  accessor: "created_at",
+  render: (row) => (row.created_at || row.createdAt) ? (row.created_at || row.createdAt).split("T")[0] : "-",
+}
+,
   {
     header: "Approve",
     accessor: "id",

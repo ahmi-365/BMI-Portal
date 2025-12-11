@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ResourceForm } from "../../components/common/ResourceForm";
 import { apiCallFormData, debitNotesAPI } from "../../services/api";
-import {  companiesAPI } from "../../services/api";
+import { companiesAPI } from "../../services/api";
 
 export default function DebitNotesAdd() {
   const { id } = useParams();
@@ -49,19 +49,24 @@ export default function DebitNotesAdd() {
       options: companyOptions,
       placeholder: "Select a company...",
     },
-    { name: "customer_no", label: "Customer No.", type: "text", required: true },
+    {
+      name: "customer_no",
+      label: "Customer No.",
+      type: "text",
+      required: true,
+    },
     { name: "po_no", label: "Customer PO No.", type: "text", required: true },
     { name: "amount", label: "Amount (MYR)", type: "number", required: true },
     { name: "ref_no", label: "Reference No.", type: "text", required: true },
     { name: "dn_no", label: "DN No.", type: "text" },
-    { name: "file", label: "DN Document", type: "file" },
+    { name: "dn_doc", label: "DN Document", type: "file" },
     { name: "dn_date", label: "DN Date", type: "date" },
     { name: "payment_term", label: "Due Date", type: "date" },
     { name: "remarks", label: "Remarks", type: "textarea" },
   ];
 
   // Get list of field names defined in FIELDS
-  const fieldNames = new Set(FIELDS.map(f => f.name));
+  const fieldNames = new Set(FIELDS.map((f) => f.name));
 
   // ---------------------------
   // Submit Handler

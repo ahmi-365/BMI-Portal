@@ -1,3 +1,4 @@
+import { useParams } from "react-router-dom";
 import { ResourceForm } from "../../components/common/ResourceForm";
 import { deliveryOrdersAPI } from "../../services/api";
 
@@ -11,7 +12,7 @@ const FORM_FIELDS = [
   {
     name: "do_no",
     label: "DO No.",
-    type: "number",
+    type: "text",
   },
   {
     name: "remarks",
@@ -20,13 +21,16 @@ const FORM_FIELDS = [
   },
 
   {
-    name: "file",
+    name: "do_doc",
     label: "DO Document",
     type: "file",
   },
 ];
 
 export default function DeliveryOrdersAdd() {
+  const { id } = useParams();
+  const isEditMode = !!id;
+
   const handleSubmit = async (formData) => {
     const fd = new FormData();
     Object.keys(formData).forEach((key) => {
@@ -37,6 +41,9 @@ export default function DeliveryOrdersAdd() {
         fd.append(key, String(val));
       }
     });
+    if (isEditMode) {
+      return await deliveryOrdersAPI.update(id, fd);
+    }
     return await deliveryOrdersAPI.create(fd);
   };
 

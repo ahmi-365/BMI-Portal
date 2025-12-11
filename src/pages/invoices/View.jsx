@@ -76,7 +76,14 @@ const COLUMNS = [
       return dateValue;
     }
   },
-  { header: "Uploaded at", accessor: "created_at" },
+{
+  header: "Uploaded At",
+  accessor: "created_at",
+  render: (row) => {
+    if (!row.created_at) return "-";
+    return row.created_at.split("T")[0]; // Only date part
+  },
+},
   {
     header: "Uploaded By",
     accessor: "uploadedBy",

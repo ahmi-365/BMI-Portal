@@ -39,9 +39,12 @@ const COLUMNS = [
   { header: "Remarks", accessor: "remarks" ,
       render: (row) => row.remarks || "-",
   },
-  { header: "Payment Term", accessor: "payment_term",
-      render: (row) => row.payment_term?.term || "-",
-   },
+ {
+  header: "Payment Term",
+  accessor: "payment_term",
+  render: (row) => row.payment_term ? row.payment_term.split("T")[0] : "-",
+}
+,
   { header: "Uploaded At", accessor: "created_at" 
     ,    render: (row) => new Date(row.created_at).toLocaleString(),
   },

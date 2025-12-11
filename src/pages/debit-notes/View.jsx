@@ -8,7 +8,7 @@ const COLUMNS = [
     , render: (row) => row.customer_no || "-"
   },
   { header: "Company Name", accessor: "company_name",
-    render: (row) => row.company_name || "-"
+    render: (row) => row.user.company || "-"
    },
   { header: "DN No.", accessor: "dn_no"
     , render: (row) => row.dn_no || "-"
@@ -37,9 +37,15 @@ const COLUMNS = [
   { header: "Amount", accessor: "amount"
     , render: (row) => row.amount ? row.amount : "0"
    },
-  { header: "Payment Term", accessor: "payment_term",
-    render: (row) => row.payment_term || "-"
+{
+  header: "Payment Term",
+  accessor: "payment_term",
+  render: (row) => {
+    if (!row.payment_term) return "-";
+    return row.payment_term.split("T")[0]; 
   },
+}
+,
   { header: "Remarks", accessor: "remarks" 
     , render: (row) => row.remarks || "-"
   },
@@ -47,7 +53,7 @@ const COLUMNS = [
     , render: (row) => row.created_at ? String(row.created_at).split("T")[0] : "-"
    },
   { header: "Uploaded By", accessor: "admin_id" 
-    , render: (row) => row.uploaded_by || "-"
+    , render: (row) => row.admin.name || "-"
   },
 ];
 

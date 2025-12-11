@@ -55,8 +55,12 @@ const PAID_COLUMNS = [
     render: (row) => row.user?.company ?? "-",
   },
 
-  { header: "Payment Date", accessor: "payment_date" },
-
+{
+  header: "Payment Date",
+  accessor: "payment_date",
+  render: (row) => row.payment_date ? row.payment_date.split("T")[0] : "-",
+}
+,
   {
     header: "Proof of Payment",
     accessor: "proof",

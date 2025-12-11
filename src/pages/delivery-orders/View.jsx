@@ -8,7 +8,7 @@ const COLUMNS = [
     , render: (row) => row.customer_no || "-"
    },
   { header: "Company Name", accessor: "company_name",
-    render: (row) => row.company_name || "-"
+    render: (row) => row.user.company || "-"
    },
   { header: "DO No.", accessor: "do_no" ,
     render: (row) => row.do_no || "-"
@@ -25,16 +25,22 @@ const COLUMNS = [
     ),
   },
   { header: "Invoice No.", accessor: "invoice_no" , 
-    render: (row) => row.invoice_no || "-"
+    render: (row) => row.invoice.invoiceId || "-"
   },
   { header: "PO No.", accessor: "po_no",
-    render: (row) => row.po_no || "-"
+    render: (row) => row.invoice.po_no || "-"
    },
-  { header: "Invoice Date", accessor: "invoice_date" 
-    , render: (row) => row.invoice_date ? String(row.invoice_date).split("T")[0] : "-"
+ {
+  header: "Invoice Date",
+  accessor: "invoice_date",
+  render: (row) => {
+    if (!row.invoice?.invoice_date) return "-";
+    return row.invoice.invoice_date.split("T")[0];
   },
+},
+
   { header: "Amount", accessor: "amount",
-    render: (row) => row.amount ? row.amount : "0"
+    render: (row) => row.invoice.amount ? row.invoice.amount : "0"
   },
   { header: "Uploaded At", accessor: "created_at",
     render: (row) => row.created_at ? String(row.created_at).split("T")[0] : "-"

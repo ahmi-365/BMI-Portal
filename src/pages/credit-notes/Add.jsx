@@ -46,18 +46,18 @@ export default function CreditNotesAdd() {
     { name: "amount", label: "Amount (MYR)", type: "number", required: true },
     { name: "cn_no", label: "CN No.", type: "text", required: true },
     { name: "ref_no", label: "Reference No.", type: "text", required: true },
-    { name: "file", label: "CN Document", type: "file" },
+    { name: "cn_doc", label: "CN Document", type: "file" },
     { name: "cn_date", label: "CN Date", type: "date", required: true },
     { name: "payment_term", label: "Due Date", type: "date", required: true },
     { name: "remarks", label: "Remarks", type: "textarea" },
   ];
 
   // Get list of field names defined in FIELDS
-  const fieldNames = new Set(FIELDS.map(f => f.name));
+  const fieldNames = new Set(FIELDS.map((f) => f.name));
 
   const handleSubmit = async (formData) => {
     const fd = new FormData();
-    
+
     // Only include fields that are defined in FIELDS array
     Object.keys(formData).forEach((key) => {
       if (fieldNames.has(key)) {
