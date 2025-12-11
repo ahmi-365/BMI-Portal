@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import Loader from "../../components/common/Loader";
+import { adminAPI } from "../../services/api";
 
 export default function SystemLogsViewer() {
   const { isDarkMode } = useTheme();
@@ -9,27 +10,24 @@ export default function SystemLogsViewer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
   const [expandedLogs, setExpandedLogs] = useState({});
-  const logsPerPage = 10;
 
-
-  
   useEffect(() => {
-    fetchLogs();
-  }, []);
+    fetchLogs(currentPage);
+  }, [currentPage]);
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (page = 1) => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch("/api/system-logs");
+      const res = await adminAPI.logs(page);
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch logs");
-      }
-
-      const data = await response.json();
-      setLogs(Array.isArray(data) ? data : data.data || []);
+      // Backend returns envelope { status: true, data: { data: [...], current_page, last_page, total, links } }
+      const envelope = res?.data || res || {};
+      const items = Array.isArray(envelope.data) ? envelope.data : [];
+      setLogs(items);
+      setLastPage(envelope.last_page || envelope.lastPage || 1);
     } catch (err) {
       setError(err.message || "An error occurred while fetching logs.");
     } finally {
@@ -37,10 +35,10 @@ export default function SystemLogsViewer() {
     }
   };
 
-  const toggleExpanded = (logIndex) => {
+  const toggleExpanded = (id) => {
     setExpandedLogs((prev) => ({
       ...prev,
-      [logIndex]: !prev[logIndex],
+      [id]: !prev[id],
     }));
   };
 
@@ -60,11 +58,6 @@ export default function SystemLogsViewer() {
       return dateString;
     }
   };
-
-  // Pagination
-  const totalPages = Math.ceil(logs.length / logsPerPage);
-  const startIndex = (currentPage - 1) * logsPerPage;
-  const paginatedLogs = logs.slice(startIndex, startIndex + logsPerPage);
 
   if (loading) {
     return (
@@ -92,7 +85,7 @@ export default function SystemLogsViewer() {
               isDarkMode ? "text-white" : "text-gray-800"
             }`}
           >
-            System Logs
+            Activity Logs
           </h1>
           <p
             className={`text-sm mt-2 ${
@@ -119,7 +112,7 @@ export default function SystemLogsViewer() {
                 : "bg-white text-gray-600"
             }`}
           >
-            <p className="text-lg">No system logs available.</p>
+            <p className="text-lg">No activity logs available.</p>
           </div>
         )}
 
@@ -127,13 +120,12 @@ export default function SystemLogsViewer() {
         {logs.length > 0 && (
           <>
             <div className="space-y-4">
-              {paginatedLogs.map((log, index) => {
-                const logNumber = logs.length - (startIndex + index);
-                const isExpanded = expandedLogs[startIndex + index];
+              {logs.map((log) => {
+                const isExpanded = Boolean(expandedLogs[log.id]);
 
                 return (
                   <div
-                    key={startIndex + index}
+                    key={log.id}
                     className={`rounded-lg border ${
                       isDarkMode
                         ? "bg-gray-800 border-gray-700"
@@ -142,7 +134,7 @@ export default function SystemLogsViewer() {
                   >
                     {/* Log Header */}
                     <button
-                      onClick={() => toggleExpanded(startIndex + index)}
+                      onClick={() => toggleExpanded(log.id)}
                       className={`w-full p-4 flex items-center justify-between hover:${
                         isDarkMode ? "bg-gray-700" : "bg-gray-50"
                       } transition`}
@@ -155,7 +147,7 @@ export default function SystemLogsViewer() {
                               : "bg-blue-100 text-blue-600"
                           } font-semibold text-sm`}
                         >
-                          #{logNumber}
+                          #{log.id}
                         </div>
                         <div>
                           <p
@@ -163,15 +155,17 @@ export default function SystemLogsViewer() {
                               isDarkMode ? "text-white" : "text-gray-800"
                             }`}
                           >
-                            {log.description || "System Activity"}
+                            {log.action} — {log.model_type}
                           </p>
                           <p
                             className={`text-xs ${
                               isDarkMode ? "text-gray-400" : "text-gray-500"
                             }`}
                           >
-                            {log.tableName && `Table: ${log.tableName}`}
-                            {log.createdBy && ` • By: ${log.createdBy}`}
+                            {log.model_id
+                              ? `Model ID: ${log.model_id}`
+                              : "No Model"}
+                            {log.user && ` • By: ${log.user.name}`}
                           </p>
                         </div>
                       </div>
@@ -181,7 +175,7 @@ export default function SystemLogsViewer() {
                             isDarkMode ? "text-gray-400" : "text-gray-600"
                           }`}
                         >
-                          {formatDate(log.createdAt)}
+                          {formatDate(log.created_at)}
                         </span>
                         {isExpanded ? (
                           <ChevronUp
@@ -206,15 +200,15 @@ export default function SystemLogsViewer() {
                           isDarkMode ? "border-gray-700" : "border-gray-200"
                         } p-4 space-y-4`}
                       >
-                        {/* Old Data */}
-                        {(log.oldData || log.old) && (
+                        {/* Old Values */}
+                        {log.old_values && (
                           <div>
                             <h4
                               className={`text-sm font-semibold mb-2 ${
                                 isDarkMode ? "text-gray-300" : "text-gray-700"
                               }`}
                             >
-                              OLD Data
+                              OLD Values
                             </h4>
                             <pre
                               className={`p-3 rounded text-xs overflow-auto max-h-48 ${
@@ -223,20 +217,20 @@ export default function SystemLogsViewer() {
                                   : "bg-gray-100 text-gray-800 border border-gray-300"
                               }`}
                             >
-                              {formatJSON(log.oldData || log.old)}
+                              {formatJSON(log.old_values)}
                             </pre>
                           </div>
                         )}
 
-                        {/* New Data */}
-                        {(log.newData || log.new) && (
+                        {/* New Values */}
+                        {log.new_values && (
                           <div>
                             <h4
                               className={`text-sm font-semibold mb-2 ${
                                 isDarkMode ? "text-gray-300" : "text-gray-700"
                               }`}
                             >
-                              NEW Data
+                              NEW Values
                             </h4>
                             <pre
                               className={`p-3 rounded text-xs overflow-auto max-h-48 ${
@@ -245,7 +239,7 @@ export default function SystemLogsViewer() {
                                   : "bg-gray-100 text-gray-800 border border-gray-300"
                               }`}
                             >
-                              {formatJSON(log.newData || log.new)}
+                              {formatJSON(log.new_values)}
                             </pre>
                           </div>
                         )}
@@ -257,7 +251,7 @@ export default function SystemLogsViewer() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {lastPage > 1 && (
               <div className="flex justify-center items-center gap-2 mt-8">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
@@ -271,7 +265,7 @@ export default function SystemLogsViewer() {
                   Previous
                 </button>
 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                {Array.from({ length: lastPage }, (_, i) => i + 1).map(
                   (page) => (
                     <button
                       key={page}
@@ -293,9 +287,9 @@ export default function SystemLogsViewer() {
 
                 <button
                   onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    setCurrentPage(Math.min(lastPage, currentPage + 1))
                   }
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage === lastPage}
                   className={`px-4 py-2 rounded border ${
                     isDarkMode
                       ? "bg-gray-800 border-gray-700 text-white hover:bg-gray-700"

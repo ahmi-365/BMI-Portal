@@ -437,6 +437,19 @@ export const adminUsersAPI = {
     }),
 };
 
+// Admin APIs
+export const adminAPI = {
+  // Fetch activity logs (paginated). Accepts optional page number.
+  logs: (page = 1) => apiCall(`/admin/logs?page=${page}`),
+
+  // Change admin password using backend payload shape
+  changePassword: (data) =>
+    apiCall("/admin/change-password", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
 // Customers APIs
 export const customersAPI = {
   list: (params) => listResource("customers", params),

@@ -7,6 +7,7 @@ import {
   apiCallFormData,
 } from "../../services/api";
 import SearchableSelect from "./SearchableSelect";
+import { Eye, EyeOff } from "lucide-react";
 
 export const ResourceForm = ({
   resourceName,
@@ -14,15 +15,22 @@ export const ResourceForm = ({
   onSubmitSuccess,
   onSubmit,
   title = "Add Record",
+  // When true, treat form as edit mode even if no :id param is present
+  forceEdit = false,
 }) => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const isEditMode = !!id;
+  const isEditMode = !!id || Boolean(forceEdit);
 
   const [formData, setFormData] = useState({});
   const [isLoading, setIsLoading] = useState(isEditMode);
   const [errors, setErrors] = useState({});
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState({});
+
+  const togglePasswordVisible = (name) => {
+    setPasswordVisible((prev) => ({ ...prev, [name]: !prev[name] }));
+  };
 
   useEffect(() => {
     if (isEditMode) {
@@ -98,7 +106,7 @@ export const ResourceForm = ({
     if (!validateForm()) {
       return;
     }
-console.log("Submitting form data:", formData);
+    console.log("Submitting form data:", formData);
     setSubmitLoading(true);
     try {
       let result;
@@ -267,6 +275,29 @@ console.log("Submitting form data:", formData);
                       >
                         {field.label}
                       </label>
+                    </div>
+                  ) : field.type === "password-toggle" ? (
+                    <div className="relative">
+                      <input
+                        type={passwordVisible[field.name] ? "text" : "password"}
+                        name={field.name}
+                        value={formData[field.name] || ""}
+                        onChange={handleChange}
+                        placeholder={field.placeholder}
+                        className="w-full rounded-lg border border-gray-300 bg-transparent px-5 py-3 pr-12 text-black outline-none transition focus:border-brand-500 active:border-brand-500 disabled:cursor-default disabled:bg-whiter dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisible(field.name)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                        aria-label="Toggle password visibility"
+                      >
+                        {passwordVisible[field.name] ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
                     </div>
                   ) : (
                     <input
