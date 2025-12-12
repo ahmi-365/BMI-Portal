@@ -4,6 +4,7 @@ export default function SearchableSelect({
   options = [],
   value,
   onChange,
+  onSearch,
   placeholder = "",
   disabled = false,
   id,
@@ -17,14 +18,15 @@ export default function SearchableSelect({
   const selected = options.find((o) => String(o.value) === String(value));
   const displayLabel = selected ? selected.label : query;
 
-  // Filter options by query
-  const filtered = query
-    ? options.filter(
-        (o) =>
-          o.label.toLowerCase().includes(query.toLowerCase()) ||
-          String(o.value).toLowerCase().includes(query.toLowerCase())
-      )
-    : options;
+  // Filter options by query (client-side or rely on backend)
+  const filtered =
+    !onSearch && query
+      ? options.filter(
+          (o) =>
+            o.label.toLowerCase().includes(query.toLowerCase()) ||
+            String(o.value).toLowerCase().includes(query.toLowerCase())
+        )
+      : options;
 
   useEffect(() => {
     const onDocClick = (e) => {
@@ -44,9 +46,14 @@ export default function SearchableSelect({
   }, [filtered, highlight]);
 
   const handleInput = (e) => {
-    setQuery(e.target.value);
+    const newQuery = e.target.value;
+    setQuery(newQuery);
     setOpen(true);
     setHighlight(0);
+    // Call backend search if provided
+    if (onSearch) {
+      onSearch(newQuery);
+    }
   };
 
   const handleSelect = (opt) => {

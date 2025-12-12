@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BatchUpload } from "../../components/common/BatchUpload";
 import { Upload, AlertCircle, ChevronRight } from "lucide-react";
@@ -120,26 +120,45 @@ export const BatchUploadPage = ({ resourceName, title }) => {
   }, [resourceName]);
 
   // Load invoices for delivery orders dropdown
+  const [invoiceData, setInvoiceData] = useState({});
+  const [invoiceSearchQuery, setInvoiceSearchQuery] = useState("");
+
+  const loadInvoices = useCallback(async (search = "") => {
+    try {
+      const res = await invoicesAPI.allInvoices(search);
+      const list = res?.data ?? res ?? [];
+      const dataMap = {};
+      const opts = Array.isArray(list)
+        ? list.map((inv) => {
+            dataMap[inv.id] = inv;
+            return {
+              value: inv.id,
+              label: inv.do_no || `DO #${inv.id}`,
+            };
+          })
+        : [];
+      setInvoiceData(dataMap);
+      setInvoiceOptions(opts);
+    } catch (e) {
+      console.error("Error loading invoices:", e);
+      setInvoiceOptions([]);
+      setInvoiceData({});
+    }
+  }, []);
+
   useEffect(() => {
     if (resourceName !== "deliveryorders") return;
-    const load = async () => {
-      try {
-        const res = await invoicesAPI.list();
-        const list = res?.rows ?? res?.data ?? res ?? [];
-        const opts = Array.isArray(list)
-          ? list.map((inv) => ({
-              value: inv.id,
-              label: inv.invoice_no || inv.invoice_number || `Invoice #${inv.id}`,
-            }))
-          : [];
-        setInvoiceOptions(opts);
-      } catch (e) {
-        console.error("Error loading invoices:", e);
-        setInvoiceOptions([]);
-      }
-    };
-    load();
-  }, [resourceName]);
+    loadInvoices();
+  }, [resourceName, loadInvoices]);
+
+  // Debounced invoice search
+  useEffect(() => {
+    if (resourceName !== "deliveryorders") return;
+    const timeout = setTimeout(() => {
+      loadInvoices(invoiceSearchQuery);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [invoiceSearchQuery, resourceName, loadInvoices]);
 
   const handleFilesSelected = (files) => {
     setUploadedFiles(files);
@@ -161,6 +180,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         const manualForms = uploadedFiles.map((fileObj, idx) => ({
           index: idx,
           invoice_id: "",
+          invoice_no: "",
           do_no: "",
           do_doc: fileObj.name,
           remarks: "",
@@ -1115,10 +1135,31 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   id={`invoice-${idx}`}
                                   options={invoiceOptions}
                                   value={form.invoice_id || null}
-                                  onChange={(v) =>
-                                    handleFormChange(idx, "invoice_id", v)
-                                  }
+                                  onChange={(v) => {
+                                    const invoice = invoiceData[v];
+                                    const newFormData = [...formData];
+                                    newFormData[idx] = {
+                                      ...newFormData[idx],
+                                      invoice_id: v,
+                                      invoice_no: invoice?.invoiceId || "",
+                                      do_no: invoice?.invoiceId || "",
+                                    };
+                                    setFormData(newFormData);
+                                  }}
+                                  onSearch={setInvoiceSearchQuery}
                                   placeholder="Select an invoice..."
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Invoice Number
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.invoice_no ?? ""}
+                                  readOnly
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white read-only:cursor-not-allowed"
+                                  placeholder="Auto-filled from invoice"
                                 />
                               </div>
                               <div className="relative">
@@ -1128,10 +1169,9 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                 <input
                                   type="text"
                                   value={form.do_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(idx, "do_no", e.target.value)
-                                  }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  readOnly
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white read-only:cursor-not-allowed"
+                                  placeholder="Auto-filled from invoice"
                                 />
                               </div>
                               <div className="relative md:col-span-2">
@@ -1153,7 +1193,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                 <textarea
                                   value={form.remarks ?? ""}
                                   onChange={(e) =>
-                                    handleFormChange(idx, "remarks", e.target.value)
+                                    handleFormChange(
+                                      idx,
+                                      "remarks",
+                                      e.target.value
+                                    )
                                   }
                                   rows={3}
                                   className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"

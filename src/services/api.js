@@ -502,6 +502,11 @@ export const companiesAPI = {
 export const invoicesAPI = {
   list: (params) => listResource("invoices", params),
 
+  allInvoices: (search = "") => {
+    const qs = search ? `?search=${encodeURIComponent(search)}` : "";
+    return apiCall(`/all-invoices${qs}`);
+  },
+
   show: (id) => apiCall(`/invoices/${id}`),
 
   create: (formData) => apiCallFormData("/invoices/create", formData, "POST"),

@@ -46,7 +46,7 @@ export default function CreditNotesAdd() {
     { name: "amount", label: "Amount (MYR)", type: "number", required: true },
     { name: "cn_no", label: "CN No.", type: "text", required: true },
     { name: "ref_no", label: "Reference No.", type: "text", required: true },
-    { name: "cn_doc", label: "CN Document", type: "file" },
+    { name: "file", label: "CN Document", type: "file" },
     { name: "cn_date", label: "CN Date", type: "date", required: true },
     { name: "payment_term", label: "Due Date", type: "date", required: true },
     { name: "remarks", label: "Remarks", type: "textarea" },
