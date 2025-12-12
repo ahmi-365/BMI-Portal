@@ -8,7 +8,7 @@ import {
   deliveryOrdersAPI,
   statementsAPI,
 } from "../../services/api";
-import { companiesAPI } from "../../services/api";
+import { companiesAPI, invoicesAPI } from "../../services/api";
 import SearchableSelect from "./SearchableSelect";
 import Toast from "./Toast";
 
@@ -55,6 +55,17 @@ const dueDateFromTerm = (term, baseDate = new Date()) => {
   return `${y}-${m}-${d}`;
 };
 
+// Extract numeric amount from mixed text (e.g., "Total Amount Malaysian Ringgit 86.58")
+const extractAmount = (raw) => {
+  if (raw === undefined || raw === null) return "";
+  if (typeof raw === "number") return String(raw);
+  const str = String(raw);
+  const match = str.match(/([0-9]+(?:[.,][0-9]+)?)/);
+  if (!match) return str.trim();
+  const num = match[1].replace(",", "");
+  return num;
+};
+
 const getAPI = (resourceName) => {
   switch (resourceName) {
     case "debitnotes":
@@ -83,11 +94,14 @@ export const BatchUploadPage = ({ resourceName, title }) => {
   const [toastType, setToastType] = useState("success");
   const [companyOptions, setCompanyOptions] = useState([]);
   const [duplicateList, setDuplicateList] = useState([]);
+  const [invoiceOptions, setInvoiceOptions] = useState([]);
 
-  // Load companies for credit/debit notes dropdowns
+  // Load companies for credit/debit notes/statements dropdowns
   useEffect(() => {
     const shouldLoadCompanies =
-      resourceName === "creditnotes" || resourceName === "debitnotes";
+      resourceName === "creditnotes" ||
+      resourceName === "debitnotes" ||
+      resourceName === "statements";
     if (!shouldLoadCompanies) return;
     const load = async () => {
       try {
@@ -100,6 +114,28 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       } catch (e) {
         console.error("Error loading companies:", e);
         setCompanyOptions([]);
+      }
+    };
+    load();
+  }, [resourceName]);
+
+  // Load invoices for delivery orders dropdown
+  useEffect(() => {
+    if (resourceName !== "deliveryorders") return;
+    const load = async () => {
+      try {
+        const res = await invoicesAPI.list();
+        const list = res?.rows ?? res?.data ?? res ?? [];
+        const opts = Array.isArray(list)
+          ? list.map((inv) => ({
+              value: inv.id,
+              label: inv.invoice_no || inv.invoice_number || `Invoice #${inv.id}`,
+            }))
+          : [];
+        setInvoiceOptions(opts);
+      } catch (e) {
+        console.error("Error loading invoices:", e);
+        setInvoiceOptions([]);
       }
     };
     load();
@@ -120,6 +156,21 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     setError(null);
 
     try {
+      // Delivery orders: skip parse, build forms manually
+      if (resourceName === "deliveryorders") {
+        const manualForms = uploadedFiles.map((fileObj, idx) => ({
+          index: idx,
+          invoice_id: "",
+          do_no: "",
+          do_doc: fileObj.name,
+          remarks: "",
+        }));
+        setFormData(manualForms);
+        setStep(2);
+        setIsLoading(false);
+        return;
+      }
+
       const api = getAPI(resourceName);
       console.log("ResourceName:", resourceName, "API:", api);
       if (!api) throw new Error(`Invalid resource: ${resourceName}`);
@@ -174,14 +225,15 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           } else if (resourceName === "deliveryorders") {
             form.do_doc = parseData.prev_files?.[idx] ?? "";
           } else if (resourceName === "statements") {
-            form.as_doc = parseData.prev_files?.[idx] ?? "";
+            form.as_doc =
+              parseData.prev_files?.[idx] ?? parseData.data?.[idx] ?? "";
           }
 
           // Ensure expected fields exist for credit/debit notes
           if (resourceName === "creditnotes") {
             form.user_id = form.user_id ?? ""; // company dropdown value
             form.customer_no = form.customer_no ?? "";
-            form.amount = form.amount ?? "";
+            form.amount = extractAmount(form.amount ?? "");
             form.po_no = form.po_no ?? "";
             form.ref_no = form.ref_no ?? "";
             form.cn_no = form.cn_no ?? "";
@@ -195,7 +247,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           if (resourceName === "debitnotes") {
             form.user_id = form.user_id ?? ""; // company dropdown value
             form.customer_no = form.customer_no ?? "";
-            form.amount = form.amount ?? "";
+            form.amount = extractAmount(form.amount ?? "");
             form.po_no = form.po_no ?? "";
             form.ref_no = form.ref_no ?? "";
             form.dn_no = form.dn_no ?? "";
@@ -205,6 +257,18 @@ export const BatchUploadPage = ({ resourceName, title }) => {
               dueFromTermDN || toISODate(form.payment_term) || "";
             form.remarks = form.remarks ?? "";
             form.dn_doc = form.dn_doc ?? "";
+          }
+          if (resourceName === "statements") {
+            form.user_id = form.user_id ?? ""; // company dropdown value
+            form.customer_no = form.customer_no ?? "";
+            form.as_doc =
+              form.as_doc ??
+              parseData.data?.[idx] ??
+              parseData.prev_files?.[idx] ??
+              "";
+            const stmtDate = form.as_date || form.statement_date;
+            form.as_date = toISODate(stmtDate) || stmtDate || "";
+            form.remarks = form.remarks ?? "";
           }
 
           console.log("Form at index", idx, ":", form);
@@ -256,9 +320,19 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
       // Build arrays for each field
       fieldNames.forEach((field) => {
-        payload[field] = formData.map((form) =>
-          form[field] === undefined || form[field] === null ? "" : form[field]
-        );
+        // Skip as_date for statements bulk upload
+        if (resourceName === "statements" && field === "as_date") return;
+
+        // Map as_doc -> statement_doc for statements payload
+        const targetField =
+          resourceName === "statements" && field === "as_doc"
+            ? "statement_doc"
+            : field;
+
+        payload[targetField] = formData.map((form) => {
+          const value = form[field];
+          return value === undefined || value === null ? "" : value;
+        });
       });
 
       const result = await api.bulkUpload(payload);
@@ -266,9 +340,12 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       // Handle backend-declared errors (e.g., duplicate invoices)
       const status = result?.status?.toLowerCase?.();
       const duplicateInvoices = result?.duplicate_invoices;
+      const duplicateCN = result?.duplicate_cn;
       if (status === "error" || status === "fail") {
         const dupList = Array.isArray(duplicateInvoices)
           ? duplicateInvoices.map((d) => String(d))
+          : Array.isArray(duplicateCN)
+          ? duplicateCN.map((d) => String(d))
           : [];
         setDuplicateList(dupList);
         setError(result?.message || "Upload failed.");
@@ -290,11 +367,9 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         setTimeout(() => {
           navigate(`/${resourceName}`);
         }, 2000);
-        window.location.reload();
       }
     } catch (err) {
       console.error("Error submitting forms:", err);
-      // Attempt to extract structured error from thrown text (e.g., API Error: 422 {json})
       const msg = String(err?.message || "");
       const jsonStart = msg.indexOf("{");
       const jsonEnd = msg.lastIndexOf("}");
@@ -303,6 +378,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           const json = JSON.parse(msg.slice(jsonStart, jsonEnd + 1));
           const dupList = Array.isArray(json?.duplicate_invoices)
             ? json.duplicate_invoices.map((d) => String(d))
+            : Array.isArray(json?.duplicate_cn)
+            ? json.duplicate_cn.map((d) => String(d))
             : [];
           setDuplicateList(dupList);
           setError(json?.message || "Upload failed.");
@@ -635,7 +712,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   Amount (MYR)
                                 </label>
                                 <input
-                                  type="number"
+                                  type="text"
                                   value={form.amount ?? ""}
                                   onChange={(e) =>
                                     handleFormChange(
@@ -807,7 +884,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   Amount (MYR)
                                 </label>
                                 <input
-                                  type="number"
+                                  type="text"
                                   value={form.amount ?? ""}
                                   onChange={(e) =>
                                     handleFormChange(
@@ -934,6 +1011,149 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       "remarks",
                                       e.target.value
                                     )
+                                  }
+                                  rows={3}
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                            </>
+                          ) : resourceName === "statements" ? (
+                            <>
+                              {/* Company (searchable) */}
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Company Name
+                                </label>
+                                <SearchableSelect
+                                  id={`company-${idx}`}
+                                  options={companyOptions}
+                                  value={form.user_id || null}
+                                  onChange={(v) =>
+                                    handleFormChange(idx, "user_id", v)
+                                  }
+                                  placeholder="Select a company..."
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Customer No.
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.customer_no ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "customer_no",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Statement Doc
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.as_doc ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "as_doc",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white"
+                                  placeholder="Auto from parsed file"
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Statement Date
+                                </label>
+                                <input
+                                  type="date"
+                                  value={form.as_date ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "as_date",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                              <div className="relative md:col-span-2">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Remarks
+                                </label>
+                                <textarea
+                                  value={form.remarks ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "remarks",
+                                      e.target.value
+                                    )
+                                  }
+                                  rows={3}
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                            </>
+                          ) : resourceName === "deliveryorders" ? (
+                            <>
+                              {/* Invoice (searchable) */}
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Invoice No
+                                </label>
+                                <SearchableSelect
+                                  id={`invoice-${idx}`}
+                                  options={invoiceOptions}
+                                  value={form.invoice_id || null}
+                                  onChange={(v) =>
+                                    handleFormChange(idx, "invoice_id", v)
+                                  }
+                                  placeholder="Select an invoice..."
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  DO No
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.do_no ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(idx, "do_no", e.target.value)
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                              <div className="relative md:col-span-2">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  DO Document
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.do_doc ?? ""}
+                                  readOnly
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white"
+                                  placeholder="Uploaded document"
+                                />
+                              </div>
+                              <div className="relative md:col-span-2">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Remarks
+                                </label>
+                                <textarea
+                                  value={form.remarks ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(idx, "remarks", e.target.value)
                                   }
                                   rows={3}
                                   className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
