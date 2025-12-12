@@ -22,8 +22,6 @@ const COLUMNS = [
             path="download"
           />
         ),
-
-    
    },
   { header: "DN Date", accessor: "dn_date" 
     , render: (row) => row.dn_date ? String(row.dn_date).split("T")[0] : "-"

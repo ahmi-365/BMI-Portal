@@ -639,7 +639,7 @@ export const downloadBlob = async (endpoint) => {
   const config = {
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+    }, 
   };
 
   try {

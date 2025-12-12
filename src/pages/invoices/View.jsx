@@ -18,72 +18,72 @@ const COLUMNS = [
     header: "Invoice Doc",
     accessor: "invoice_doc",
     render: (row) => (
-      <FileDownloadButton 
-        file={row.invoice_doc} 
-        id={row.id} 
-        endpoint="invoices" 
-        path="download" 
+      <FileDownloadButton
+        file={row.invoice_doc}
+        id={row.id}
+        endpoint="invoices"
+        path="download"
       />
     ),
   },
-  { 
-    header: "Invoice Date", 
-    accessor: "invoice_date", 
+  {
+    header: "Invoice Date",
+    accessor: "invoice_date",
     render: (row) => {
-      const invoiceDateValue = row.invoice_date 
-        ? String(row.invoice_date).split("T")[0] 
+      const invoiceDateValue = row.invoice_date
+        ? String(row.invoice_date).split("T")[0]
         : "-";
       return invoiceDateValue;
     }
   },
-  { 
-    header: "PO No.", 
+  {
+    header: "PO No.",
     accessor: "po_no",
     render: (row) => {
       const poNoValue = row.po_no ? row.po_no : "-";
       return poNoValue;
     }
   },
-  { 
-    header: "DO No.", 
+  {
+    header: "DO No.",
     accessor: "do_no",
     render: (row) => {
       const doNoValue = row.do_no ? row.do_no : "-";
       return doNoValue;
     }
   },
-  { 
-    header: "Amount", 
+  {
+    header: "Amount",
     accessor: "amount",
     render: (row) => {
       const amountValue = row.amount ? row.amount : "0";
       return amountValue;
     }
   },
-  { 
-    header: "Outstanding", 
+  {
+    header: "Outstanding",
     accessor: "outstanding",
     render: (row) => {
       const outstandingValue = row.outstanding ? row.outstanding : "0";
       return outstandingValue;
     }
   },
-  { 
-    header: "Due Date", 
+  {
+    header: "Due Date",
     accessor: "date",
     render: (row) => {
       const dateValue = row.date ? String(row.date).split("T")[0] : "-";
       return dateValue;
     }
   },
-{
-  header: "Uploaded At",
-  accessor: "created_at",
-  render: (row) => {
-    if (!row.created_at) return "-";
-    return row.created_at.split("T")[0]; // Only date part
+  {
+    header: "Uploaded At",
+    accessor: "created_at",
+    render: (row) => {
+      if (!row.created_at) return "-";
+      return row.created_at.split("T")[0]; // Only date part
+    },
   },
-},
   {
     header: "Uploaded By",
     accessor: "uploadedBy",
@@ -102,10 +102,11 @@ export default function InvoicesView() {
         resourceName="invoices/index"
         columns={COLUMNS}
         title="Invoices"
-        subtitle="View and manage all invoices"
         basePath="/invoices"
         showEdit={true}
       />
+
+
     </div>
   );
 }

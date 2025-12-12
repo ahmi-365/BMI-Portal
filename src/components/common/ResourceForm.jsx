@@ -56,6 +56,7 @@ export const ResourceForm = ({
             flat[k] = v.split("T")[0];
           }
         });
+        
         setFormData(pickFieldValues(flat));
       }
     } catch (error) {
@@ -64,6 +65,8 @@ export const ResourceForm = ({
       setIsLoading(false);
     }
   };
+
+
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;

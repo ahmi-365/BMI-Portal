@@ -1,4 +1,5 @@
 import { ShowPage } from "../../components/common/ShowPage";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 
 const FIELDS = [
   { name: "id", label: "ID" },
@@ -8,9 +9,22 @@ const FIELDS = [
     label: "Company Name",
     render: (user) => user?.company || "-",
   },
-  { name: "statement_doc", label: "Statement Document", type: "file" },
-  { name: "statement_date", label: "Statement Date" },
-  { name: "updated_at", label: "Updated At" },
+  { name: "statement_doc", label: "Statement Document", type: "file",
+    render: (_v,row) => (
+              <FileDownloadButton
+                file={row.statement_doc}
+                id={row.id}
+                endpoint="statements"
+                path="download"
+              />
+            ),
+   },
+  { name: "statement_date", label: "Statement Date",
+    render: (value) => (value ? String(value).split("T")[0] : "-"),
+   },
+  { name: "updated_at", label: "Updated At",
+    render: (value) => (value ? String(value).split("T")[0] : "-"),
+   },
   {
     name: "user",
     label: "Uploaded By",

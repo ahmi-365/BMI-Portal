@@ -150,15 +150,15 @@ export default function App() {
                   correct tab based on the subpath (e.g. /account-statements/add).
                 - Show/Edit routes remain defined below to render full-page views. */}
             <Route
-              path="/account-statements/*"
+              path="/statements/*"
               element={<AccountStatementsIndex />}
             />
             <Route
-              path="/account-statements/edit/:id"
+              path="/statements/edit/:id"
               element={<AccountStatementsEdit />}
             />
             <Route
-              path="/account-statements/show/:id"
+              path="/statements/show/:id"
               element={<AccountStatementsShow />}
             />
             {/* Also accept direct /statements routes because DataTable and other

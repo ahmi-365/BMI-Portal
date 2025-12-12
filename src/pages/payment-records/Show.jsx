@@ -1,24 +1,36 @@
 import { ShowPage } from "../../components/common/ShowPage";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 
 const FIELDS = [
   { name: "id", label: "ID" },
   { name: "invoice", label: "Invoice" },
   { name: "amount", label: "Amount (MYR)" },
+
   {
-    name: "due_Date",
+    name: "due_Date", // backend uses due_Date (capital D)
     label: "Due Date",
     render: (value) => (value ? String(value).split("T")[0] : "-"),
   },
+
   {
     name: "payment_date",
     label: "Payment Date",
     render: (value) => (value ? String(value).split("T")[0] : "-"),
   },
+
   {
     name: "proof",
     label: "Proof of Payment",
-    render: (value) => (value ? String(value) : "-"),
+     render: (_value,row) => (
+              <FileDownloadButton
+                file={row.proof}
+                id={row.id}
+                endpoint="payments"
+                path="download-proof"
+              />
+            ),
   },
+
   { name: "reference_id", label: "Reference No." },
   { name: "invoice_id", label: "Invoice ID" },
   { name: "invoice_doc", label: "Invoice Doc" },
@@ -27,44 +39,44 @@ const FIELDS = [
   { name: "cn_doc", label: "CN Doc" },
   { name: "outstanding", label: "Outstanding" },
 
-  // Top-level user id (foreign key)
+  // foreign key from backend
   { name: "user_id", label: "User ID" },
 
-  // Nested `user` object fields — use render to read from the full record
+  // Nested user data
   {
-    name: "user_company",
+    name: "company",
     label: "Company",
     render: (_v, row) => row.user?.company ?? "-",
   },
   {
-    name: "user_name",
+    name: "name",
     label: "Customer Name",
     render: (_v, row) => row.user?.name ?? "-",
   },
   {
-    name: "user_customer_no",
+    name: "customer_no",
     label: "Customer No.",
     render: (_v, row) => row.user?.customer_no ?? row.user?.id ?? "-",
   },
   {
-    name: "user_email",
+    name: "email",
     label: "Customer Email",
     render: (_v, row) => row.user?.email ?? "-",
   },
   {
-    name: "user_phone",
+    name: "phone",
     label: "Customer Phone",
     render: (_v, row) => row.user?.phone ?? "-",
   },
   {
-    name: "user_address",
+    name: "address",
     label: "Customer Address",
     render: (_v, row) => row.user?.address ?? "-",
   },
   {
-    name: "user_payment_term",
+    name: "payment_term",
     label: "Payment Term (days)",
-    render: (_v, row) => (row.user?.payment_term ?? "-"),
+    render: (_v, row) => row.user?.payment_term ?? "-",
   },
 
   {
@@ -78,6 +90,7 @@ const FIELDS = [
     render: (value) => (value ? String(value).split("T")[0] : "-"),
   },
 ];
+
 
 export default function PaymentRecordsShow() {
   return (
