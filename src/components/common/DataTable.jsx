@@ -57,87 +57,117 @@ export const DataTable = ({
 
   return (
     <>
-      <div className="w-full overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-        <table className="w-full min-w-max table-auto text-left">
-          <thead className="border-b border-gray-100 dark:border-white/[0.05] bg-gray-50/50 dark:bg-white/[0.01]">
-            {/* 1. Standard Header Row */}
-            <tr>
-              {columns.map((column, index) => (
-                <th
-                  key={index}
-                  className="px-5 py-3 font-medium text-gray-500 text-theme-xs dark:text-gray-400 whitespace-nowrap"
-                >
-                  {column.header}
-                </th>
-              ))}
-            </tr>
-
-            {/* 2. Filter Input Row (Conditionally Rendered) */}
-            {showFilters && (
-              <tr className="bg-gray-50 border-t border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-                {columns.map((column, index) => {
-                  // Determine the key to use for filtering (accessor or accessorKey)
-                  const filterKey = column.accessor || column.accessorKey;
-
-                  return (
-                    <th key={`filter-${index}`} className="px-4 py-2">
-                      {/* Only render input if there is a data key (skips Action columns) */}
-                      {filterKey ? (
-                        <input
-                          type="text"
-                          placeholder={column.header}
-                          value={filters?.[filterKey] || ""}
-                          onChange={(e) =>
-                            onFilterChange && onFilterChange(filterKey, e.target.value)
-                          }
-                          className="w-full rounded border-[1.5px] border-gray-200 bg-white px-3 py-1.5 text-sm font-normal text-gray-700 outline-none transition focus:border-brand-500 active:border-brand-500 disabled:cursor-default disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:focus:border-brand-500"
-                        />
-                      ) : (
-                        // Spacer for columns without filtering (like Actions)
-                        <div className="h-9"></div>
-                      )}
-                    </th>
-                  );
-                })}
-              </tr>
-            )}
-          </thead>
-
-          <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {data && data.length > 0 ? (
-              data.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-colors">
-                  {columns.map((column, colIndex) => (
-                    <td
-                      key={colIndex}
-                      className="px-5 py-4 text-theme-sm dark:text-gray-400 whitespace-nowrap"
-                    >
-                      {column.render ? (
-                        column.render(row)
-                      ) : (
-                        <span className="text-gray-900 dark:text-white">
-                          {/* Safe access to nested properties could be added here if needed */}
-                          {row[column.accessor] !== undefined
-                            ? row[column.accessor]
-                            : row[column.accessorKey]}
-                        </span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : (
+      <div className="w-full overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fadeIn">
+        <div className="w-full overflow-x-auto">
+          <table className="w-full min-w-max table-auto text-left border-separate border-spacing-0">
+            <thead className="bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-800 dark:to-gray-800/50 sticky top-0 z-10">
+              {/* 1. Standard Header Row */}
               <tr>
-                <td
-                  colSpan={columns.length}
-                  className="px-5 py-10 text-center text-gray-500"
-                >
-                  No data available
-                </td>
+                {columns.map((column, index) => (
+                  <th
+                    key={index}
+                    className="px-5 py-4 font-semibold text-gray-700 text-xs uppercase tracking-wider dark:text-gray-300 whitespace-nowrap first:rounded-tl-2xl last:rounded-tr-2xl border-b-2 border-gray-200 dark:border-gray-700"
+                  >
+                    {column.header}
+                  </th>
+                ))}
               </tr>
-            )}
-          </tbody>
-        </table>
+
+              {/* 2. Filter Input Row (Conditionally Rendered) */}
+              {showFilters && (
+                <tr className="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm">
+                  {columns.map((column, index) => {
+                    // Determine the key to use for filtering (accessor or accessorKey)
+                    const filterKey = column.accessor || column.accessorKey;
+
+                    return (
+                      <th key={`filter-${index}`} className="px-4 py-2">
+                        {/* Only render input if there is a data key (skips Action columns) */}
+                        {filterKey ? (
+                          <input
+                            type="text"
+                            placeholder={column.header}
+                            value={filters?.[filterKey] || ""}
+                            onChange={(e) =>
+                              onFilterChange &&
+                              onFilterChange(filterKey, e.target.value)
+                            }
+                            className="w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-sm font-normal text-gray-700 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 disabled:cursor-default disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                          />
+                        ) : (
+                          // Spacer for columns without filtering (like Actions)
+                          <div className="h-9"></div>
+                        )}
+                      </th>
+                    );
+                  })}
+                </tr>
+              )}
+            </thead>
+
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              {data && data.length > 0 ? (
+                data.map((row) => (
+                  <tr
+                    key={row.id}
+                    onClick={() => handleView(row)}
+                    className="group hover:bg-gradient-to-r hover:from-brand-50/30 hover:to-transparent dark:hover:from-brand-900/10 dark:hover:to-transparent transition-all duration-200 cursor-pointer"
+                  >
+                    {columns.map((column, colIndex) => (
+                      <td
+                        key={colIndex}
+                        onClick={(e) => {
+                          // Prevent row click when clicking action buttons
+                          if (column.header === "Actions") {
+                            e.stopPropagation();
+                          }
+                        }}
+                        className="px-5 py-4 text-sm dark:text-gray-400 whitespace-nowrap group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200"
+                      >
+                        {column.render ? (
+                          column.render(row)
+                        ) : (
+                          <span className="text-gray-900 dark:text-white">
+                            {/* Safe access to nested properties could be added here if needed */}
+                            {row[column.accessor] !== undefined
+                              ? row[column.accessor]
+                              : row[column.accessorKey]}
+                          </span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="px-5 py-16 text-center"
+                  >
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <svg
+                        className="w-16 h-16 text-gray-300 dark:text-gray-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                        />
+                      </svg>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium">
+                        No data available
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -180,34 +210,30 @@ export const createActionColumn = (onView, onEdit, onDelete) => ({
   header: "Actions",
   // No 'accessor' means no filter input will be rendered for this column
   render: (row) => (
-    <div className="flex items-center gap-3">
-      {onView && (
-        <button
-          onClick={() => onView(row)}
-          className="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 transition-colors"
-          title="View"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
-      )}
-
+    <div className="flex items-center gap-2">
       {onEdit && (
         <button
-          onClick={() => onEdit(row)}
-          className="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(row);
+          }}
+          className="group/btn relative inline-flex items-center justify-center rounded-lg bg-brand-50 px-3 py-2 text-brand-700 transition-all duration-200 hover:bg-brand-100 hover:shadow-md hover:-translate-y-0.5 dark:bg-brand-900/30 dark:text-brand-200 dark:hover:bg-brand-900/50"
           title="Edit"
         >
-          <Pencil className="w-4 h-4" />
+          <Pencil className="w-4 h-4 transition-transform duration-200 group-hover/btn:scale-110" />
         </button>
       )}
 
       {onDelete && (
         <button
-          onClick={() => onDelete(row)}
-          className="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(row);
+          }}
+          className="group/btn relative inline-flex items-center justify-center rounded-lg bg-red-50 px-3 py-2 text-red-600 transition-all duration-200 hover:bg-red-100 hover:shadow-md hover:-translate-y-0.5 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
           title="Delete"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-4 h-4 transition-transform duration-200 group-hover/btn:scale-110" />
         </button>
       )}
     </div>

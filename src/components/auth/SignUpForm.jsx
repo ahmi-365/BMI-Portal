@@ -10,7 +10,7 @@ export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   return (
-    <div className="flex flex-col flex-1 w-full overflow-y-auto lg:w-1/2 no-scrollbar">
+    <div className="flex flex-col flex-1 w-full overflow-y-auto lg:w-1/2 no-scrollbar bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
       <div className="w-full max-w-md mx-auto mb-5 sm:pt-10">
         <Link
           to="/"
@@ -22,12 +22,12 @@ export default function SignUpForm() {
       </div>
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
-          <div className="mb-5 sm:mb-8">
-            <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
+          <div className="mb-5 sm:mb-8 text-center">
+            <h1 className="mb-2 font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-400 text-3xl sm:text-4xl">
               Sign Up
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Enter your email and password to sign up!
+              Create your account to start managing invoices with ease.
             </p>
           </div>
           <div>
@@ -78,12 +78,12 @@ export default function SignUpForm() {
                 <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="p-2 text-gray-400 bg-white dark:bg-gray-900 sm:px-5 sm:py-2">
+                <span className="p-2 text-gray-400 bg-white dark:bg-gray-900 sm:px-5 sm:py-2 rounded-full shadow-sm">
                   Or
                 </span>
               </div>
             </div>
-            <form>
+            <form className="rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-md p-6 sm:p-7 shadow-xl dark:border-gray-800 dark:bg-gray-900/80">
               <div className="space-y-5">
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   {/* <!-- First Name --> */}
@@ -144,7 +144,6 @@ export default function SignUpForm() {
                         <EyeOff className="text-gray-500 dark:text-gray-400 size-5" />
                       )}
                     </span>
-
                   </div>
                 </div>
                 {/* <!-- Checkbox --> */}
@@ -167,7 +166,7 @@ export default function SignUpForm() {
                 </div>
                 {/* <!-- Button --> */}
                 <div>
-                  <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
+                  <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-semibold text-white transition rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 shadow-lg hover:shadow-xl hover:from-brand-700 hover:to-brand-600">
                     Sign Up
                   </button>
                 </div>

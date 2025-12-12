@@ -182,7 +182,7 @@ const Header = ({ onClick, onToggle }) => {
   };
 
   return (
-    <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
+    <header className="sticky top-0 flex w-full bg-white/80 backdrop-blur-xl border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900/80 lg:border-b shadow-sm">
       <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
         <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
           <button
@@ -224,7 +224,7 @@ const Header = ({ onClick, onToggle }) => {
           </button>
           <button
             onClick={onClick}
-            className="items-center justify-center hidden w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border"
+            className="items-center justify-center hidden w-10 h-10 text-gray-500 border-gray-200 rounded-xl z-99999 dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-brand-300 dark:hover:border-brand-600 transition-all duration-200 hover:scale-105 active:scale-95"
           >
             <svg
               className="hidden fill-current lg:block"
@@ -258,7 +258,7 @@ const Header = ({ onClick, onToggle }) => {
 
           <button
             onClick={toggleApplicationMenu}
-            className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+            className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-xl z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden transition-all duration-200 hover:scale-105 active:scale-95"
           >
             <svg
               width="24"
@@ -304,34 +304,34 @@ const Header = ({ onClick, onToggle }) => {
                 onBlur={() =>
                   setTimeout(() => setShowSearchResults(false), 200)
                 }
-                className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900  dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
+                className="dark:bg-dark-900 h-11 w-full rounded-xl border-2 border-gray-200 bg-white/50 backdrop-blur-sm py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-brand-400 focus:outline-hidden focus:ring-4 focus:ring-brand-100 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-500 dark:focus:ring-brand-900/30 transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-600 xl:w-[430px]"
               />
 
-              <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
+              <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-700 dark:from-gray-700 dark:to-gray-800 dark:text-gray-400 shadow-sm">
                 <span> ⌘ </span>
                 <span> K </span>
               </button>
 
               {/* Search Results Dropdown */}
               {showSearchResults && filteredPages.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto animate-slideIn">
                   {filteredPages.map((page, index) => (
                     <button
                       key={index}
                       onClick={() => handlePageClick(page.path)}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-800 last:border-b-0 transition-colors"
+                      className="w-full px-5 py-3.5 text-left hover:bg-gradient-to-r hover:from-brand-50 hover:to-transparent dark:hover:from-brand-900/20 dark:hover:to-transparent border-b border-gray-100 dark:border-gray-800 last:border-b-0 transition-all duration-200 first:rounded-t-2xl last:rounded-b-2xl group"
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                             {page.name}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {page.category}
                           </p>
                         </div>
                         <svg
-                          className="w-4 h-4 text-gray-400 dark:text-gray-500"
+                          className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-brand-500 dark:group-hover:text-brand-400 group-hover:translate-x-1 transition-all duration-200"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -353,7 +353,20 @@ const Header = ({ onClick, onToggle }) => {
               {showSearchResults &&
                 filteredPages.length === 0 &&
                 searchQuery && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50 p-4 text-center">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl z-50 p-6 text-center animate-slideIn">
+                    <svg
+                      className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       No pages found for "{searchQuery}"
                     </p>

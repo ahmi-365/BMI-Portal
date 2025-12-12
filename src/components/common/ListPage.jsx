@@ -11,6 +11,7 @@ import {
 import { DataTable, createActionColumn } from "./DataTable";
 import { listResource, deleteResource } from "../../services/api";
 import Loader from "./Loader";
+import PageBreadcrumb from "./PageBreadCrumb";
 
 // --- Internal Delete Confirmation Modal Component ---
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
@@ -199,6 +200,9 @@ export const ListPage = ({
 
   return (
     <div className="p-6 animate-fade-in-up">
+      {" "}
+      {/* Breadcrumb Navigation */}
+      <PageBreadcrumb pageTitle={title} breadcrumbs={[{ label: title }]} />
       {/* Header */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -217,7 +221,6 @@ export const ListPage = ({
           </button> */}
         </div>
       </div>
-
       {/* Search */}
       <div className="mb-4 gap-3 flex justify-end">
         <div className="relative w-full max-w-md">
@@ -243,7 +246,6 @@ export const ListPage = ({
           {showFilters ? "Hide Filters" : "Filter"}
         </button>
       </div>
-
       {isLoading && data.length === 0 ? (
         <div className="flex justify-center items-center h-96">
           <Loader />
@@ -351,7 +353,6 @@ export const ListPage = ({
           )}
         </>
       )}
-
       {/* Render the Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}

@@ -7,7 +7,8 @@ import {
   apiCallFormData,
 } from "../../services/api";
 import SearchableSelect from "./SearchableSelect";
-import { Eye, EyeOff } from "lucide-react";
+import PageBreadcrumb from "./PageBreadCrumb";
+import { Eye, EyeOff, UploadCloud, X } from "lucide-react";
 
 export const ResourceForm = ({
   resourceName,
@@ -180,23 +181,39 @@ export const ResourceForm = ({
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 animate-fade-in-up">
+    <div className="max-w-4xl mx-auto p-6 animate-fadeIn">
+      {" "}
+      {/* Breadcrumb Navigation */}
+      <PageBreadcrumb
+        pageTitle={isEditMode ? `Edit ${title}` : `Add ${title}`}
+        breadcrumbs={[
+          {
+            label: resourceName.charAt(0).toUpperCase() + resourceName.slice(1),
+            path: `/${resourceName}/view`,
+          },
+          { label: isEditMode ? `Edit ${title}` : `Add ${title}` },
+        ]}
+      />
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-title-md2 font-bold text-black dark:text-white">
-          {isEditMode ? `Edit ${title}` : `Add ${title}`}
-        </h2>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
+            {isEditMode ? "Edit" : "Create"}
+          </p>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">
+            {isEditMode ? `Edit ${title}` : `Add ${title}`}
+          </h2>
+        </div>
       </div>
-
-      <div className="rounded-xl border border-gray-200 bg-white shadow-theme-sm dark:border-gray-800 dark:bg-gray-900 animate-slide-up card-hover">
-        <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-          <h3 className="font-medium text-black dark:text-white">
+      <div className="rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-lg shadow-xl dark:border-gray-800 dark:bg-gray-900/90 animate-slideIn">
+        <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800/60 rounded-t-2xl">
+          <h3 className="font-semibold text-gray-900 dark:text-white">
             {isEditMode ? "Edit Information" : "Enter Information"}
           </h3>
         </div>
 
-        <div className="p-6">
-          <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div className="p-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
               {fields.map((field) => (
                 <div
                   key={field.name}
@@ -204,7 +221,7 @@ export const ResourceForm = ({
                     field.colSpan === 2 ? "col-span-1 xl:col-span-2" : ""
                   }`}
                 >
-                  <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.08em] text-gray-600 dark:text-gray-300">
                     {field.label}
                     {field.required && <span className="text-red-500">*</span>}
                   </label>
@@ -216,22 +233,51 @@ export const ResourceForm = ({
                       onChange={handleChange}
                       placeholder={field.placeholder}
                       rows={4}
-                      className="w-full rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 active:border-brand-500 disabled:cursor-default disabled:bg-whiter dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
+                      className="w-full rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
                     />
                   ) : field.type === "file" ? (
                     <div className="w-full">
-                      <input
-                        type="file"
-                        name={field.name}
-                        onChange={handleChange}
-                        className="w-full rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 active:border-brand-500 disabled:cursor-default disabled:bg-whiter dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500 file:mr-4 file:rounded file:border-0 file:bg-brand-500 file:px-3 file:py-2 file:text-white"
-                      />
-                      {formData[field.name] && (
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          Selected:{" "}
-                          {formData[field.name]?.name || formData[field.name]}
-                        </p>
-                      )}
+                      <label className="group relative flex items-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-gradient-to-r from-white/85 via-white to-white/70 px-4 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-100 dark:border-gray-700 dark:from-gray-800/80 dark:via-gray-800 dark:to-gray-800/60 dark:hover:border-brand-500/70 dark:focus-within:border-brand-500 dark:focus-within:ring-brand-900/30 cursor-pointer">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600 shadow-inner transition-all duration-200 group-hover:scale-105 dark:bg-brand-900/30 dark:text-brand-200">
+                          <UploadCloud className="h-6 w-6" />
+                        </div>
+                        <div className="flex flex-col flex-1">
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                            {formData[field.name]?.name ||
+                              formData[field.name] ||
+                              "Upload file"}
+                          </span>
+                          {!formData[field.name] && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              Drag & drop or click to browse
+                            </span>
+                          )}
+                        </div>
+                        {formData[field.name] && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setFormData((prev) => ({
+                                ...prev,
+                                [field.name]: null,
+                              }));
+                            }}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600 transition-all hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                            aria-label="Clear file"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                        <input
+                          type="file"
+                          name={field.name}
+                          onChange={handleChange}
+                          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                          aria-label={`Upload ${field.label}`}
+                        />
+                      </label>
                     </div>
                   ) : field.type === "date" ? (
                     <input
@@ -239,7 +285,7 @@ export const ResourceForm = ({
                       name={field.name}
                       value={formData[field.name] || ""}
                       onChange={handleChange}
-                      className="w-full rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 active:border-brand-500 disabled:cursor-default disabled:bg-whiter dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
+                      className="w-full rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
                     />
                   ) : field.type === "select" ? (
                     field.searchable ? (
@@ -259,7 +305,7 @@ export const ResourceForm = ({
                         name={field.name}
                         value={formData[field.name] || ""}
                         onChange={handleChange}
-                        className="relative z-20 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 active:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
+                        className="relative z-20 w-full appearance-none rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
                       >
                         <option value="">Select {field.label}</option>
                         {field.options?.map((option) => (
@@ -276,7 +322,7 @@ export const ResourceForm = ({
                         name={field.name}
                         checked={formData[field.name] || false}
                         onChange={handleChange}
-                        className="w-4 h-4 rounded border-gray-300"
+                        className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-400 dark:border-gray-600 dark:bg-gray-800"
                       />
                       <label
                         htmlFor={field.name}
@@ -293,7 +339,7 @@ export const ResourceForm = ({
                         value={formData[field.name] || ""}
                         onChange={handleChange}
                         placeholder={field.placeholder}
-                        className="w-full rounded-lg border border-gray-300 bg-transparent px-5 py-3 pr-12 text-black outline-none transition focus:border-brand-500 active:border-brand-500 disabled:cursor-default disabled:bg-whiter dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
+                        className="w-full rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-2.5 pr-12 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
                       />
                       <button
                         type="button"
@@ -315,7 +361,7 @@ export const ResourceForm = ({
                       value={formData[field.name] || ""}
                       onChange={handleChange}
                       placeholder={field.placeholder}
-                      className="w-full rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 active:border-brand-500 disabled:cursor-default disabled:bg-whiter dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
+                      className="w-full rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 disabled:cursor-default disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
                     />
                   )}
 
@@ -334,18 +380,18 @@ export const ResourceForm = ({
               </div>
             )}
 
-            <div className="mt-6 flex justify-end gap-4">
+            <div className="mt-5 flex justify-end gap-4">
               <button
                 type="button"
                 onClick={() => navigate(`/${resourceName}/view`)}
-                className="flex justify-center rounded-lg border border-stroke px-6 py-2.5 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+                className="px-6 py-3 rounded-xl border-2 border-gray-300 font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:border-gray-500 transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitLoading}
-                className="flex justify-center rounded-lg bg-brand-500 px-6 py-2.5 font-medium text-gray-100 hover:bg-opacity-90 disabled:opacity-50"
+                className="px-8 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 font-semibold text-white shadow-lg hover:shadow-xl hover:from-brand-700 hover:to-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
                 {submitLoading ? "Saving..." : isEditMode ? "Update" : "Create"}
               </button>

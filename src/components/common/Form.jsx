@@ -53,7 +53,7 @@ const Form = ({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="space-y-6 animate-fadeIn">
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         {fields.map((field, index) => (
           <div
@@ -62,7 +62,7 @@ const Form = ({
               field.colSpan === 2 ? "col-span-1 xl:col-span-2" : "col-span-1"
             }`}
           >
-            <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+            <label className="mb-2.5 block text-xs font-semibold uppercase tracking-[0.08em] text-gray-700 dark:text-gray-200">
               {field.label}{" "}
               {field.required && <span className="text-red-500">*</span>}
             </label>
@@ -74,7 +74,7 @@ const Form = ({
                   value={formData[field.name] || ""}
                   onChange={handleChange}
                   required={field.required}
-                  className="relative z-20 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 active:border-brand-500 dark:border-gray-700 dark:text-white dark:focus:border-brand-500"
+                  className="relative z-20 w-full appearance-none rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-3 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
                 >
                   <option value="" disabled>
                     Select an option
@@ -86,7 +86,7 @@ const Form = ({
                   ))}
                 </select>
                 <span className="absolute right-4 top-1/2 z-30 -translate-y-1/2">
-                  <ChevronDown className="w-5 h-5 text-gray-500" />
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
                 </span>
               </div>
             ) : field.type === "textarea" ? (
@@ -97,7 +97,7 @@ const Form = ({
                 onChange={handleChange}
                 placeholder={field.placeholder}
                 required={field.required}
-                className="w-full rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 active:border-brand-500 disabled:cursor-default disabled:bg-whiter dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
+                className="w-full rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-3 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 disabled:cursor-default disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
               />
             ) : field.type === "toggle" ? (
               <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-800/50">
@@ -131,7 +131,7 @@ const Form = ({
                 onChange={handleChange}
                 placeholder={field.placeholder}
                 required={field.required}
-                className="w-full rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 active:border-brand-500 disabled:cursor-default disabled:bg-whiter dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
+                className="w-full rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-3 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 disabled:cursor-default disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
               />
             )}
           </div>
