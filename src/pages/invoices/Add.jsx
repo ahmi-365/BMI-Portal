@@ -68,7 +68,7 @@ export default function InvoicesAdd() {
     },
     {
       name: "do_no",
-      label: "Delivery Order No. (Can add multiple comma separated DO No's)",
+      label: "Delivery Order No.",
       type: "text",
       placeholder: "DO-5511, DO-5512",
     },
@@ -79,7 +79,7 @@ export default function InvoicesAdd() {
       required: true,
     },
     {
-      name: "date",
+      name: "due_date",
       label: "Due Date",
       type: "date",
       required: true,

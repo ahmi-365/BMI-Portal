@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap")
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap")
 layer(base);
 
 @import "tailwindcss";
@@ -13,7 +13,7 @@ html {
 
 @theme {
   --font-*: initial;
-  --font-outfit: Outfit, sans-serif;
+  --font-space-grotesk: "Space Grotesk", system-ui, -apple-system, sans-serif;
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -29,23 +29,25 @@ html {
   /* Reduced from .25rem to .20rem to tighten paddings/margins across UI */
   --spacing: 0.2rem;
 
-  /* Typography (scaled down ~15% for a tighter layout) */
-  --text-title-2xl: 62px;
-  --text-title-2xl--line-height: 78px;
-  --text-title-xl: 51px;
-  --text-title-xl--line-height: 61px;
-  --text-title-lg: 41px;
-  --text-title-lg--line-height: 51px;
-  --text-title-md: 31px;
-  --text-title-md--line-height: 38px;
-  --text-title-sm: 26px;
-  --text-title-sm--line-height: 32px;
-  --text-theme-xl: 17px;
-  --text-theme-xl--line-height: 26px;
-  --text-theme-sm: 12px;
-  --text-theme-sm--line-height: 18px;
-  --text-theme-xs: 10px;
-  --text-theme-xs--line-height: 15px;
+  /* Typography (reduced for professional look - smaller and more refined) */
+  --text-title-2xl: 48px;
+  --text-title-2xl--line-height: 60px;
+  --text-title-xl: 40px;
+  --text-title-xl--line-height: 48px;
+  --text-title-lg: 32px;
+  --text-title-lg--line-height: 40px;
+  --text-title-md: 24px;
+  --text-title-md--line-height: 32px;
+  --text-title-md2: 22px;
+  --text-title-md2--line-height: 28px;
+  --text-title-sm: 20px;
+  --text-title-sm--line-height: 28px;
+  --text-theme-xl: 15px;
+  --text-theme-xl--line-height: 24px;
+  --text-theme-sm: 13px;
+  --text-theme-sm--line-height: 20px;
+  --text-theme-xs: 12px;
+  --text-theme-xs--line-height: 18px;
 
   --color-current: currentColor;
   --color-transparent: transparent;
@@ -197,7 +199,7 @@ html {
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50;
+    @apply relative font-normal font-space-grotesk z-1 bg-gray-50;
   }
 }
 

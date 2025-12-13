@@ -32,7 +32,10 @@ const openPdf = async (path, filename) => {
 const PdfButton = ({ label, file, id, endpoint }) =>
   file ? (
     <button
-      onClick={() => openPdf(`/${endpoint}/download-proof/${id}`, file)}
+      onClick={(e) => {
+        e.stopPropagation();
+        openPdf(`/${endpoint}/download-proof/${id}`, file);
+      }}
       className="text-brand-500 hover:underline"
     >
       {file}
@@ -312,7 +315,7 @@ export default function PaymentRecordsView() {
       {/* ---------- TABLES ---------- */}
       {activeTab === "paid" && (
         <ListPage
-          resourceName="payments"
+          resourceName="payments/approved"
           columns={PAID_COLUMNS}
           title="Paid Invoices"
           showEdit={false}
@@ -321,7 +324,7 @@ export default function PaymentRecordsView() {
 
       {activeTab === "not-acknowledged" && (
         <ListPage
-          resourceName="payment-records-not-acknowledged"
+          resourceName="payments/pending"
           columns={notAcknowledgedColumns}
           title="Not Acknowledged"
           showEdit={false}

@@ -117,8 +117,12 @@ export const DataTable = ({
                       <td
                         key={colIndex}
                         onClick={(e) => {
-                          // Prevent row click when clicking action buttons
-                          if (column.header === "Actions") {
+                          // Prevent row click when clicking action buttons or interactive elements
+                          if (
+                            column.header === "Actions" ||
+                            e.target.tagName === "BUTTON" ||
+                            e.target.tagName === "A"
+                          ) {
                             e.stopPropagation();
                           }
                         }}

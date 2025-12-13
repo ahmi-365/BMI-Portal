@@ -51,7 +51,7 @@ const othersItems = [
   {
     name: "Account Statements",
     icon: <FileText className="w-5 h-5" />,
-    path: "/account-statements",
+    path: "/statements",
   },
   { name: "Customers", icon: <User className="w-5 h-5" />, path: "/customers" },
   {

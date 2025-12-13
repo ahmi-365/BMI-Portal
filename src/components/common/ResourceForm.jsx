@@ -86,6 +86,13 @@ export const ResourceForm = ({
           }
         }
 
+        // For credit notes edit forms, map backend cn_doc to file field
+        if (resourceName === "creditnotes") {
+          if (flat.cn_doc && !flat.file) {
+            flat.file = flat.cn_doc;
+          }
+        }
+
         setFormData(pickFieldValues(flat));
       }
     } catch (error) {
@@ -220,28 +227,17 @@ export const ResourceForm = ({
 
   return (
     <div className="max-w-4xl mx-auto p-6 animate-fadeIn">
-      {" "}
       {/* Breadcrumb Navigation */}
       <PageBreadcrumb
-        pageTitle={isEditMode ? `Edit ${title}` : `Add ${title}`}
+        pageTitle={title}
         breadcrumbs={[
           {
             label: resourceName.charAt(0).toUpperCase() + resourceName.slice(1),
             path: `/${resourceName}/view`,
           },
-          { label: isEditMode ? `Edit ${title}` : `Add ${title}` },
+          { label: title },
         ]}
       />
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
-            {isEditMode ? "Edit" : "Create"}
-          </p>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">
-            {isEditMode ? `Edit ${title}` : `Add ${title}`}
-          </h2>
-        </div>
-      </div>
       <div className="rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-lg shadow-xl dark:border-gray-800 dark:bg-gray-900/90 animate-slideIn">
         <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800/60 rounded-t-2xl">
           <h3 className="font-semibold text-gray-900 dark:text-white">

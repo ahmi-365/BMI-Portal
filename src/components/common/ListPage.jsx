@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -17,9 +18,16 @@ import PageBreadcrumb from "./PageBreadCrumb";
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-800">
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-lg"
+        onClick={onClose}
+      />
+
+      {/* Dialog */}
+      <div className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-800 animate-fadeIn">
         <div className="flex flex-col items-center text-center">
           <div className="mb-4 rounded-full bg-red-100 p-3 dark:bg-red-900/30">
             <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-500" />
@@ -35,14 +43,14 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+              className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={onConfirm}
               disabled={isLoading}
-              className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
             >
               {isLoading ? "Deleting..." : "Yes, Delete"}
             </button>
@@ -51,6 +59,10 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
       </div>
     </div>
   );
+
+  // Render modal in portal to ensure it's above all other content
+  const modalRoot = document.getElementById("modal-root");
+  return modalRoot ? createPortal(modalContent, modalRoot) : null;
 };
 
 // --- Main List Page Component ---
@@ -203,24 +215,25 @@ export const ListPage = ({
       {" "}
       {/* Breadcrumb Navigation */}
       <PageBreadcrumb pageTitle={title} breadcrumbs={[{ label: title }]} />
-      {/* Header */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-title-md2 font-bold text-black dark:text-white">
-            {title}
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>
+      {/* Header with Subtitle */}
+      {subtitle && (
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {subtitle}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {/* <button
+              onClick={() => navigate(`/${resourceName}/add`)}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-center font-medium text-white hover:bg-brand-600"
+            >
+              <Plus className="w-5 h-5" />
+              Add New
+            </button> */}
+          </div>
         </div>
-        <div className="flex gap-2">
-          {/* <button
-            onClick={() => navigate(`/${resourceName}/add`)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-center font-medium text-white hover:bg-brand-600"
-          >
-            <Plus className="w-5 h-5" />
-            Add New
-          </button> */}
-        </div>
-      </div>
+      )}
       {/* Search */}
       <div className="mb-4 gap-3 flex justify-end">
         <div className="relative w-full max-w-md">

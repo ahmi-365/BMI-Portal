@@ -207,7 +207,20 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       console.log("Bulk Parse Result:", result);
 
       // Extract data from result - handle both {data: {...}} and direct {...} formats
-      const parseData = result?.data ?? result;
+      // Prefer the envelope object when result.data is just the file array
+      let parseData = result?.data ?? result;
+      const hasEnvelopeProps =
+        result &&
+        typeof result === "object" &&
+        !Array.isArray(result) &&
+        (result.folderNames ||
+          result.prev_files ||
+          result.dn_no ||
+          result.customer_no ||
+          result.po_no);
+      if (Array.isArray(parseData) && hasEnvelopeProps) {
+        parseData = result;
+      }
       if (!parseData) throw new Error("No data returned from parse");
 
       setParsedData(parseData);
@@ -279,24 +292,47 @@ export const BatchUploadPage = ({ resourceName, title }) => {
               JSON.stringify(form, null, 2)
             );
 
+            const pickValue = (key) => {
+              const val = parseData?.[key];
+              if (Array.isArray(val)) return val[idx] ?? "";
+              return val ?? "";
+            };
+
+            const pickValueStrict = (key, fallback) => {
+              const val = parseData?.[key];
+              if (Array.isArray(val)) {
+                const v = val[idx];
+                return v === undefined || v === null ? fallback : v;
+              }
+              return val === undefined || val === null ? fallback : val;
+            };
+
             const parsedDoc =
-              form.file ??
-              form.dn_doc ??
-              parseData.prev_files?.[idx] ??
-              parseData.data?.[idx] ??
+              pickValue("prev_files") ||
+              pickValue("data") ||
+              form.file ||
+              form.dn_doc ||
               "";
 
-            form.user_id = form.user_id ?? ""; // company dropdown value
-            form.customer_no = form.customer_no ?? "";
-            form.amount = extractAmount(form.amount ?? "");
-            form.po_no = form.po_no ?? "";
-            form.ref_no = form.ref_no ?? "";
-            form.dn_no = form.dn_no ?? "";
-            form.dn_date = toISODate(form.dn_date) || form.dn_date || "";
-            const dueFromTermDN = dueDateFromTerm(form.payment_term);
-            form.payment_term =
-              dueFromTermDN || toISODate(form.payment_term) || "";
-            form.remarks = form.remarks ?? "";
+            form.user_id = pickValueStrict("user_id", form.user_id ?? ""); // company dropdown value
+            form.customer_no = pickValueStrict(
+              "customer_no",
+              form.customer_no ?? ""
+            );
+            const rawAmount = pickValueStrict("amount", form.amount ?? "");
+            form.amount = extractAmount(rawAmount);
+            form.po_no = pickValueStrict("po_no", form.po_no ?? "");
+            form.ref_no = pickValueStrict("ref_no", form.ref_no ?? "");
+            form.dn_no = pickValueStrict("dn_no", form.dn_no ?? "");
+            const rawDnDate = pickValueStrict("dn_date", form.dn_date ?? "");
+            form.dn_date = toISODate(rawDnDate) || rawDnDate || "";
+            const rawTerm = pickValueStrict(
+              "payment_term",
+              form.payment_term ?? ""
+            );
+            const dueFromTermDN = dueDateFromTerm(rawTerm);
+            form.payment_term = dueFromTermDN || toISODate(rawTerm) || "";
+            form.remarks = pickValueStrict("remarks", form.remarks ?? "");
             form.file = parsedDoc || "";
             form.dn_doc = parsedDoc || "";
             console.log(
