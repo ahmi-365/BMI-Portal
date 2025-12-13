@@ -34,7 +34,7 @@ const COLUMNS = [
         ? String(row.invoice_date).split("T")[0]
         : "-";
       return invoiceDateValue;
-    }
+    },
   },
   {
     header: "PO No.",
@@ -42,7 +42,7 @@ const COLUMNS = [
     render: (row) => {
       const poNoValue = row.po_no ? row.po_no : "-";
       return poNoValue;
-    }
+    },
   },
   {
     header: "DO No.",
@@ -50,7 +50,7 @@ const COLUMNS = [
     render: (row) => {
       const doNoValue = row.do_no ? row.do_no : "-";
       return doNoValue;
-    }
+    },
   },
   {
     header: "Amount",
@@ -58,7 +58,7 @@ const COLUMNS = [
     render: (row) => {
       const amountValue = row.amount ? row.amount : "0";
       return amountValue;
-    }
+    },
   },
   {
     header: "Outstanding",
@@ -66,7 +66,7 @@ const COLUMNS = [
     render: (row) => {
       const outstandingValue = row.outstanding ? row.outstanding : "0";
       return outstandingValue;
-    }
+    },
   },
   {
     header: "Due Date",
@@ -74,7 +74,7 @@ const COLUMNS = [
     render: (row) => {
       const dateValue = row.date ? String(row.date).split("T")[0] : "-";
       return dateValue;
-    }
+    },
   },
   {
     header: "Uploaded At",
@@ -87,8 +87,8 @@ const COLUMNS = [
   {
     header: "Uploaded By",
     accessor: "uploadedBy",
-    render: (row) => row.admin?.name ?? "-"
-  }
+    render: (row) => row.admin?.name ?? "-",
+  },
 ];
 
 export default function InvoicesView() {
@@ -105,8 +105,6 @@ export default function InvoicesView() {
         basePath="/invoices"
         showEdit={true}
       />
-
-
     </div>
   );
 }

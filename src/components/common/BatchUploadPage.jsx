@@ -72,6 +72,8 @@ const getAPI = (resourceName) => {
       return debitNotesAPI;
     case "creditnotes":
       return creditNotesAPI;
+    case "invoices":
+      return invoicesAPI;
     case "deliveryorders":
       return deliveryOrdersAPI;
     case "statements":
@@ -101,7 +103,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     const shouldLoadCompanies =
       resourceName === "creditnotes" ||
       resourceName === "debitnotes" ||
-      resourceName === "statements";
+      resourceName === "statements" ||
+      resourceName === "invoices";
     if (!shouldLoadCompanies) return;
     const load = async () => {
       try {
@@ -203,8 +206,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const result = await api.bulkParse(fd);
       console.log("Bulk Parse Result:", result);
 
-      // Use result directly - it contains all the parsed data
-      const parseData = result;
+      // Extract data from result - handle both {data: {...}} and direct {...} formats
+      const parseData = result?.data ?? result;
       if (!parseData) throw new Error("No data returned from parse");
 
       setParsedData(parseData);
@@ -212,6 +215,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const fileCount =
         typeof parseData.files === "number"
           ? parseData.files
+          : Array.isArray(parseData.files)
+          ? parseData.files.length
           : uploadedFiles.length;
       console.log("File count:", fileCount, "ParseData:", parseData);
 
@@ -220,15 +225,16 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         .map((_, idx) => {
           const form = { index: idx };
 
-          // Map parsed data arrays to each form
+          // Map parsed data into each form; allow both array and scalar shapes from backend
           Object.keys(parseData).forEach((key) => {
-            if (
-              Array.isArray(parseData[key]) &&
-              key !== "folderNames" &&
-              key !== "prev_files" &&
-              key !== "data"
-            ) {
-              form[key] = parseData[key][idx] ?? "";
+            if (key === "folderNames" || key === "prev_files" || key === "data")
+              return;
+
+            const source = parseData[key];
+            if (Array.isArray(source)) {
+              form[key] = source[idx] ?? "";
+            } else if (source !== undefined && source !== null) {
+              form[key] = source;
             }
           });
 
@@ -239,7 +245,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
           // Determine the doc field name based on resource
           if (resourceName === "debitnotes") {
-            form.dn_doc = parseData.prev_files?.[idx] ?? "";
+            form.file = parseData.prev_files?.[idx] ?? "";
           } else if (resourceName === "creditnotes") {
             form.cn_doc = parseData.prev_files?.[idx] ?? "";
           } else if (resourceName === "deliveryorders") {
@@ -247,6 +253,9 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           } else if (resourceName === "statements") {
             form.as_doc =
               parseData.prev_files?.[idx] ?? parseData.data?.[idx] ?? "";
+          } else if (resourceName === "invoices") {
+            form.file =
+              parseData.files?.[idx] ?? parseData.prev_files?.[idx] ?? "";
           }
 
           // Ensure expected fields exist for credit/debit notes
@@ -265,6 +274,18 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.cn_doc = form.cn_doc ?? "";
           }
           if (resourceName === "debitnotes") {
+            console.log(
+              "Debit note form BEFORE mapping:",
+              JSON.stringify(form, null, 2)
+            );
+
+            const parsedDoc =
+              form.file ??
+              form.dn_doc ??
+              parseData.prev_files?.[idx] ??
+              parseData.data?.[idx] ??
+              "";
+
             form.user_id = form.user_id ?? ""; // company dropdown value
             form.customer_no = form.customer_no ?? "";
             form.amount = extractAmount(form.amount ?? "");
@@ -276,7 +297,27 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.payment_term =
               dueFromTermDN || toISODate(form.payment_term) || "";
             form.remarks = form.remarks ?? "";
-            form.dn_doc = form.dn_doc ?? "";
+            form.file = parsedDoc || "";
+            form.dn_doc = parsedDoc || "";
+            console.log(
+              "Debit note form AFTER mapping:",
+              JSON.stringify(form, null, 2)
+            );
+          }
+          if (resourceName === "invoices") {
+            // Map invoice_no from backend to invoiceId for frontend
+            form.invoiceId = form.invoice_no ?? form.invoiceId ?? "";
+            form.user_id = form.user_id ?? "";
+            form.customer_no = form.customer_no ?? "";
+            form.po_no = form.po_no ?? "";
+            form.do_no = form.do_no ?? "";
+            form.date = toISODate(form.date) || form.date || "";
+            form.invoice_date =
+              toISODate(form.invoice_date) || form.invoice_date || "";
+            form.amount = extractAmount(String(form.amount ?? ""));
+            form.remarks = form.remarks ?? "";
+            form.folder = form.folder ?? "";
+            form.file = form.file ?? "";
           }
           if (resourceName === "statements") {
             form.user_id = form.user_id ?? ""; // company dropdown value
@@ -327,14 +368,74 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const api = getAPI(resourceName);
       if (!api) throw new Error("Invalid resource");
 
-      // Build payload as arrays
+      // Delivery Orders: build multipart FormData with delivery_orders array of objects
+      if (resourceName === "deliveryorders") {
+        const fd = new FormData();
+        formData.forEach((form, idx) => {
+          // invoice_id
+          fd.append(
+            `delivery_orders[${idx}][invoice_id]`,
+            String(form.invoice_id || "")
+          );
+          // remarks
+          fd.append(
+            `delivery_orders[${idx}][remarks]`,
+            String(form.remarks || "")
+          );
+          // do_doc file: use original uploaded file if available
+          const fileObj = uploadedFiles[idx]?.file || uploadedFiles[idx];
+          if (fileObj instanceof File) {
+            fd.append(`delivery_orders[${idx}][do_doc]`, fileObj, fileObj.name);
+          } else {
+            // Fallback: send text if file object not found
+            fd.append(
+              `delivery_orders[${idx}][do_doc]`,
+              String(form.do_doc || "")
+            );
+          }
+        });
+
+        const result = await api.bulkUpload(fd);
+
+        const status = result?.status?.toLowerCase?.();
+        if (status === "error" || status === "fail") {
+          setError(result?.message || "Upload failed.");
+          setToastMessage(null);
+          return;
+        }
+
+        if (result) {
+          setToastType("success");
+          setToastMessage(`Successfully uploaded ${formData.length} record(s)`);
+          setUploadedFiles([]);
+          setParsedData(null);
+          setFormData([]);
+          setDuplicateList([]);
+          setError(null);
+          setStep(1);
+          setTimeout(() => {
+            navigate(`/${resourceName}`);
+          }, 2000);
+        }
+        return;
+      }
+
+      // Build payload as arrays (default for other resources)
       const payload = {};
       const fieldNames = new Set();
 
       // Collect all field names from all forms
       formData.forEach((form) => {
         Object.keys(form).forEach((key) => {
-          if (key !== "index") fieldNames.add(key);
+          if (key === "index") return;
+          // For delivery orders, only send invoice_id, do_doc, and remarks
+          if (
+            resourceName === "deliveryorders" &&
+            !["invoice_id", "do_doc", "remarks"].includes(key)
+          ) {
+            return;
+          }
+          fieldNames.add(key);
         });
       });
 
@@ -1124,12 +1225,178 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                 />
                               </div>
                             </>
+                          ) : resourceName === "invoices" ? (
+                            <>
+                              {/* Company (searchable) */}
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Company Name
+                                </label>
+                                <SearchableSelect
+                                  id={`company-${idx}`}
+                                  options={companyOptions}
+                                  value={form.user_id || null}
+                                  onChange={(v) =>
+                                    handleFormChange(idx, "user_id", v)
+                                  }
+                                  placeholder="Select a company..."
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Customer No.
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.customer_no ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "customer_no",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Customer PO No.
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.po_no ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "po_no",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Invoice No.
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.invoiceId ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "invoiceId",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Invoice Date
+                                </label>
+                                <input
+                                  type="date"
+                                  value={form.invoice_date ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "invoice_date",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Delivery Order No.
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.do_no ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "do_no",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Date
+                                </label>
+                                <input
+                                  type="date"
+                                  value={form.date ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "date",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Amount (MYR)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.amount ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "amount",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Invoice Document
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.file ?? ""}
+                                  readOnly
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white"
+                                  placeholder="Parsed file name"
+                                />
+                              </div>
+                              <div className="relative md:col-span-2">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Remarks
+                                </label>
+                                <textarea
+                                  value={form.remarks ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "remarks",
+                                      e.target.value
+                                    )
+                                  }
+                                  rows={3}
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                            </>
                           ) : resourceName === "deliveryorders" ? (
                             <>
                               {/* Invoice (searchable) */}
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  Invoice No
+                                  DO No
                                 </label>
                                 <SearchableSelect
                                   id={`invoice-${idx}`}
@@ -1142,7 +1409,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       ...newFormData[idx],
                                       invoice_id: v,
                                       invoice_no: invoice?.invoiceId || "",
-                                      do_no: invoice?.invoiceId || "",
+                                      // Send primary key id as DO No in payload
+                                      do_no: invoice?.id ?? v,
                                     };
                                     setFormData(newFormData);
                                   }}
@@ -1162,7 +1430,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   placeholder="Auto-filled from invoice"
                                 />
                               </div>
-                              <div className="relative">
+                              {/* <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
                                   DO No
                                 </label>
@@ -1173,7 +1441,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white read-only:cursor-not-allowed"
                                   placeholder="Auto-filled from invoice"
                                 />
-                              </div>
+                              </div> */}
                               <div className="relative md:col-span-2">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
                                   DO Document

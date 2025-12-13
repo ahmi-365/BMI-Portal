@@ -21,14 +21,14 @@ const FIELDS = [
   {
     name: "proof",
     label: "Proof of Payment",
-     render: (_value,row) => (
-              <FileDownloadButton
-                file={row.proof}
-                id={row.id}
-                endpoint="payments"
-                path="download-proof"
-              />
-            ),
+    render: (_value, row) => (
+      <FileDownloadButton
+        file={row.proof}
+        id={row.id}
+        endpoint="payments"
+        path="download-proof"
+      />
+    ),
   },
 
   { name: "reference_id", label: "Reference No." },
@@ -91,9 +91,13 @@ const FIELDS = [
   },
 ];
 
-
 export default function PaymentRecordsShow() {
   return (
-    <ShowPage resourceName="payments" fields={FIELDS} title="Payment Record" />
+    <ShowPage
+      resourceName="payments"
+      fields={FIELDS}
+      title="Payment Record"
+      hideEdit={true}
+    />
   );
 }

@@ -1,3 +1,4 @@
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ShowPage } from "../../components/common/ShowPage";
 
 const FIELDS = [

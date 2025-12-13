@@ -56,7 +56,36 @@ export const ResourceForm = ({
             flat[k] = v.split("T")[0];
           }
         });
-        
+
+        // For invoice edit forms, map backend fields to match form field names
+        if (resourceName === "invoices") {
+          // Map invoice_doc (backend) to file (form field)
+          if (flat.invoice_doc && !flat.file) {
+            flat.file = flat.invoice_doc;
+          }
+        }
+
+        // For delivery orders edit forms, map backend fields to match form field names
+        if (resourceName === "deliveryorders") {
+          // Map do_doc (backend) to file (form field)
+          if (flat.do_doc && !flat.file) {
+            flat.file = flat.do_doc;
+          }
+          // For the do_no select field, we need the invoice_id (not the do_no string)
+          // The select dropdown will use this ID to find and display the matching invoice
+          if (flat.invoice_id) {
+            flat.do_no = flat.invoice_id;
+          }
+          // Map invoiceId from nested invoice object to invoice_id and invoice_no
+          if (data.invoice && data.invoice.invoiceId) {
+            flat.invoice_id = data.invoice.invoiceId;
+            flat.invoice_no = data.invoice.invoiceId;
+          } else if (flat.invoiceId) {
+            flat.invoice_id = flat.invoiceId;
+            flat.invoice_no = flat.invoiceId;
+          }
+        }
+
         setFormData(pickFieldValues(flat));
       }
     } catch (error) {
@@ -65,8 +94,6 @@ export const ResourceForm = ({
       setIsLoading(false);
     }
   };
-
-
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
@@ -164,12 +191,20 @@ export const ResourceForm = ({
       if (onSubmitSuccess) {
         onSubmitSuccess(result);
       } else {
+        // Reset form state before navigation
+        setFormData({});
+        setErrors({});
         navigate(`/${resourceName}/view`);
         // window.location.reload();
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      setErrors({ submit: "Error submitting form. Please try again." });
+      // Extract backend error message or use default
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Error submitting form. Please try again.";
+      setErrors({ submit: errorMessage });
     } finally {
       setSubmitLoading(false);
     }

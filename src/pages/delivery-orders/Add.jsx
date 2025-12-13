@@ -22,7 +22,7 @@ export default function DeliveryOrdersAdd() {
         ? list.map((inv) => {
             dataMap[inv.id] = inv;
             return {
-              value: inv.id,
+              value: inv.id, // This corresponds to the Primary Key
               label: inv.do_no || `DO #${inv.id}`,
             };
           })
@@ -51,8 +51,8 @@ export default function DeliveryOrdersAdd() {
 
   const FORM_FIELDS = [
     {
-      name: "invoice_id",
-      label: "DO No.",
+      name: "do_no",
+      label: "DO No.", // Label remains the same (UI unchanged)
       type: "select",
       searchable: true,
       options: invoiceOptions,
@@ -62,18 +62,19 @@ export default function DeliveryOrdersAdd() {
         if (invoice && setFormData) {
           setFormData((prev) => ({
             ...prev,
-            invoice_id: value,
+            // 1. The ID (PK) goes to do_no
+            do_no: value,
+            // 2. The String goes to invoice_id
+            invoice_id: invoice.invoiceId || "",
             invoice_no: invoice.invoiceId || "",
-            do_no: invoice.invoiceId || "",
           }));
         }
       },
     },
     {
-      name: "do_no",
-      label: "Invoice Id",
+      name: "invoice_id",
+      label: "Invoice Id", // Label remains the same (UI unchanged)
       type: "text",
-      readOnly: true,
     },
     {
       name: "remarks",

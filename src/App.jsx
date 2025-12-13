@@ -123,12 +123,9 @@ export default function App() {
             {/* Invoices (wildcard so TabbedResource routes work) */}
             <Route path="/invoices/*" element={<InvoicesIndex />} />
             <Route path="/invoices/edit/:id" element={<InvoicesEdit />} />
-            <Route path="/invoices/show/:id" element={<InvoicesShow />} />
+            <Route path="/invoices/index/show/:id" element={<InvoicesShow />} />
             {/* Delivery Orders (wildcard so TabbedResource routes work) */}
-            <Route
-              path="/deliveryorders/*"
-              element={<DeliveryOrdersIndex />}
-            />
+            <Route path="/deliveryorders/*" element={<DeliveryOrdersIndex />} />
             <Route
               path="/deliveryorders/edit/:id"
               element={<DeliveryOrdersEdit />}
@@ -149,10 +146,7 @@ export default function App() {
                 - The Index component contains the TabbedResource and will render
                   correct tab based on the subpath (e.g. /account-statements/add).
                 - Show/Edit routes remain defined below to render full-page views. */}
-            <Route
-              path="/statements/*"
-              element={<AccountStatementsIndex />}
-            />
+            <Route path="/statements/*" element={<AccountStatementsIndex />} />
             <Route
               path="/statements/edit/:id"
               element={<AccountStatementsEdit />}

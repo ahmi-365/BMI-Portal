@@ -526,6 +526,15 @@ export const invoicesAPI = {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
+
+  bulkParse: (formData) =>
+    apiCallFormData("/invoices/bulk-parse", formData, "POST"),
+
+  bulkUpload: (data) =>
+    apiCall("/invoices/bulk-upload", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
 
 // Debit Notes APIs
@@ -690,11 +699,8 @@ export const deliveryOrdersAPI = {
   bulkParse: (formData) =>
     apiCallFormData("/deliveryorders/bulk-parse", formData, "POST"),
 
-  bulkUpload: (data) =>
-    apiCall("/deliveryorders/bulk-upload", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+  bulkUpload: (formData) =>
+    apiCallFormData("/deliveryorders/bulk-upload", formData, "POST"),
 };
 
 // Payments APIs
