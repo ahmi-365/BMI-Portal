@@ -14,11 +14,30 @@ export const DataTable = ({
   showFilters,
   filters,
   onFilterChange,
+  // New props for selection
+  selectedIds = [],
+  onSelectionChange,
 }) => {
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === data.length) {
+      onSelectionChange?.([]);
+    } else {
+      onSelectionChange?.(data.map((row) => row.id));
+    }
+  };
+
+  const handleSelectRow = (id) => {
+    if (selectedIds.includes(id)) {
+      onSelectionChange?.(selectedIds.filter((sid) => sid !== id));
+    } else {
+      onSelectionChange?.([...selectedIds, id]);
+    }
+  };
 
   // Internal handlers (if your columns use them, or if you pass these down)
   const handleView = (row) => {
@@ -63,6 +82,18 @@ export const DataTable = ({
             <thead className="bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-800 dark:to-gray-800/50 sticky top-0 z-10">
               {/* 1. Standard Header Row */}
               <tr>
+                {onSelectionChange && (
+                  <th className="px-5 py-4 font-semibold text-gray-700 text-xs uppercase tracking-wider dark:text-gray-300 whitespace-nowrap first:rounded-tl-2xl border-b-2 border-gray-200 dark:border-gray-700 w-12">
+                    <input
+                      type="checkbox"
+                      checked={
+                        data.length > 0 && selectedIds.length === data.length
+                      }
+                      onChange={handleSelectAll}
+                      className="w-4 h-4 text-brand-600 rounded"
+                    />
+                  </th>
+                )}
                 {columns.map((column, index) => (
                   <th
                     key={index}
@@ -76,6 +107,7 @@ export const DataTable = ({
               {/* 2. Filter Input Row (Conditionally Rendered) */}
               {showFilters && (
                 <tr className="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm">
+                  {onSelectionChange && <th className="px-4 py-2"></th>}
                   {columns.map((column, index) => {
                     // Determine the key to use for filtering (accessor or accessorKey)
                     const filterKey = column.accessor || column.accessorKey;
@@ -111,8 +143,28 @@ export const DataTable = ({
                   <tr
                     key={row.id}
                     onClick={() => handleView(row)}
-                    className="group hover:bg-gradient-to-r hover:from-brand-50/30 hover:to-transparent dark:hover:from-brand-900/10 dark:hover:to-transparent transition-all duration-200 cursor-pointer"
+                    className={`group transition-all duration-200 cursor-pointer ${
+                      selectedIds.includes(row.id)
+                        ? "bg-brand-50 dark:bg-brand-900/20"
+                        : "hover:bg-gradient-to-r hover:from-brand-50/30 hover:to-transparent dark:hover:from-brand-900/10 dark:hover:to-transparent"
+                    }`}
                   >
+                    {onSelectionChange && (
+                      <td
+                        className="px-5 py-4 w-12"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectRow(row.id);
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(row.id)}
+                          onChange={() => handleSelectRow(row.id)}
+                          className="w-4 h-4 text-brand-600 rounded cursor-pointer"
+                        />
+                      </td>
+                    )}
                     {columns.map((column, colIndex) => (
                       <td
                         key={colIndex}

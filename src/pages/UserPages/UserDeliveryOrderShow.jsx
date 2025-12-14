@@ -1,152 +1,125 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Download, ArrowLeft } from "lucide-react";
-import UserLayout from "../../layout/UserLayout";
-import Loader from "../../components/common/Loader";
+import { ShowPage } from "../../components/common/ShowPage";
 import { userDeliveryOrdersAPI } from "../../services/api";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 
-export default function UserDeliveryOrderShow() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [data, setData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+const FIELDS = [
+  { name: "id", label: "ID" },
+  {
+    name: "do_no",
+    label: "DO No.",
+    render: (value) => value || "-",
+  },
+  {
+    name: "do_doc",
+    label: "DO Document",
+    render: (_value, row) => (
+      <FileDownloadButton
+        file={row.do_doc}
+        id={row.id}
+        endpoint="user/delivery-orders"
+        path="download"
+        isUserAPI={true}
+      />
+    ),
+  },
+  {
+    name: "do_date",
+    label: "DO Date",
+    render: (value) => {
+      if (!value) return "-";
+      return new Date(value).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    },
+  },
+  {
+    name: "date",
+    label: "Date",
+    render: (value) => {
+      if (!value) return "-";
+      return new Date(value).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    },
+  },
+  {
+    name: "invoice_id",
+    label: "Invoice ID",
+    render: (value) => value || "-",
+  },
+  {
+    name: "customer_no",
+    label: "Customer No.",
+    render: (value) => value || "-",
+  },
+  {
+    name: "po_no",
+    label: "PO No.",
+    render: (value) => value || "-",
+  },
+  {
+    name: "ref_no",
+    label: "Reference No.",
+    render: (value) => value || "-",
+  },
+  {
+    name: "order_no",
+    label: "Order No.",
+    render: (value) => value || "-",
+  },
+  {
+    name: "amount",
+    label: "Amount",
+    render: (value) => value || "0",
+  },
+  {
+    name: "remarks",
+    label: "Remarks",
+    render: (value) => value || "-",
+  },
+  {
+    name: "created_at",
+    label: "Created At",
+    render: (value) => {
+      if (!value) return "-";
+      return new Date(value).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
+  },
+  {
+    name: "updated_at",
+    label: "Updated At",
+    render: (value) => {
+      if (!value) return "-";
+      return new Date(value).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
+  },
+];
 
-  useEffect(() => {
-    loadData();
-  }, [id]);
-
-  const loadData = async () => {
-    try {
-      setIsLoading(true);
-      const result = await userDeliveryOrdersAPI.show(id);
-      setData(result);
-    } catch (error) {
-      console.error("Error loading delivery order:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDownload = async () => {
-    try {
-      const blob = await userDeliveryOrdersAPI.download(id);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `delivery-order-${id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Download failed:", err);
-      alert("Failed to download delivery order");
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <UserLayout>
-        <div className="flex justify-center items-center h-96">
-          <Loader />
-        </div>
-      </UserLayout>
-    );
-  }
-
-  if (!data) {
-    return (
-      <UserLayout>
-        <div className="max-w-2xl mx-auto text-center py-12">
-          <p className="text-gray-500">Delivery order not found</p>
-          <button
-            onClick={() => navigate("/user/delivery-orders")}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Back to Delivery Orders
-          </button>
-        </div>
-      </UserLayout>
-    );
-  }
-
+export default function   UserDeliveryOrderShow() {
   return (
-    <UserLayout>
-      <div className="max-w-2xl mx-auto">
-        <button
-          onClick={() => navigate("/user/delivery-orders")}
-          className="flex items-center gap-2 text-blue-500 hover:text-blue-700 mb-6"
-        >
-          <ArrowLeft size={18} />
-          Back to Delivery Orders
-        </button>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Delivery Order Details
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Order #{data.do_no}
-              </p>
-            </div>
-            <button
-              onClick={handleDownload}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
-            >
-              <Download size={18} />
-              Download
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Order No
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.do_no || "-"}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Date
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.do_date || "-"}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Amount
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.amount || "-"}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Status
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.status || "-"}
-              </p>
-            </div>
-          </div>
-
-          {data.description && (
-            <div className="mt-6">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Description
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.description}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </UserLayout>
+    <ShowPage
+      resourceName="user/delivery-orders"
+      fields={FIELDS}
+      title="Delivery Order Details"
+      showEdit={false}
+      backPath="/user/delivery-orders"
+      apiCall={userDeliveryOrdersAPI.show}
+    />
   );
 }

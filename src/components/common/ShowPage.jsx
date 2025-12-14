@@ -4,7 +4,14 @@ import { ArrowLeft, Edit, X } from "lucide-react";
 import { getResourceById } from "../../services/api";
 import PageBreadcrumb from "./PageBreadCrumb";
 
-export const ShowPage = ({ resourceName, fields, title = "Details" }) => {
+export const ShowPage = ({
+  resourceName,
+  fields,
+  title = "Details",
+  showEdit = true,
+  backPath,
+  apiCall,
+}) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
@@ -16,8 +23,10 @@ export const ShowPage = ({ resourceName, fields, title = "Details" }) => {
 
   const loadData = async () => {
     try {
-      const result = await getResourceById(resourceName, id);
-      setData(result);
+      const result = apiCall
+        ? await apiCall(id)
+        : await getResourceById(resourceName, id);
+      setData(result?.data || result);
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -72,13 +81,15 @@ export const ShowPage = ({ resourceName, fields, title = "Details" }) => {
             Record ID: {id}
           </p>
         </div>
-        <button
-          onClick={() => navigate(`/${resourceName}/edit/${id}`)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-700 hover:shadow-lg transition-all duration-200"
-        >
-          <Edit className="w-4 h-4" />
-          Edit
-        </button>
+        {showEdit && (
+          <button
+            onClick={() => navigate(`/${resourceName}/edit/${id}`)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-700 hover:shadow-lg transition-all duration-200"
+          >
+            <Edit className="w-4 h-4" />
+            Edit
+          </button>
+        )}
       </div>
 
       {/* Clean Table Layout */}
@@ -130,17 +141,19 @@ export const ShowPage = ({ resourceName, fields, title = "Details" }) => {
         {/* Footer Actions */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50/50 border-t border-gray-100 dark:bg-gray-800/50 dark:border-gray-800">
           <button
-            onClick={() => navigate(`/${resourceName}/view`)}
+            onClick={() => navigate(backPath || `/${resourceName}/view`)}
             className="px-5 py-2.5 rounded-xl border border-gray-300 font-medium text-gray-700 hover:bg-white hover:border-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:border-gray-500 transition-all duration-200"
           >
             Close
           </button>
-          <button
-            onClick={() => navigate(`/${resourceName}/edit/${id}`)}
-            className="px-5 py-2.5 rounded-xl bg-brand-600 font-medium text-white hover:bg-brand-700 transition-all duration-200"
-          >
-            Edit Record
-          </button>
+          {showEdit && (
+            <button
+              onClick={() => navigate(`/${resourceName}/edit/${id}`)}
+              className="px-5 py-2.5 rounded-xl bg-brand-600 font-medium text-white hover:bg-brand-700 transition-all duration-200"
+            >
+              Edit Record
+            </button>
+          )}
         </div>
       </div>
     </div>

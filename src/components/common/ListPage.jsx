@@ -10,7 +10,11 @@ import {
   AlertTriangle, // Icon for the warning modal
 } from "lucide-react";
 import { DataTable, createActionColumn } from "./DataTable";
-import { listResource, deleteResource } from "../../services/api";
+import {
+  listResource,
+  userListResource,
+  deleteResource,
+} from "../../services/api";
 import Loader from "./Loader";
 import PageBreadcrumb from "./PageBreadCrumb";
 
@@ -74,6 +78,11 @@ export const ListPage = ({
   perPage = 25,
   basePath,
   showEdit = true,
+  showDelete = true,
+  showActions = true,
+  selectedIds = [],
+  onSelectionChange,
+  headerAction,
 }) => {
   const navigate = useNavigate();
 
@@ -118,7 +127,10 @@ export const ListPage = ({
         ...filters,
       };
 
-      const result = await listResource(resourceName, params);
+      const isUserResource = resourceName.startsWith("user/");
+      const result = isUserResource
+        ? await userListResource(resourceName, params)
+        : await listResource(resourceName, params);
 
       setData(result.rows || []);
       setTotalPages(result.lastPage || 1);
@@ -144,7 +156,15 @@ export const ListPage = ({
   };
 
   const resolvedBase = basePath || `/${resourceName}`;
-  const handleView = (row) => navigate(`${resolvedBase}/show/${row.id}`);
+  const handleView = (row) => {
+    // Use the user-specific route if basePath indicates user resource
+    const route =
+      basePath ||
+      (resourceName.startsWith("user/")
+        ? `/${resourceName}`
+        : `/${resourceName}`);
+    navigate(`${route}/show/${row.id}`);
+  };
   const handleEdit = (row) => navigate(`${resolvedBase}/edit/${row.id}`);
 
   // --- Delete Handlers ---
@@ -172,11 +192,17 @@ export const ListPage = ({
     }
   };
 
-  const columns = [
-    ...baseColumns,
-    // Pass promptDelete instead of direct delete. Make edit handler optional via `showEdit` prop.
-    createActionColumn(handleView, showEdit ? handleEdit : null, promptDelete),
-  ];
+  const columns = showActions
+    ? [
+        ...baseColumns,
+        // Pass promptDelete instead of direct delete. Make edit handler optional via `showEdit` prop.
+        createActionColumn(
+          handleView,
+          showEdit ? handleEdit : null,
+          showDelete ? promptDelete : null
+        ),
+      ]
+    : baseColumns;
 
   // Pagination Helper
   const getPageNumbers = () => {
@@ -223,15 +249,7 @@ export const ListPage = ({
               {subtitle}
             </p>
           </div>
-          <div className="flex gap-2">
-            {/* <button
-              onClick={() => navigate(`/${resourceName}/add`)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-center font-medium text-white hover:bg-brand-600"
-            >
-              <Plus className="w-5 h-5" />
-              Add New
-            </button> */}
-          </div>
+          <div className="flex gap-2">{headerAction}</div>
         </div>
       )}
       {/* Search */}
@@ -274,6 +292,8 @@ export const ListPage = ({
               showFilters={showFilters}
               filters={filters}
               onFilterChange={handleFilterChange}
+              selectedIds={selectedIds}
+              onSelectionChange={onSelectionChange}
             />
           </div>
 

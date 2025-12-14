@@ -1,152 +1,115 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Download, ArrowLeft } from "lucide-react";
-import UserLayout from "../../layout/UserLayout";
-import Loader from "../../components/common/Loader";
+import { ShowPage } from "../../components/common/ShowPage";
 import { userDebitNotesAPI } from "../../services/api";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
+
+const FIELDS = [
+  { name: "id", label: "ID" },
+  {
+    name: "dn_no",
+    label: "Debit Note No.",
+    render: (value) => value || "-",
+  },
+  {
+    name: "dn_doc",
+    label: "DN Document",
+    render: (_value, row) => (
+      <FileDownloadButton
+        file={row.dn_doc}
+        id={row.id}
+        endpoint="user/debit-notes"
+        path="download"
+        isUserAPI={true}
+      />
+    ),
+  },
+  {
+    name: "dn_date",
+    label: "DN Date",
+    render: (value) => {
+      if (!value) return "-";
+      return new Date(value).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    },
+  },
+  {
+    name: "payment_term",
+    label: "Payment Term",
+    render: (value) => {
+      if (!value) return "-";
+      return new Date(value).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    },
+  },
+  {
+    name: "customer_no",
+    label: "Customer No.",
+    render: (value) => value || "-",
+  },
+  {
+    name: "po_no",
+    label: "PO No.",
+    render: (value) => value || "-",
+  },
+  {
+    name: "ref_no",
+    label: "Reference No.",
+    render: (value) => value || "-",
+  },
+  {
+    name: "amount",
+    label: "Amount",
+    render: (value) => value || "0",
+  },
+  {
+    name: "remarks",
+    label: "Remarks",
+    render: (value) => value || "-",
+  },
+  {
+    name: "created_at",
+    label: "Created At",
+    render: (value) => {
+      if (!value) return "-";
+      return new Date(value).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
+  },
+  {
+    name: "updated_at",
+    label: "Updated At",
+    render: (value) => {
+      if (!value) return "-";
+      return new Date(value).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
+  },
+];
 
 export default function UserDebitNoteShow() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [data, setData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    loadData();
-  }, [id]);
-
-  const loadData = async () => {
-    try {
-      setIsLoading(true);
-      const result = await userDebitNotesAPI.show(id);
-      setData(result);
-    } catch (error) {
-      console.error("Error loading debit note:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDownload = async () => {
-    try {
-      const blob = await userDebitNotesAPI.download(id);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `debit-note-${id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Download failed:", err);
-      alert("Failed to download debit note");
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <UserLayout>
-        <div className="flex justify-center items-center h-96">
-          <Loader />
-        </div>
-      </UserLayout>
-    );
-  }
-
-  if (!data) {
-    return (
-      <UserLayout>
-        <div className="max-w-2xl mx-auto text-center py-12">
-          <p className="text-gray-500">Debit note not found</p>
-          <button
-            onClick={() => navigate("/user/debit-notes")}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Back to Debit Notes
-          </button>
-        </div>
-      </UserLayout>
-    );
-  }
-
   return (
-    <UserLayout>
-      <div className="max-w-2xl mx-auto">
-        <button
-          onClick={() => navigate("/user/debit-notes")}
-          className="flex items-center gap-2 text-blue-500 hover:text-blue-700 mb-6"
-        >
-          <ArrowLeft size={18} />
-          Back to Debit Notes
-        </button>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Debit Note Details
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Note #{data.dn_no}
-              </p>
-            </div>
-            <button
-              onClick={handleDownload}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
-            >
-              <Download size={18} />
-              Download
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Debit Note No
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.dn_no || "-"}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Date
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.dn_date || "-"}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Amount
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.amount || "-"}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Status
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.status || "-"}
-              </p>
-            </div>
-          </div>
-
-          {data.description && (
-            <div className="mt-6">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Description
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.description}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </UserLayout>
+    <ShowPage
+      resourceName="user/debit-notes"
+      fields={FIELDS}
+      title="Debit Note Details"
+      showEdit={false}
+      backPath="/user/debit-notes"
+      apiCall={userDebitNotesAPI.show}
+    />
   );
 }

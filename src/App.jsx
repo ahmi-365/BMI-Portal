@@ -76,6 +76,7 @@ import UserLogin from "./pages/UserPages/UserLogin";
 
 // User Panel Pages
 import UserDashboard from "./pages/UserPages/UserDashboard";
+import UserProfileEdit from "./pages/UserPages/UserProfileEdit";
 import UserInvoices from "./pages/UserPages/UserInvoices";
 import UserInvoiceShow from "./pages/UserPages/UserInvoiceShow";
 import UserDeliveryOrders from "./pages/UserPages/UserDeliveryOrders";
@@ -85,6 +86,7 @@ import UserDebitNoteShow from "./pages/UserPages/UserDebitNoteShow";
 import UserCreditNotes from "./pages/UserPages/UserCreditNotes";
 import UserCreditNoteShow from "./pages/UserPages/UserCreditNoteShow";
 import UserPayments from "./pages/UserPages/UserPayments";
+import UserPaymentAdd from "./pages/UserPages/UserPaymentAdd";
 import UserPaymentShow from "./pages/UserPages/UserPaymentShow";
 import UserStatements from "./pages/UserPages/UserStatements";
 import UserStatementShow from "./pages/UserPages/UserStatementShow";
@@ -188,31 +190,40 @@ export default function App() {
             }
           >
             <Route path="/user/dashboard" element={<UserDashboard />} />
+            <Route path="/user/profile" element={<UserProfiles />} />
+            <Route path="/user/profile/edit" element={<UserProfileEdit />} />
             <Route path="/user/invoices" element={<UserInvoices />} />
-            <Route path="/user/invoices/:id" element={<UserInvoiceShow />} />
+            <Route
+              path="/user/invoices/show/:id"
+              element={<UserInvoiceShow />}
+            />
             <Route
               path="/user/delivery-orders"
               element={<UserDeliveryOrders />}
             />
             <Route
-              path="/user/delivery-orders/:id"
+              path="/user/delivery-orders/show/:id"
               element={<UserDeliveryOrderShow />}
             />
             <Route path="/user/debit-notes" element={<UserDebitNotes />} />
             <Route
-              path="/user/debit-notes/:id"
+              path="/user/debit-notes/show/:id"
               element={<UserDebitNoteShow />}
             />
             <Route path="/user/credit-notes" element={<UserCreditNotes />} />
             <Route
-              path="/user/credit-notes/:id"
+              path="/user/credit-notes/show/:id"
               element={<UserCreditNoteShow />}
             />
             <Route path="/user/payments" element={<UserPayments />} />
-            <Route path="/user/payments/:id" element={<UserPaymentShow />} />
+            <Route path="/user/payments/add" element={<UserPaymentAdd />} />
+            <Route
+              path="/user/payments/show/:id"
+              element={<UserPaymentShow />}
+            />
             <Route path="/user/statements" element={<UserStatements />} />
             <Route
-              path="/user/statements/:id"
+              path="/user/statements/show/:id"
               element={<UserStatementShow />}
             />
           </Route>

@@ -1,13 +1,25 @@
 import React from "react";
-import { downloadBlob } from "../../services/api";
+import { downloadBlob, userDownloadBlob } from "../../services/api";
 
-
-export default function FileDownloadButton({ file, id, endpoint, path = "download", children }) {
+export default function FileDownloadButton({
+  file,
+  id,
+  endpoint,
+  path = "download",
+  children,
+  isUserAPI = false,
+  onClick,
+}) {
   if (!file) return "-";
 
-  const handleClick = async () => {
+  const handleClick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onClick) onClick(e);
+
     try {
-      const blob = await downloadBlob(`/${endpoint}/${path}/${id}`);
+      const downloadFn = isUserAPI ? userDownloadBlob : downloadBlob;
+      const blob = await downloadFn(`/${endpoint}/${path}/${id}`);
       const blobUrl = URL.createObjectURL(blob);
 
       const newWin = window.open(blobUrl, "_blank");
@@ -28,7 +40,11 @@ export default function FileDownloadButton({ file, id, endpoint, path = "downloa
   };
 
   return (
-    <button onClick={handleClick} className="text-brand-500 hover:underline">
+    <button
+      onClick={handleClick}
+      className="text-brand-500 hover:underline focus:outline-none"
+      title={`Download ${file}`}
+    >
       {children || file}
     </button>
   );

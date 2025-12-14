@@ -3,7 +3,6 @@ import { auth, userAuth } from "./auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE;
 
-// Helper function to make API requests with auth header
 const apiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = auth?.getToken?.();
@@ -11,11 +10,16 @@ const apiCall = async (endpoint, options = {}) => {
   const config = {
     method: options.method || "GET",
     headers: {
-      "Content-Type": "application/json",
+      Accept: "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
   };
+
+  // Only set Content-Type if not FormData
+  if (!options.isFormData) {
+    config.headers["Content-Type"] = "application/json";
+  }
 
   if (options.body) {
     config.body = options.body;
@@ -23,20 +27,25 @@ const apiCall = async (endpoint, options = {}) => {
 
   try {
     const response = await fetch(url, config);
+
     if (response.status === 401) {
-      // Protected: clear token and redirect to signin
       try {
         auth.clear();
       } catch (e) {}
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
+
     if (!response.ok) {
       const text = await response.text();
       throw new Error(`API Error: ${response.status} ${text}`);
     }
+
     const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) return await response.json();
+    if (contentType.includes("application/json")) {
+      return await response.json();
+    }
+
     return await response.text();
   } catch (error) {
     console.error("API Error:", error);
@@ -193,6 +202,8 @@ export const apiCallFormData = async (endpoint, formData, method = "POST") => {
 
   const config = {
     method,
+    mode: "cors",
+    credentials: "include",
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
@@ -228,6 +239,8 @@ export const userApiCall = async (endpoint, options = {}) => {
 
   const config = {
     method: options.method || "GET",
+    mode: "cors",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -275,6 +288,8 @@ export const userApiCallFormData = async (
 
   const config = {
     method,
+    mode: "cors",
+    credentials: "include",
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
@@ -303,15 +318,24 @@ export const userApiCallFormData = async (
   }
 };
 
-export const userDownloadBlob = async (endpoint) => {
+export const userDownloadBlob = async (endpoint, data = null) => {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = userAuth?.getToken?.();
 
   const config = {
+    mode: "cors",
+    credentials: "include",
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   };
+
+  // If data is provided, use POST method with JSON body
+  if (data) {
+    config.method = "POST";
+    config.headers["Content-Type"] = "application/json";
+    config.body = JSON.stringify(data);
+  }
 
   try {
     const response = await fetch(url, config);
@@ -648,7 +672,7 @@ export const downloadBlob = async (endpoint) => {
   const config = {
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    }, 
+    },
   };
 
   try {
@@ -746,6 +770,17 @@ export const userAuthAPI = {
     userApiCall("/user/profile", {
       method: "GET",
     }),
+  updateProfile: (formData) =>
+    userApiCall("/user/profile/update", {
+      method: "POST",
+      body: formData,
+      isFormData: true,
+    }),
+  changePassword: (data) =>
+    userApiCall("/user/change-password", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
 
 // User Invoices APIs
@@ -818,6 +853,21 @@ export const userPaymentsAPI = {
     userApiCallFormData("/user/payments/add", formData, "POST"),
 
   download: (id) => userDownloadBlob(`/user/payments/download/${id}`),
+};
+
+// User Notifications APIs
+export const userNotificationsAPI = {
+  list: () => userApiCall("/user/notifications"),
+
+  markAsRead: (id) =>
+    userApiCall(`/user/notifications/read/${id}`, {
+      method: "POST",
+    }),
+
+  markAllAsRead: () =>
+    userApiCall("/user/notifications/read-all", {
+      method: "POST",
+    }),
 };
 
 // User Statements APIs
