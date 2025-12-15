@@ -119,6 +119,8 @@ export default function App() {
             <Route path="/payments" element={<PaymentRecordsView />} />
             <Route path="/payments/edit/:id" element={<PaymentRecordsAdd />} />
             <Route path="/payments/show/:id" element={<PaymentRecordsShow />} />
+            <Route path="/payments/approved/show/:id" element={<PaymentRecordsShow />} />
+            <Route path="/payments/pending/show/:id" element={<PaymentRecordsShow />} />
             <Route
               path="/payments/batch-upload"
               element={<PaymentRecordsBatchUpload />}

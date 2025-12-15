@@ -34,6 +34,9 @@ export const ShowPage = ({
     }
   };
 
+  // Determine if edit button should be shown
+  const shouldShowEdit = showEdit && !(resourceName === 'payments' && (data?.status === 0 || data?.status === 1));
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -81,7 +84,7 @@ export const ShowPage = ({
             Record ID: {id}
           </p>
         </div>
-        {showEdit && (
+        {shouldShowEdit && (
           <button
             onClick={() => navigate(`/${resourceName}/edit/${id}`)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-700 hover:shadow-lg transition-all duration-200"
@@ -146,7 +149,7 @@ export const ShowPage = ({
           >
             Close
           </button>
-          {showEdit && (
+          {shouldShowEdit && (
             <button
               onClick={() => navigate(`/${resourceName}/edit/${id}`)}
               className="px-5 py-2.5 rounded-xl bg-brand-600 font-medium text-white hover:bg-brand-700 transition-all duration-200"

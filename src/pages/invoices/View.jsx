@@ -110,6 +110,23 @@ export default function InvoicesView() {
     setIsDeleteModalOpen(true);
   };
 
+  const handleSingleDelete = async (id) => {
+  try {
+    setLoading(true);
+    await invoicesAPI.delete(id);
+    setToast({ message: "Invoice deleted successfully", type: "success" });
+    window.location.reload();
+  } catch (error) {
+    setToast({
+      message: error.message || "Failed to delete invoice",
+      type: "error",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   const handleBulkDelete = async () => {
     try {
       setLoading(true);
@@ -150,6 +167,7 @@ export default function InvoicesView() {
         showEdit={true}
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
+        onDelete={handleSingleDelete}
         headerAction={
           selectedIds.length > 0 ? (
             <button

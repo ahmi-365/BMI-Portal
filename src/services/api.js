@@ -136,6 +136,11 @@ const parseResourceName = (resourceName) => {
     params.status = "pending";
   }
 
+  // Handle "invoices/index" -> Invoices resource
+  if (resourceName === "invoices/index") {
+    resource = "invoices";
+  }
+
   return { resource, params };
 };
 const buildQueryString = (params = {}) => {

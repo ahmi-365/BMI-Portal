@@ -94,6 +94,9 @@ export default function DeliveryOrdersAdd() {
       const val = formData[key];
       if (val instanceof File) {
         fd.append(key, val, val.name);
+      } else if (key === "file") {
+        // For file field, only append if it's a new file (File instance)
+        // Don't send the existing file name string
       } else if (val !== undefined && val !== null && val !== "") {
         fd.append(key, String(val));
       }
