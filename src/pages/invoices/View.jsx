@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { invoicesAPI } from "../../services/api";
+import Toast from "../../components/common/Toast";
+import { Trash2 } from "lucide-react";
+import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 
 const COLUMNS = [
   {
@@ -92,8 +97,47 @@ const COLUMNS = [
 ];
 
 export default function InvoicesView() {
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [toast, setToast] = useState({ message: null, type: "success" });
+  const [loading, setLoading] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const handleBulkDeleteClick = () => {
+    if (selectedIds.length === 0) {
+      setToast({ message: "Please select items to delete", type: "error" });
+      return;
+    }
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      setLoading(true);
+      await invoicesAPI.bulkDelete(selectedIds);
+      setToast({ message: "Items deleted successfully", type: "success" });
+      setSelectedIds([]);
+      setIsDeleteModalOpen(false);
+      window.location.reload();
+    } catch (error) {
+      console.error("Bulk delete failed:", error);
+      setToast({
+        message: error.message || "Failed to delete items",
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
+      {toast.message && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ message: null, type: "success" })}
+        />
+      )}
       <PageMeta
         title="Invoices - BMI Invoice Management System"
         description="Manage and track all invoices. View invoice details, payment status, and associated documents in one place."
@@ -104,6 +148,27 @@ export default function InvoicesView() {
         title="Invoices"
         basePath="/invoices"
         showEdit={true}
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+        headerAction={
+          selectedIds.length > 0 ? (
+            <button
+              onClick={handleBulkDeleteClick}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              {loading ? "Deleting..." : `Delete (${selectedIds.length})`}
+            </button>
+          ) : null
+        }
+      />
+      <BulkDeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleBulkDelete}
+        isLoading={loading}
+        count={selectedIds.length}
       />
     </div>
   );

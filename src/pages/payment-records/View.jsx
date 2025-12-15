@@ -2,8 +2,10 @@ import { useState } from "react";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import { downloadBlob, paymentsAPI } from "../../services/api";
-import { Check } from "lucide-react";
+import { Check, Trash2 } from "lucide-react";
 import Toast from "../../components/common/Toast";
+import { formatDateISO } from "../../lib/dateUtils";
+import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 
 const openPdf = async (path, filename) => {
   try {
@@ -61,7 +63,7 @@ const PAID_COLUMNS = [
   {
     header: "Payment Date",
     accessor: "payment_date",
-    render: (row) => (row.payment_date ? row.payment_date.split("T")[0] : "-"),
+    render: (row) => formatDateISO(row.payment_date),
   },
   {
     header: "Proof of Payment",
@@ -110,7 +112,21 @@ const PAID_COLUMNS = [
     ),
   },
 
-  { header: "Status", accessor: "status" },
+  {
+    header: "Status",
+    accessor: "status",
+    render: (row) => (
+      <span
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          row.status === 0
+            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+        }`}
+      >
+        {row.status === 0 ? "Pending" : "Approved"}
+      </span>
+    ),
+  },
 ];
 
 // ===================================================================
@@ -131,7 +147,11 @@ const createNotAcknowledgedColumns = (onApprove) => [
 
   { header: "Amount", accessor: "amount" },
   { header: "Outstanding", accessor: "outstanding" },
-  { header: "Payment Date", accessor: "paymentDate" },
+  {
+    header: "Payment Date",
+    accessor: "payment_date",
+    render: (row) => formatDateISO(row.payment_date),
+  },
 
   {
     header: "Proof Of Payment",
@@ -141,7 +161,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
     ),
   },
 
-  { header: "Reference No.", accessor: "referenceNo" },
+  { header: "Reference No.", accessor: "reference_id" },
 
   {
     header: "DO DOC",
@@ -167,8 +187,21 @@ const createNotAcknowledgedColumns = (onApprove) => [
     ),
   },
 
-  { header: "Status", accessor: "status" },
-
+  {
+    header: "Status",
+    accessor: "status",
+    render: (row) => (
+      <span
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          row.status === 0
+            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+        }`}
+      >
+        {row.status === 0 ? "Pending" : "Approved"}
+      </span>
+    ),
+  },
   {
     header: "Approve",
     accessor: "actions",
@@ -200,7 +233,11 @@ const NOT_ACKNOWLEDGED_COLUMNS = [
 
   { header: "Amount", accessor: "amount" },
   { header: "Outstanding", accessor: "outstanding" },
-  { header: "Payment Date", accessor: "paymentDate" },
+  {
+    header: "Payment Date",
+    accessor: "payment_date",
+    render: (row) => formatDateISO(row.payment_date),
+  },
 
   {
     header: "Proof Of Payment",
@@ -210,7 +247,7 @@ const NOT_ACKNOWLEDGED_COLUMNS = [
     ),
   },
 
-  { header: "Reference No.", accessor: "referenceNo" },
+  { header: "Reference No.", accessor: "reference_id" },
 
   {
     header: "DO DOC",
@@ -236,13 +273,57 @@ const NOT_ACKNOWLEDGED_COLUMNS = [
     ),
   },
 
-  { header: "Status", accessor: "status" },
+  {
+    header: "Status",
+    accessor: "status",
+    render: (row) => (
+      <span
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          row.status === 0
+            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+        }`}
+      >
+        {row.status === 0 ? "Pending" : "Approved"}
+      </span>
+    ),
+  },
 ];
 
 export default function PaymentRecordsView() {
   const [activeTab, setActiveTab] = useState("paid");
   const [toastMessage, setToastMessage] = useState(null);
   const [toastType, setToastType] = useState("success");
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleBulkDeleteClick = () => {
+    if (selectedIds.length === 0) {
+      setToastType("error");
+      setToastMessage("No payments selected");
+      return;
+    }
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await paymentsAPI.bulkDelete(selectedIds);
+      setToastType("success");
+      setToastMessage(`${selectedIds.length} payment(s) deleted successfully`);
+      setSelectedIds([]);
+      setRefreshKey((prev) => prev + 1);
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      setToastType("error");
+      setToastMessage(error.message || "Failed to delete payments");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleApprovePayment = async (row) => {
     try {
@@ -319,6 +400,20 @@ export default function PaymentRecordsView() {
           columns={PAID_COLUMNS}
           title="Paid Invoices"
           showEdit={false}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          refreshKey={refreshKey}
+          headerAction={
+            selectedIds.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                <Trash2 size={18} />
+                Delete ({selectedIds.length})
+              </button>
+            )
+          }
         />
       )}
 
@@ -328,8 +423,30 @@ export default function PaymentRecordsView() {
           columns={notAcknowledgedColumns}
           title="Not Acknowledged"
           showEdit={false}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          refreshKey={refreshKey}
+          headerAction={
+            selectedIds.length > 0 && (
+              <button
+                onClick={handleBulkDeleteClick}
+                disabled={isDeleting}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+              >
+                <Trash2 size={18} />
+                {isDeleting ? "Deleting..." : `Delete (${selectedIds.length})`}
+              </button>
+            )
+          }
         />
       )}
+      <BulkDeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleBulkDelete}
+        isLoading={isDeleting}
+        count={selectedIds.length}
+      />
     </div>
   );
 }

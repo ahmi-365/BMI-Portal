@@ -240,7 +240,7 @@ export const ListPage = ({
     <div className="p-6 animate-fade-in-up">
       {" "}
       {/* Breadcrumb Navigation */}
-      <PageBreadcrumb pageTitle={title} breadcrumbs={[{ label: title }]} />
+      <PageBreadcrumb pageTitle={title} breadcrumbs={[{ label: title }]} /> 
       {/* Header with Subtitle */}
       {subtitle && (
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

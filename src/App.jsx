@@ -4,6 +4,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import UserProtectedRoute from "./components/common/UserProtectedRoute";
 import NotFound from "./pages/OtherPage/NotFound";
 import UserProfiles from "./pages/UserProfiles";
+import AdminProfile from "./pages/admins/AdminProfile";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -107,7 +108,7 @@ export default function App() {
             }
           >
             <Route index path="/" element={<Home />} />
-            <Route path="/profile" element={<UserProfiles />} />
+            <Route path="/profile" element={<AdminProfile />} />
             {/* Admin Users (wildcard so TabbedResource routes work) */}
             <Route path="/admin-users/*" element={<AdminUsersIndex />} />
             <Route path="/admins/show/:id" element={<AdminShow />} />

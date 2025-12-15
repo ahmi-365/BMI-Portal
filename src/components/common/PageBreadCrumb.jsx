@@ -8,7 +8,7 @@ const PageBreadcrumb = ({ pageTitle, breadcrumbs }) => {
   return (
     <div className="mb-6 flex flex-col gap-4">
       {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2">
+      {/* <nav className="flex items-center gap-2">
         <ol className="flex items-center gap-1 text-sm">
           <li>
             <Link
@@ -37,7 +37,7 @@ const PageBreadcrumb = ({ pageTitle, breadcrumbs }) => {
             </li>
           ))}
         </ol>
-      </nav>
+      </nav> */}
 
       {/* Page Title */}
       <h2 className="text-3xl font-bold text-gray-900 dark:text-white">

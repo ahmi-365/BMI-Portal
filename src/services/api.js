@@ -237,15 +237,21 @@ export const userApiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = userAuth?.getToken?.();
 
+  const headers = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.headers || {}),
+  };
+
+  // Only set Content-Type when we are not sending FormData
+  if (!options.isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const config = {
     method: options.method || "GET",
     mode: "cors",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
-    },
+    headers,
   };
 
   // Only add body if it exists
@@ -749,6 +755,33 @@ export const paymentsAPI = {
     }),
 };
 
+// Admin Notifications APIs
+export const adminNotificationsAPI = {
+  list: () => apiCall("/admin/notifications"),
+  markAsRead: (id) =>
+    apiCall(`/admin/notifications/read/${id}`, {
+      method: "POST",
+    }),
+  markAllAsRead: (ids = []) =>
+    apiCall("/admin/notifications/read-all", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+};
+
+// Admin Profile APIs
+export const adminProfileAPI = {
+  profile: () =>
+    apiCall("/profile", {
+      method: "GET",
+    }),
+  update: (data) =>
+    apiCall("/admin/profile/update", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
 // ============================================================================
 // USER PANEL APIs
 // ============================================================================
@@ -771,11 +804,7 @@ export const userAuthAPI = {
       method: "GET",
     }),
   updateProfile: (formData) =>
-    userApiCall("/user/profile/update", {
-      method: "POST",
-      body: formData,
-      isFormData: true,
-    }),
+    userApiCallFormData("/user/profile/update", formData, "POST"),
   changePassword: (data) =>
     userApiCall("/user/change-password", {
       method: "POST",
