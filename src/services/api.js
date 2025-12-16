@@ -158,6 +158,14 @@ const parseResourceName = (resourceName) => {
     params.status = "pending";
   }
 
+  // Handle payments routes
+  if (
+    resourceName === "payments/approved" ||
+    resourceName === "payments/pending"
+  ) {
+    resource = "payments";
+  }
+
   // Handle "invoices/index" -> Invoices resource
   if (resourceName === "invoices/index") {
     resource = "invoices";
@@ -774,6 +782,11 @@ export const paymentsAPI = {
 
   uploadProof: (formData) =>
     apiCallFormData("/payments/upload-proof", formData, "POST"),
+
+  delete: (id) =>
+    apiCall(`/payments/delete/${id}`, {
+      method: "DELETE",
+    }),
 
   bulkDelete: (ids) =>
     apiCall("/payments/delete/bulk", {
