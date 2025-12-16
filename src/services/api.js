@@ -3,6 +3,28 @@ import { auth, userAuth } from "./auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE;
 
+// Extracts a readable backend message from a failed response
+const parseErrorResponse = async (response) => {
+  const fallback = `Request failed with status ${response.status}`;
+  try {
+    const text = await response.text();
+    if (!text) return fallback;
+    try {
+      const data = JSON.parse(text);
+      return (
+        data?.message ||
+        data?.error ||
+        (Array.isArray(data?.errors) ? data.errors[0] : null) ||
+        text
+      );
+    } catch {
+      return text;
+    }
+  } catch {
+    return fallback;
+  }
+};
+
 const apiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = auth?.getToken?.();
@@ -37,8 +59,8 @@ const apiCall = async (endpoint, options = {}) => {
     }
 
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`API Error: ${response.status} ${text}`);
+      const message = await parseErrorResponse(response);
+      throw new Error(message);
     }
 
     const contentType = response.headers.get("content-type") || "";
@@ -225,8 +247,8 @@ export const apiCallFormData = async (endpoint, formData, method = "POST") => {
       throw new Error("Unauthorized");
     }
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`API Error: ${response.status} ${text}`);
+      const message = await parseErrorResponse(response);
+      throw new Error(message);
     }
     const contentType = response.headers.get("content-type") || "";
     if (contentType.includes("application/json")) return await response.json();
@@ -277,8 +299,8 @@ export const userApiCall = async (endpoint, options = {}) => {
       }
     }
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`API Error: ${response.status} ${text}`);
+      const message = await parseErrorResponse(response);
+      throw new Error(message);
     }
     const contentType = response.headers.get("content-type") || "";
     if (contentType.includes("application/json")) return await response.json();
@@ -317,8 +339,8 @@ export const userApiCallFormData = async (
       throw new Error("Unauthorized");
     }
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`API Error: ${response.status} ${text}`);
+      const message = await parseErrorResponse(response);
+      throw new Error(message);
     }
     const contentType = response.headers.get("content-type") || "";
     if (contentType.includes("application/json")) return await response.json();
@@ -746,7 +768,7 @@ export const paymentsAPI = {
 
   approved: () => apiCall("/payments/approved"),
 
-  approve: (formData) => apiCallFormData("/payments/approve", formData, "POST"),
+  approve: (id) => apiCall(`/payments/approve/${id}`, { method: "POST" }),
 
   download: (id) => apiCall(`/statements/download/${id}`),
 

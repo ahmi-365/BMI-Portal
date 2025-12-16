@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Download, ArrowLeft } from "lucide-react";
-import UserLayout from "../../layout/UserLayout";
+import { Download, ArrowLeft, X } from "lucide-react";
 import Loader from "../../components/common/Loader";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userInvoicesAPI } from "../../services/api";
 
 export default function UserInvoiceShow() {
@@ -19,7 +20,7 @@ export default function UserInvoiceShow() {
     try {
       setIsLoading(true);
       const result = await userInvoicesAPI.show(id);
-      setData(result);
+      setData(result?.data || result);
     } catch (error) {
       console.error("Error loading invoice:", error);
     } finally {
@@ -27,126 +28,149 @@ export default function UserInvoiceShow() {
     }
   };
 
-  const handleDownload = async () => {
-    try {
-      const blob = await userInvoicesAPI.download(id);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `invoice-${id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Download failed:", err);
-      alert("Failed to download invoice");
-    }
-  };
-
   if (isLoading) {
     return (
-      <UserLayout>
-        <div className="flex justify-center items-center h-96">
-          <Loader />
+      <div className="flex justify-center items-center h-96">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500"></div>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">
+            Loading details...
+          </p>
         </div>
-      </UserLayout>
+      </div>
     );
   }
 
   if (!data) {
     return (
-      <UserLayout>
-        <div className="max-w-2xl mx-auto text-center py-12">
-          <p className="text-gray-500">Invoice not found</p>
-          <button
-            onClick={() => navigate("/user/invoices")}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Back to Invoices
-          </button>
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="rounded-2xl bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-200 p-6 text-red-800 dark:from-red-900/20 dark:to-red-900/10 dark:border-red-800/50 dark:text-red-400">
+          <div className="flex items-center gap-3">
+            <X className="w-6 h-6" />
+            <span className="font-semibold">Invoice not found</span>
+          </div>
         </div>
-      </UserLayout>
+      </div>
     );
   }
 
+  const FIELDS = [
+    { label: "ID", value: data.id },
+    { label: "Invoice No.", value: data.invoiceId || data.invoice_no || "-" },
+    { label: "Customer No.", value: data.customer_no || "-" },
+    {
+      label: "Invoice Date",
+      value: data.invoice_date ? String(data.invoice_date).split("T")[0] : "-",
+    },
+    {
+      label: "Due Date",
+      value: data.date ? String(data.date).split("T")[0] : "-",
+    },
+    { label: "PO No.", value: data.po_no || "-" },
+    { label: "DO No.", value: data.do_no || "-" },
+    { label: "Amount (MYR)", value: data.amount || "-" },
+    { label: "Outstanding", value: data.outstanding || "-" },
+    {
+      label: "Status",
+      value:
+        data.status === 0
+          ? "Pending"
+          : data.status === 1
+          ? "Approved"
+          : "Active",
+    },
+    { label: "Remarks", value: data.remarks || "-" },
+    {
+      label: "Created At",
+      value: data.created_at ? String(data.created_at).split("T")[0] : "-",
+    },
+    {
+      label: "Updated At",
+      value: data.updated_at ? String(data.updated_at).split("T")[0] : "-",
+    },
+    { label: "Admin ID", value: data.admin_id || "-" },
+  ];
+
   return (
-    <UserLayout>
-      <div className="max-w-2xl mx-auto">
-        <button
-          onClick={() => navigate("/user/invoices")}
-          className="flex items-center gap-2 text-blue-500 hover:text-blue-700 mb-6"
-        >
-          <ArrowLeft size={18} />
-          Back to Invoices
-        </button>
+    <div className="max-w-6xl mx-auto p-6 animate-fadeIn">
+      {/* Breadcrumb Navigation */}
+      <PageBreadcrumb
+        pageTitle="Invoice Details"
+        breadcrumbs={[
+          { label: "Invoices", path: "/user/invoices" },
+          { label: "View Invoice" },
+        ]}
+      />
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Invoice Details
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Invoice #{data.invoice_no}
-              </p>
-            </div>
-            <button
-              onClick={handleDownload}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
-            >
-              <Download size={18} />
-              Download
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Invoice No
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.invoice_no || "-"}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Date
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.invoice_date || "-"}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Amount
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.amount || "-"}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                Status
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.status || "-"}
-              </p>
-            </div>
-          </div>
-
-          {data.description && (
-            <div className="mt-6">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Description
-              </label>
-              <p className="text-gray-900 dark:text-white">
-                {data.description}
-              </p>
-            </div>
-          )}
+      {/* Compact Header */}
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Invoice ID: {id}
+          </p>
         </div>
       </div>
-    </UserLayout>
+
+      {/* Clean Table Layout */}
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 overflow-hidden animate-slideIn">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+              {FIELDS.map((field, idx) => (
+                <tr
+                  key={idx}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                >
+                  <td className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/30 w-1/3">
+                    {field.label}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                    {field.value}
+                  </td>
+                </tr>
+              ))}
+              {/* Invoice Document Row */}
+              <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <td className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/30 w-1/3">
+                  Invoice Document
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                  {data.invoice_doc ? (
+                    <FileDownloadButton
+                      file={data.invoice_doc}
+                      id={data.id}
+                      endpoint="user/invoices"
+                      path="download"
+                      isUserAPI={true}
+                    />
+                  ) : (
+                    "-"
+                  )}
+                </td>
+              </tr>
+              {/* DO Document Row */}
+              <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <td className="px-6 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/30 w-1/3">
+                  DO Document
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                  {data.do_doc ? (
+                    <FileDownloadButton
+                      file={data.do_doc}
+                      id={data.id}
+                      endpoint="user/invoices"
+                      path="download-do"
+                      isUserAPI={true}
+                    />
+                  ) : (
+                    "-"
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 }

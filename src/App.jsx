@@ -119,8 +119,14 @@ export default function App() {
             <Route path="/payments" element={<PaymentRecordsView />} />
             <Route path="/payments/edit/:id" element={<PaymentRecordsAdd />} />
             <Route path="/payments/show/:id" element={<PaymentRecordsShow />} />
-            <Route path="/payments/approved/show/:id" element={<PaymentRecordsShow />} />
-            <Route path="/payments/pending/show/:id" element={<PaymentRecordsShow />} />
+            <Route
+              path="/payments/approved/show/:id"
+              element={<PaymentRecordsShow />}
+            />
+            <Route
+              path="/payments/pending/show/:id"
+              element={<PaymentRecordsShow />}
+            />
             <Route
               path="/payments/batch-upload"
               element={<PaymentRecordsBatchUpload />}
@@ -175,6 +181,15 @@ export default function App() {
             <Route path="/customers/*" element={<CustomersIndex />} />
             <Route path="/customers/edit/:id" element={<CustomersEdit />} />
             <Route path="/customers/show/:id" element={<CustomersShow />} />
+            {/* Support direct show routes for filtered resource aliases */}
+            <Route
+              path="/approved-customers/show/:id"
+              element={<CustomersShow />}
+            />
+            <Route
+              path="/pending-customers/show/:id"
+              element={<CustomersShow />}
+            />
             <Route path="/administration/*" element={<AdministrationIndex />} />
           </Route>
 

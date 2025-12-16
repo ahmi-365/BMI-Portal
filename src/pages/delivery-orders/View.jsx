@@ -11,7 +11,7 @@ const COLUMNS = [
   {
     header: "Customer No.",
     accessor: "customer_no",
-    render: (row) => row.customer_no || "-",
+    render: (row) => row.user?.customer_no || "-",
   },
   {
     header: "Company Name",
@@ -64,7 +64,7 @@ const COLUMNS = [
   {
     header: "Uploaded By",
     accessor: "uploaded_by",
-    render: (row) => row.uploaded_by || "-",
+    render: (row) => row.admin?.name || "-",
   },
 ];
 

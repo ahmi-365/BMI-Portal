@@ -13,7 +13,7 @@ const COLUMNS = [
       <FileDownloadButton
         file={row.statement_doc}
         id={row.id}
-        endpoint="user/account-statements"
+        endpoint="user/statements"
         path="download"
         isUserAPI={true}
         onClick={(e) => e.stopPropagation()}
@@ -61,7 +61,7 @@ export default function UserStatements() {
     setIsDownloading(true);
     try {
       const blob = await userDownloadBlob(
-        `/user/account-statements/bulk-download`,
+        `/user/statements/bulk-download`,
         {
           ids: selectedIds,
         }

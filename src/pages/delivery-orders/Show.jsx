@@ -5,15 +5,18 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 const FIELDS = [
   { name: "id", label: "ID" },
   {
-    name: "customer_no", label: "Customer No.",
-    //  render: (row) => row.customer_no || "-",
+    name: "customer_no",
+    label: "Customer No.",
+    render: (_v, row) => row.user?.customer_no || "-",
   },
   {
-    name: "company_name", label: "Company Name"
-    , render: (_v, row) => row.user?.company ?? "-",
+    name: "company_name",
+    label: "Company Name",
+    render: (_v, row) => row.user?.company ?? "-",
   },
   {
-    name: "do_no", label: "DO No.",
+    name: "do_no",
+    label: "DO No.",
     render: (value) => (value ? value : "-"),
   },
   {
@@ -38,31 +41,33 @@ const FIELDS = [
     name: "po_no",
     label: "PO No.",
     render: (_v, row) => row.po_no ?? row.invoice?.po_no ?? "-",
-  }
-  ,
-  {
-  name: "invoice_date",
-  label: "Invoice Date",
-  render: (_v, row) => {
-    const date = row.invoice?.invoice_date;
-    return date ? String(date).split("T")[0] : "-";
   },
-},
+  {
+    name: "invoice_date",
+    label: "Invoice Date",
+    render: (_v, row) => {
+      const date = row.invoice?.invoice_date;
+      return date ? String(date).split("T")[0] : "-";
+    },
+  },
 
   {
-    name: "amount", label: "Amount",
+    name: "amount",
+    label: "Amount",
     render: (_v, row) => {
       const amount = row.invoice?.amount;
       return amount ? amount : "0";
-    }
+    },
   },
   {
-    name: "created_at", label: "Uploaded At",
+    name: "created_at",
+    label: "Uploaded At",
     render: (value) => (value ? String(value).split("T")[0] : "-"),
   },
   {
-    name: "uploaded_by", label: "Uploaded By",
-    render: (value) => (value ? value : "-"),
+    name: "uploaded_by",
+    label: "Uploaded By",
+    render: (_v, row) => row.admin?.name || "-",
   },
 ];
 

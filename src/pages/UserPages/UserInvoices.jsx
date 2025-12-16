@@ -6,7 +6,7 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
 
 const COLUMNS = [
-  { header: "Invoice No.", accessor: "invoice_no" },
+  { header: "Invoice No.", accessor: "invoiceId" },
   {
     header: "Invoice Doc",
     accessor: "invoice_doc",

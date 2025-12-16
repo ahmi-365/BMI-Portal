@@ -17,6 +17,7 @@ import {
 } from "../../services/api";
 import Loader from "./Loader";
 import PageBreadcrumb from "./PageBreadCrumb";
+import Toast from "./Toast";
 
 // --- Internal Delete Confirmation Modal Component ---
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
@@ -83,6 +84,7 @@ export const ListPage = ({
   selectedIds = [],
   onSelectionChange,
   headerAction,
+  refreshKey = 0,
 }) => {
   const navigate = useNavigate();
 
@@ -106,6 +108,7 @@ export const ListPage = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   // 1. Debounce Search
   useEffect(() => {
@@ -143,7 +146,14 @@ export const ListPage = ({
     } finally {
       setIsLoading(false);
     }
-  }, [resourceName, currentPage, perPageState, debouncedSearch, filters]);
+  }, [
+    resourceName,
+    currentPage,
+    perPageState,
+    debouncedSearch,
+    filters,
+    refreshKey,
+  ]);
 
   // 3. Trigger Load
   useEffect(() => {
@@ -171,6 +181,7 @@ export const ListPage = ({
   const promptDelete = (row) => {
     setItemToDelete(row);
     setIsDeleteModalOpen(true);
+    setDeleteError("");
   };
 
   const confirmDelete = async () => {
@@ -183,10 +194,14 @@ export const ListPage = ({
       // Close modal and refresh
       setIsDeleteModalOpen(false);
       setItemToDelete(null);
+      setDeleteError("");
       await loadData();
     } catch (error) {
       console.error("Delete failed", error);
-      alert("Failed to delete record: " + error.message);
+      setDeleteError(error?.message || "Failed to delete record");
+      // Close modal on error as well
+      setIsDeleteModalOpen(false);
+      setItemToDelete(null);
     } finally {
       setIsDeleting(false);
     }
@@ -238,9 +253,15 @@ export const ListPage = ({
 
   return (
     <div className="p-6 animate-fade-in-up">
-      {" "}
+      {deleteError && (
+        <Toast
+          message={deleteError}
+          type="error"
+          onClose={() => setDeleteError("")}
+        />
+      )}{" "}
       {/* Breadcrumb Navigation */}
-      <PageBreadcrumb pageTitle={title} breadcrumbs={[{ label: title }]} /> 
+      <PageBreadcrumb pageTitle={title} breadcrumbs={[{ label: title }]} />
       {/* Header with Subtitle */}
       {subtitle && (
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -389,7 +410,11 @@ export const ListPage = ({
       {/* Render the Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setItemToDelete(null);
+          setDeleteError("");
+        }}
         onConfirm={confirmDelete}
         isLoading={isDeleting}
       />

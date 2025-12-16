@@ -117,10 +117,11 @@ const PAID_COLUMNS = [
     accessor: "status",
     render: (row) => (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 0
-          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-          }`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          row.status === 0
+            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+        }`}
       >
         {row.status === 0 ? "Pending" : "Approved"}
       </span>
@@ -191,10 +192,11 @@ const createNotAcknowledgedColumns = (onApprove) => [
     accessor: "status",
     render: (row) => (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 0
-          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-          }`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          row.status === 0
+            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+        }`}
       >
         {row.status === 0 ? "Pending" : "Approved"}
       </span>
@@ -276,10 +278,11 @@ const NOT_ACKNOWLEDGED_COLUMNS = [
     accessor: "status",
     render: (row) => (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 0
-          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-          }`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          row.status === 0
+            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+        }`}
       >
         {row.status === 0 ? "Pending" : "Approved"}
       </span>
@@ -305,7 +308,6 @@ export default function PaymentRecordsView() {
     setIsDeleteModalOpen(true); // ✅ opens modal
   };
 
-
   const handleBulkDelete = async () => {
     try {
       setIsDeleting(true);
@@ -325,18 +327,13 @@ export default function PaymentRecordsView() {
 
   const handleApprovePayment = async (row) => {
     try {
-      const formData = new FormData();
-      formData.append("payment_id", row.id);
-
-      const result = await paymentsAPI.approve(formData);
+      const result = await paymentsAPI.approve(row.id);
 
       setToastType("success");
       setToastMessage("Payment approved successfully!");
 
       // Refresh the list after approval
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("Approval failed:", error);
       setToastType("error");
@@ -369,20 +366,22 @@ export default function PaymentRecordsView() {
         <div className="flex gap-4">
           <button
             onClick={() => setActiveTab("paid")}
-            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "paid"
-              ? "border-brand-500 text-brand-500"
-              : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
-              }`}
+            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "paid"
+                ? "border-brand-500 text-brand-500"
+                : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
+            }`}
           >
             Paid Invoices
           </button>
 
           <button
             onClick={() => setActiveTab("not-acknowledged")}
-            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "not-acknowledged"
-              ? "border-brand-500 text-brand-500"
-              : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
-              }`}
+            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "not-acknowledged"
+                ? "border-brand-500 text-brand-500"
+                : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
+            }`}
           >
             Not Acknowledged
           </button>
@@ -403,7 +402,6 @@ export default function PaymentRecordsView() {
             selectedIds.length > 0 && (
               <button
                 onClick={handleBulkDeleteClick}
-
                 className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
                 <Trash2 size={18} />
@@ -434,7 +432,6 @@ export default function PaymentRecordsView() {
               </button>
             )
           }
-
         />
       )}
       <BulkDeleteConfirmationModal
@@ -444,7 +441,6 @@ export default function PaymentRecordsView() {
         isLoading={isDeleting}
         count={selectedIds.length}
       />
-
     </div>
   );
 }
