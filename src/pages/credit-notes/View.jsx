@@ -16,14 +16,11 @@ const COLUMNS = [
     render: (row) => row.user?.company || "-",
   }, // from nested user
   { header: "CN No.", accessor: "cn_no", render: (row) => row.cn_no || "N/A" },
-  { header: "Do No.", accessor: "do_no", 
-        render: (row) => row.invoice?.do_no || "-",
-
-    
-   },
-
   {
-
+    header: "Do No.", accessor: "do_no",
+    render: (row) => row.invoice?.do_no || "-",
+  },
+  {
     header: "CN Document",
     accessor: "cn_doc",
     render: (row) => (
@@ -35,7 +32,7 @@ const COLUMNS = [
       />
     ),
   },
-   {
+  {
 
     header: "Do Document",
     accessor: "do_doc",
