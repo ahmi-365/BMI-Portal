@@ -4,8 +4,8 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 
 const FIELDS = [
   {
-    name: "id", label: "ID",
-    render: (value) => value || "-"
+    name: "company", label: "Company Name",
+    render: (_v, row) => row.user?.company ?? "-",
   },
   { name: "customer_no", label: "Customer No." },
   { name: "dn_no", label: "DN No." },
@@ -29,20 +29,20 @@ const FIELDS = [
   { name: "po_no", label: "PO No." },
   { name: "ref_no", label: "Ref No." },
   { name: "amount", label: "Amount" },
-  {
-    name: "payment_term",
-    label: "Payment Term",
-   render: (_v, row) => row.payment_term?.split("T")[0] ?? row.invoice?.payment_term?.split("T")[0] ?? "-"
+  // {
+  //   name: "payment_term",
+  //   label: "Payment Term",
+  //  render: (_v, row) => row.payment_term?.split("T")[0] ?? row.invoice?.payment_term?.split("T")[0] ?? "-"
 
-  }
-  ,
-  { name: "remarks", label: "Remarks" },
-  { name: "created_at", label: "Uploaded At",
-    render: (value) => value ? String(value).split("T")[0] : "-"
-   },
-  { name: "admin_id", label: "Uploaded By"
-    , render: (_v, row) => row.admin?.name || "-"
-   },
+  // }
+  
+  // { name: "remarks", label: "Remarks" },
+  // { name: "created_at", label: "Uploaded At",
+  //   render: (value) => value ? String(value).split("T")[0] : "-"
+  //  },
+  // { name: "admin_id", label: "Uploaded By"
+  //   , render: (_v, row) => row.admin?.name || "-"
+  //  },
 ];
 
 export default function DebitNotesShow() {

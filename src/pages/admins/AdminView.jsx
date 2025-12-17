@@ -1,3 +1,4 @@
+import { render } from "@fullcalendar/core/preact.js";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 
@@ -15,6 +16,11 @@ const COLUMNS = [
   {
     header: "Email",
     accessor: "email",
+  },
+  {
+    header: "Mailable",
+    accessor: "is_mailable",
+    render: (row) => (row.is_mailable ? "True" : "False"),
   },
   
   {

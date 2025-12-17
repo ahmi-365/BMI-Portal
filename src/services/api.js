@@ -770,16 +770,21 @@ export const paymentsAPI = {
 
   approve: (id) => apiCall(`/payments/approve/${id}`, { method: "POST" }),
 
+  delete: (id) => apiCall(`/payments/delete/${id}`, { method: "DELETE" }),
+
   download: (id) => apiCall(`/statements/download/${id}`),
 
   uploadProof: (formData) =>
     apiCallFormData("/payments/upload-proof", formData, "POST"),
 
-  bulkDelete: (ids) =>
-    apiCall("/payments/delete/bulk", {
-      method: "POST",
-      body: JSON.stringify({ ids }),
-    }),
+  bulkDelete: async (ids) => {
+    const results = await Promise.allSettled(ids.map(id => paymentsAPI.delete(id)));
+    const failures = results.filter(result => result.status === 'rejected');
+    if (failures.length > 0) {
+      throw new Error(`Failed to delete ${failures.length} payment(s)`);
+    }
+    return results.map(result => result.value);
+  },
 };
 
 // Admin Notifications APIs

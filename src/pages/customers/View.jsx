@@ -63,11 +63,11 @@ const PENDING_COLUMNS = [
   render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
 }
   ,
-  {
-    header: "Business Contact Number",
-    accessor: "phone",
-    render: (row) => row.phone || "-",
-  },
+  // {
+  //   header: "Business Contact Number",
+  //   accessor: "phone",
+  //   render: (row) => row.phone || "-",
+  // },
   {
   header: "Created At",
   accessor: "created_at",

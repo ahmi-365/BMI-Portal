@@ -44,7 +44,7 @@ export default function InvoicesAdd() {
       label: "Company Name",
       type: "select",
       searchable: true,
-      required: true,
+      required: false,
       options: companyOptions,
       placeholder: "Select a company...",
     },
@@ -79,7 +79,7 @@ export default function InvoicesAdd() {
       required: true,
     },
     {
-      name: "due_date",
+      name: "date",
       label: "Due Date",
       type: "date",
       required: true,

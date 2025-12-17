@@ -21,9 +21,9 @@ export default function DebitNotesAdd() {
 
         const opts = Array.isArray(list)
           ? list.map((c) => ({
-              value: c.id,
-              label: c.company || c.name,
-            }))
+            value: c.id,
+            label: c.company || c.name,
+          }))
           : [];
 
         setCompanyOptions(opts);

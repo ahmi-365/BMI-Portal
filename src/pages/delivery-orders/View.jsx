@@ -50,11 +50,11 @@ const COLUMNS = [
     },
   },
 
-  {
-    header: "Amount",
-    accessor: "amount",
-    render: (row) => (row.invoice.amount ? row.invoice.amount : "0"),
-  },
+  // {
+  //   header: "Amount",
+  //   accessor: "amount",
+  //   render: (row) => (row.invoice.amount ? row.invoice.amount : "0"),
+  // },
   {
     header: "Uploaded At",
     accessor: "created_at",

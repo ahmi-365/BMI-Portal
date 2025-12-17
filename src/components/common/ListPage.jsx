@@ -85,6 +85,7 @@ export const ListPage = ({
   onSelectionChange,
   headerAction,
   refreshKey = 0,
+  additionalParams = {},
 }) => {
   const navigate = useNavigate();
 
@@ -128,6 +129,7 @@ export const ListPage = ({
         perPage: perPageState,
         search: debouncedSearch,
         ...filters,
+        ...additionalParams,
       };
 
       const isUserResource = resourceName.startsWith("user/");

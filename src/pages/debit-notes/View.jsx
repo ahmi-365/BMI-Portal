@@ -48,19 +48,19 @@ const COLUMNS = [
     accessor: "amount",
     render: (row) => (row.amount ? row.amount : "0"),
   },
-  {
-    header: "Payment Term",
-    accessor: "payment_term",
-    render: (row) => {
-      if (!row.payment_term) return "-";
-      return row.payment_term.split("T")[0];
-    },
-  },
-  {
-    header: "Remarks",
-    accessor: "remarks",
-    render: (row) => row.remarks || "-",
-  },
+  // {
+  //   header: "Payment Term",
+  //   accessor: "payment_term",
+  //   render: (row) => {
+  //     if (!row.payment_term) return "-";
+  //     return row.payment_term.split("T")[0];
+  //   },
+  // },
+  // {
+  //   header: "Remarks",
+  //   accessor: "remarks",
+  //   render: (row) => row.remarks || "-",
+  // },
   {
     header: "Uploaded At",
     accessor: "created_at",

@@ -3,12 +3,12 @@ import { ShowPage } from "../../components/common/ShowPage";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 
 const FIELDS = [
-  { name: "id", label: "ID" },
-  {
-    name: "customer_no",
-    label: "Customer No.",
-    render: (_v, row) => row.user?.customer_no || "-",
-  },
+  // { name: "id", label: "ID" },
+  // {
+  //   name: "customer_no",
+  //   label: "Customer No.",
+  //   render: (_v, row) => row.user?.customer_no || "-",
+  // },
   {
     name: "company_name",
     label: "Company Name",
@@ -37,38 +37,43 @@ const FIELDS = [
     label: "Invoice No.",
     render: (_v, row) => row.invoice?.invoiceId ?? "-",
   },
-  {
-    name: "po_no",
-    label: "PO No.",
-    render: (_v, row) => row.po_no ?? row.invoice?.po_no ?? "-",
-  },
-  {
-    name: "invoice_date",
-    label: "Invoice Date",
-    render: (_v, row) => {
-      const date = row.invoice?.invoice_date;
-      return date ? String(date).split("T")[0] : "-";
-    },
-  },
+  // {
+  //   name: "po_no",
+  //   label: "PO No.",
+  //   render: (_v, row) => row.po_no ?? row.invoice?.po_no ?? "-",
+  // },
+  // {
+  //   name: "invoice_date",
+  //   label: "Invoice Date",
+  //   render: (_v, row) => {
+  //     const date = row.invoice?.invoice_date;
+  //     return date ? String(date).split("T")[0] : "-";
+  //   },
+  // },
 
-  {
-    name: "amount",
-    label: "Amount",
-    render: (_v, row) => {
-      const amount = row.invoice?.amount;
-      return amount ? amount : "0";
-    },
-  },
-  {
-    name: "created_at",
-    label: "Uploaded At",
-    render: (value) => (value ? String(value).split("T")[0] : "-"),
-  },
-  {
-    name: "uploaded_by",
-    label: "Uploaded By",
-    render: (_v, row) => row.admin?.name || "-",
-  },
+  // {
+  //   name: "amount",
+  //   label: "Amount",
+  //   render: (_v, row) => {
+  //     const amount = row.invoice?.amount;
+  //     return amount ? amount : "0";
+  //   },
+  // },
+  // {
+  //   name: "created_at",
+  //   label: "Uploaded At",
+  //   render: (value) => (value ? String(value).split("T")[0] : "-"),
+  // },
+  // {
+  //   name: "uploaded_by",
+  //   label: "Uploaded By",
+  //   render: (_v, row) => row.admin?.name || "-",
+  // },
+  // {
+  //   name: "remarks",
+  //   label: "Remarks",
+  //   render: (_v, row) => row.remarks || "-",
+  // },
 ];
 
 export default function DeliveryOrdersShow() {

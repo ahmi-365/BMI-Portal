@@ -2,7 +2,7 @@ import { ShowPage } from "../../components/common/ShowPage";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 
 const FIELDS = [
-  { name: "id", label: "ID" },
+  // { name: "id", label: "ID" },
   { name: "customer_no", label: "Customer No" },
   {
     name: "user",
@@ -22,14 +22,14 @@ const FIELDS = [
   { name: "statement_date", label: "Statement Date",
     render: (value) => (value ? String(value).split("T")[0] : "-"),
    },
-  { name: "updated_at", label: "Updated At",
-    render: (value) => (value ? String(value).split("T")[0] : "-"),
-   },
-  {
-    name: "user",
-    label: "Uploaded By",
-    render: (user, data) => data.admin?.name || user?.name || "-",
-  },
+  // { name: "updated_at", label: "Updated At",
+  //   render: (value) => (value ? String(value).split("T")[0] : "-"),
+  //  },
+  // {
+  //   name: "user",
+  //   label: "Uploaded By",
+  //   render: (user, data) => data.admin?.name || user?.name || "-",
+  // },
 ];
 
 export default function AccountStatementsShow() {

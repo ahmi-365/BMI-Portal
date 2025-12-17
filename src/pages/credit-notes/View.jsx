@@ -6,6 +6,7 @@ import { creditNotesAPI } from "../../services/api";
 import Toast from "../../components/common/Toast";
 import { Trash2 } from "lucide-react";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
+import { render } from "@fullcalendar/core/preact.js";
 
 const COLUMNS = [
   { header: "Customer No.", accessor: "customer_no" },
@@ -15,12 +16,32 @@ const COLUMNS = [
     render: (row) => row.user?.company || "-",
   }, // from nested user
   { header: "CN No.", accessor: "cn_no", render: (row) => row.cn_no || "N/A" },
+  { header: "Do No.", accessor: "do_no", 
+        render: (row) => row.invoice?.do_no || "-",
+
+    
+   },
+
   {
+
     header: "CN Document",
     accessor: "cn_doc",
     render: (row) => (
       <FileDownloadButton
         file={row.cn_doc}
+        id={row.id}
+        endpoint="creditnotes"
+        path="download"
+      />
+    ),
+  },
+   {
+
+    header: "Do Document",
+    accessor: "do_doc",
+    render: (row) => (
+      <FileDownloadButton
+        file={row.invoice?.do_doc}
         id={row.id}
         endpoint="creditnotes"
         path="download"
@@ -35,16 +56,16 @@ const COLUMNS = [
   { header: "PO No.", accessor: "po_no", render: (row) => row.po_no || "N/A" },
   { header: "Ref No.", accessor: "ref_no", render: (row) => row.ref_no || "-" },
   { header: "Amount", accessor: "amount" },
-  {
-    header: "Remarks",
-    accessor: "remarks",
-    render: (row) => row.remarks || "-",
-  },
-  {
-    header: "Payment Term",
-    accessor: "payment_term",
-    render: (row) => (row.payment_term ? row.payment_term.split("T")[0] : "-"),
-  },
+  // {
+  //   header: "Remarks",
+  //   accessor: "remarks",
+  //   render: (row) => row.remarks || "-",
+  // },
+  // {
+  //   header: "Payment Term",
+  //   accessor: "payment_term",
+  //   render: (row) => (row.payment_term ? row.payment_term.split("T")[0] : "-"),
+  // },
   {
     header: "Uploaded At",
     accessor: "created_at",
