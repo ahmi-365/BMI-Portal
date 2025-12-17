@@ -1,42 +1,57 @@
 export const pages = [
+  // Dashboard & Profile
   { path: "/", name: "Dashboard" },
-  { path: "/profile", name: "User Profiles" },
-  { path: "/admin-users/view", name: "Admin Users" },
-  { path: "/admin-users/add", name: "Add Admin User" },
+  { path: "/profile", name: "Admin Profile" },
+
+  // Admin Users
+  { path: "/admin-users", name: "Admin Users" },
   { path: "/admin-users/batch-upload", name: "Batch Upload Admin Users" },
-  { path: "/payment-records/view", name: "View Payment Records" },
-  { path: "/payment-records/add", name: "Add Payment Record" },
-  {
-    path: "/payment-records/batch-upload",
-    name: "Batch Upload Payment Records",
-  },
-  { path: "/invoices/view", name: "View Invoices" },
+
+  // Payments
+  { path: "/payments", name: "View Payment Records" },
+  { path: "/payments/add", name: "Add Payment Record" },
+  { path: "/payments/batch-upload", name: "Batch Upload Payment Records" },
+
+  // Invoices
+  { path: "/invoices", name: "View Invoices" },
   { path: "/invoices/add", name: "Add Invoice" },
   { path: "/invoices/batch-upload", name: "Batch Upload Invoices" },
-  { path: "/delivery-orders/view", name: "View Delivery Orders" },
-  { path: "/delivery-orders/add", name: "Add Delivery Order" },
+
+  // Delivery Orders
+  { path: "/deliveryorders", name: "View Delivery Orders" },
+  { path: "/deliveryorders/add", name: "Add Delivery Order" },
   {
-    path: "/delivery-orders/batch-upload",
+    path: "/deliveryorders/batch-upload",
     name: "Batch Upload Delivery Orders",
   },
-  { path: "/debitnotes/view", name: "View Debit Notes" },
+
+  // Debit Notes
+  { path: "/debitnotes", name: "View Debit Notes" },
   { path: "/debitnotes/add", name: "Add Debit Note" },
   { path: "/debitnotes/batch-upload", name: "Batch Upload Debit Notes" },
-  { path: "/credit-notes/view", name: "View Credit Notes" },
-  { path: "/credit-notes/add", name: "Add Credit Note" },
-  { path: "/credit-notes/batch-upload", name: "Batch Upload Credit Notes" },
-  { path: "/account-statements/view", name: "View Account Statements" },
-  { path: "/account-statements/add", name: "Add Account Statement" },
+
+  // Credit Notes
+  { path: "/creditnotes", name: "View Credit Notes" },
+  { path: "/creditnotes/add", name: "Add Credit Note" },
+  { path: "/creditnotes/batch-upload", name: "Batch Upload Credit Notes" },
+
+  // Account Statements
+  { path: "/statements", name: "View Account Statements" },
+  { path: "/statements/add", name: "Add Account Statement" },
   {
-    path: "/account-statements/batch-upload",
+    path: "/statements/batch-upload",
     name: "Batch Upload Account Statements",
   },
-  { path: "/customers/view", name: "View Customers" },
+
+  // Customers
+  { path: "/customers", name: "View Customers" },
   { path: "/customers/add", name: "Add Customer" },
   { path: "/customers/batch-upload", name: "Batch Upload Customers" },
-  { path: "/administration/view", name: "View Administration" },
-  { path: "/administration/add", name: "Add Administration" },
+
+  // Administration
+  { path: "/administration", name: "Administration" },
 ];
+
 
 export const searchPages = (query) => {
   if (!query) {

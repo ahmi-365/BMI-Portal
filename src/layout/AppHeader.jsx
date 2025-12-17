@@ -7,6 +7,8 @@ import UserDropdown from "../components/header/UserDropdown"; // Adjust path as 
 import { searchPages } from "../lib/search"; // Adjust path as needed
 import { ChartBar } from "lucide-react";
 
+
+
 const AppHeader = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");

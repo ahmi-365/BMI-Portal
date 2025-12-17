@@ -125,6 +125,9 @@ export default function InvoicesAdd() {
       }
     });
 
+    // Add resourceNameName for backend
+    fd.append("reseNamourceName", "invoices");
+
     if (isEditMode) {
       return await apiCallFormData(`/invoices/update/${id}`, fd, "POST");
     }

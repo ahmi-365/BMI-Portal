@@ -75,6 +75,7 @@ export default function DeliveryOrdersAdd() {
       name: "invoice_id",
       label: "Invoice Id", // Label remains the same (UI unchanged)
       type: "text",
+      disabled: isEditMode,
     },
     {
       name: "remarks",

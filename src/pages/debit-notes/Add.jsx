@@ -59,7 +59,7 @@ export default function DebitNotesAdd() {
     { name: "amount", label: "Amount (MYR)", type: "number", required: true },
     { name: "ref_no", label: "Reference No.", type: "text", required: true },
     { name: "dn_no", label: "DN No.", type: "text" },
-    { name: "file", label: "DN Document", type: "file" },
+    { name: "file", label: "DN Document", type: "file", required: true },
     { name: "dn_date", label: "DN Date", type: "date" },
     { name: "payment_term", label: "Due Date", type: "date" },
     { name: "remarks", label: "Remarks", type: "textarea" },

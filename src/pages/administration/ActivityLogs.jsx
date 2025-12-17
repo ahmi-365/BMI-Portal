@@ -34,7 +34,6 @@ export default function SystemLogsViewer() {
       setLoading(false);
     }
   };
-
   const toggleExpanded = (id) => {
     setExpandedLogs((prev) => ({
       ...prev,
@@ -141,7 +140,7 @@ export default function SystemLogsViewer() {
                     >
                       <div className="flex items-center flex-1 text-left">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 ${
+                          className={`w-14 h-14 rounded-full flex items-center justify-center mr-4 ${
                             isDarkMode
                               ? "bg-blue-900 text-blue-300"
                               : "bg-blue-100 text-blue-600"

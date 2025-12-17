@@ -177,7 +177,11 @@ const normalizePagination = (res, fallbackPage = 1, fallbackPerPage = 25) => {
   const list = envelope?.data ?? res?.data ?? res ?? [];
   const page = envelope?.current_page ?? envelope?.page ?? fallbackPage;
   const perPage = envelope?.per_page ?? envelope?.perPage ?? fallbackPerPage;
-  const total = envelope?.total ?? list?.length ?? 0;
+  let total = envelope?.total ?? list?.length ?? 0;
+  // If total not provided and list is full page, assume there might be more
+  if (total === perPage && page === 1 && !envelope?.total) {
+    total = perPage + 1;
+  }
   const lastPage =
     envelope?.last_page ??
     envelope?.lastPage ??
@@ -392,7 +396,9 @@ export const userDownloadBlob = async (endpoint, data = null) => {
 export const getResourceById = async (resourceName, id) => {
   const { resource } = parseResourceName(resourceName);
   // Many backend endpoints expose a show route at /<resource>/show/:id
-  const res = await apiCall(`/${resource}/show/${id}`);
+  // But invoices use /invoices/:id
+  const endpoint = resource === "invoices" ? `/${resource}/${id}` : `/${resource}/show/${id}`;
+  const res = await apiCall(endpoint);
   return res?.data ?? res;
 };
 
@@ -776,7 +782,10 @@ export const paymentsAPI = {
 
   uploadProof: (formData) =>
     apiCallFormData("/payments/upload-proof", formData, "POST"),
-
+  delete: (id) =>
+    apiCall(`/payments/delete/${id}`, {
+      method: "DELETE",
+    }),
   bulkDelete: async (ids) => {
     const results = await Promise.allSettled(ids.map(id => paymentsAPI.delete(id)));
     const failures = results.filter(result => result.status === 'rejected');

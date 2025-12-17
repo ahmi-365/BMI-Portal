@@ -65,7 +65,7 @@ const FIELDS = [
 export default function InvoicesShow() {
   return (
     <ShowPage
-      resourceName="invoices"
+      resourceName="invoices/"
       fields={FIELDS}
       title="Invoice Details"
     />

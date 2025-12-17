@@ -404,6 +404,7 @@ export const ResourceForm = ({
                       onChange={handleChange}
                       placeholder={field.placeholder}
                       readOnly={field.readOnly}
+                      disabled={field.disabled}
                       className="w-full rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 disabled:cursor-default disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600 read-only:bg-gray-50 read-only:cursor-not-allowed dark:read-only:bg-gray-900/50"
                     />
                   )}

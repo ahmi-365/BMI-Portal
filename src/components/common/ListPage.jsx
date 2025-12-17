@@ -14,6 +14,7 @@ import {
   listResource,
   userListResource,
   deleteResource,
+  paymentsAPI,
 } from "../../services/api";
 import Loader from "./Loader";
 import PageBreadcrumb from "./PageBreadCrumb";
@@ -191,7 +192,11 @@ export const ListPage = ({
     try {
       setIsDeleting(true);
       // Call your API
-      await deleteResource(resourceName, itemToDelete.id);
+      if (resourceName.startsWith("payments/")) {
+        await paymentsAPI.delete(itemToDelete.id);
+      } else {
+        await deleteResource(resourceName, itemToDelete.id);
+      }
 
       // Close modal and refresh
       setIsDeleteModalOpen(false);
