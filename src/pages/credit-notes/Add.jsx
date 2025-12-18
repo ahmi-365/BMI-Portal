@@ -1,13 +1,15 @@
 import { ResourceForm } from "../../components/common/ResourceForm";
-import { creditNotesAPI, companiesAPI } from "../../services/api";
+import { creditNotesAPI, companiesAPI, invoicesAPI } from "../../services/api";
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 export default function CreditNotesAdd() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const isEditMode = !!id;
 
   const [companyOptions, setCompanyOptions] = useState([]);
+  const [invoiceOptions, setInvoiceOptions] = useState([]);
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -24,6 +26,23 @@ export default function CreditNotesAdd() {
       }
     };
     loadCompanies();
+  }, []);
+
+  useEffect(() => {
+    const loadInvoices = async () => {
+      try {
+        const res = await invoicesAPI.allInvoices();
+        const list = res?.data ?? res ?? [];
+        const opts = Array.isArray(list)
+          ? list.map((inv) => ({ value: inv.invoiceId, label: inv.invoiceId }))
+          : [];
+        setInvoiceOptions(opts);
+      } catch (err) {
+        console.error("Error loading invoices:", err);
+        setInvoiceOptions([]);
+      }
+    };
+    loadInvoices();
   }, []);
 
   const FIELDS = [
@@ -45,10 +64,18 @@ export default function CreditNotesAdd() {
     { name: "po_no", label: "Customer PO No.", type: "text", required: true },
     { name: "amount", label: "Amount (MYR)", type: "number", required: true },
     { name: "cn_no", label: "CN No.", type: "text", required: true },
-    { name: "ref_no", label: "Reference No.", type: "text", required: true },
+    {
+      name: "ref_no",
+      label: "Reference No.",
+      type: "select",
+      searchable: true,
+      required: false,
+      options: invoiceOptions,
+      placeholder: "Select an invoice...",
+    },
     { name: "file", label: "CN Document", type: "file", required: true },
     { name: "cn_date", label: "CN Date", type: "date", required: true },
-    { name: "payment_term", label: "Due Date", type: "date", required: true },
+    { name: "payment_term", label: "Payment Term", type: "date", required: true },
     { name: "remarks", label: "Remarks", type: "textarea" },
   ];
 
@@ -70,6 +97,9 @@ export default function CreditNotesAdd() {
       }
     });
 
+    // Add resourceName for backend
+    fd.append("resourceName", "creditnotes");
+
     if (isEditMode) {
       return await creditNotesAPI.update(id, fd);
     }
@@ -82,6 +112,7 @@ export default function CreditNotesAdd() {
       fields={FIELDS}
       title={isEditMode ? "Edit Credit Note" : "New Credit Note"}
       onSubmit={handleSubmit}
+      onSubmitSuccess={() => navigate('/creditnotes')}
     />
   );
 }
