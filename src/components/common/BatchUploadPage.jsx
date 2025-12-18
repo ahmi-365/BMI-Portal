@@ -97,6 +97,29 @@ export const BatchUploadPage = ({ resourceName, title }) => {
   const [companyOptions, setCompanyOptions] = useState([]);
   const [duplicateList, setDuplicateList] = useState([]);
   const [invoiceOptions, setInvoiceOptions] = useState([]);
+  const [submitted, setSubmitted] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const resetValidation = () => {
+    setSubmitted(false);
+    setValidationErrors({});
+  };
+
+  const isFieldEmpty = (value) => {
+    if (value === 0) return false;
+    if (value === false) return false;
+    return value === undefined || value === null || String(value).trim() === "";
+  };
+
+  const fieldHasError = (index, field) =>
+    submitted && Array.isArray(validationErrors[index])
+      ? validationErrors[index].includes(field)
+      : false;
+
+  const errorClass = (index, field) =>
+    fieldHasError(index, field)
+      ? "border-red-500 focus:border-red-500 focus:ring-red-100 dark:border-red-500 dark:focus:border-red-400 dark:focus:ring-red-800/40"
+      : "";
 
   // Load companies for credit/debit notes/statements dropdowns
   useEffect(() => {
@@ -166,6 +189,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
   const handleFilesSelected = (files) => {
     setUploadedFiles(files);
     setError(null);
+    resetValidation();
   };
 
   const handleParse = async () => {
@@ -374,6 +398,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
       console.log("Initial forms:", initialForms);
       setFormData(initialForms);
+      resetValidation();
       setStep(2);
     } catch (err) {
       console.error("Error parsing files:", err);
@@ -389,6 +414,18 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       updated[index] = { ...updated[index], [field]: value };
       return updated;
     });
+
+    // Clear validation error for this field when it becomes non-empty
+    setValidationErrors((prev) => {
+      if (!submitted) return prev;
+      const next = { ...prev };
+      if (!isFieldEmpty(value)) {
+        const remaining = (next[index] || []).filter((f) => f !== field);
+        if (remaining.length) next[index] = remaining;
+        else delete next[index];
+      }
+      return next;
+    });
   };
 
   const handleRemoveRecord = (index) => {
@@ -396,14 +433,35 @@ export const BatchUploadPage = ({ resourceName, title }) => {
   };
 
   const handleSubmit = async () => {
+    setSubmitted(true);
     setSubmitLoading(true);
     setError(null);
     setToastMessage(null);
 
+    // Validate required fields (all except remarks, index, folder)
+    const errors = {};
+    formData.forEach((form, idx) => {
+      const missing = Object.entries(form).reduce((acc, [key, value]) => {
+        if (key === "index" || key === "folder" || key === "remarks")
+          return acc;
+        if (isFieldEmpty(value)) acc.push(key);
+        return acc;
+      }, []);
+      if (missing.length) errors[idx] = missing;
+    });
+
+    if (Object.keys(errors).length) {
+      setValidationErrors(errors);
+      setSubmitLoading(false);
+      setError("Please fill in all required fields.");
+      return;
+    }
+
+    setValidationErrors({});
+
     try {
       const api = getAPI(resourceName);
       if (!api) throw new Error("Invalid resource");
-
       // Delivery Orders: build multipart FormData with delivery_orders array of objects
       if (resourceName === "deliveryorders") {
         const fd = new FormData();
@@ -493,20 +551,33 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       });
 
       const result = await api.bulkUpload(payload);
-
+      console.log("API Result:", result); // ADD THIS LINE
+      console.log("Result Status:", result?.status); // ADD THIS LINE
+      console.log("Result Duplicates:", result?.duplicates); // ADD THIS LINE
       // Handle backend-declared errors (e.g., duplicate invoices)
       const status = result?.status?.toLowerCase?.();
       const duplicateInvoices = result?.duplicate_invoices;
       const duplicateCN = result?.duplicate_cn;
+      const duplicates = result?.duplicates;
       if (status === "error" || status === "fail") {
         const dupList = Array.isArray(duplicateInvoices)
           ? duplicateInvoices.map((d) => String(d))
           : Array.isArray(duplicateCN)
           ? duplicateCN.map((d) => String(d))
+          : Array.isArray(duplicates)
+          ? duplicates.map((d) => String(d))
           : [];
+        const messageWithDup = dupList.length
+          ? `${result?.message || "Upload failed."} (${dupList.join(", ")})`
+          : result?.message || "Upload failed.";
+
+        console.log("Duplicate List:", dupList);
+        console.log("Error Message:", messageWithDup);
+
         setDuplicateList(dupList);
-        setError(result?.message || "Upload failed.");
+        setError(messageWithDup);
         setToastMessage(null);
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
 
@@ -521,33 +592,65 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         setDuplicateList([]);
         setError(null);
         setStep(1);
+        window.scrollTo({ top: 0, behavior: "smooth" });
         setTimeout(() => {
           navigate(`/${resourceName}`);
         }, 2000);
       }
     } catch (err) {
       console.error("Error submitting forms:", err);
-      const msg = String(err?.message || "");
-      const jsonStart = msg.indexOf("{");
-      const jsonEnd = msg.lastIndexOf("}");
-      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      console.log("Error Response Data:", err?.responseData); // Use responseData instead
+
+      // Try to extract error from the attached responseData
+      let errorData = err?.responseData || err?.response?.data;
+
+      // If still no data, try parsing the message
+      if (!errorData && err?.message) {
+        const msg = String(err.message);
+
+        // Try to parse the entire message as JSON
         try {
-          const json = JSON.parse(msg.slice(jsonStart, jsonEnd + 1));
-          const dupList = Array.isArray(json?.duplicate_invoices)
-            ? json.duplicate_invoices.map((d) => String(d))
-            : Array.isArray(json?.duplicate_cn)
-            ? json.duplicate_cn.map((d) => String(d))
-            : [];
-          setDuplicateList(dupList);
-          setError(json?.message || "Upload failed.");
-          setToastMessage(null);
-          return;
+          errorData = JSON.parse(msg);
         } catch (_) {
-          // fall through to generic handling
+          // If that fails, try to extract JSON from within the message
+          const jsonStart = msg.indexOf("{");
+          const jsonEnd = msg.lastIndexOf("}");
+          if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+            try {
+              errorData = JSON.parse(msg.slice(jsonStart, jsonEnd + 1));
+            } catch (_) {
+              // Parsing failed, will use generic error
+            }
+          }
         }
       }
+
+      if (errorData) {
+        const dupList = Array.isArray(errorData?.duplicate_invoices)
+          ? errorData.duplicate_invoices.map((d) => String(d))
+          : Array.isArray(errorData?.duplicate_cn)
+          ? errorData.duplicate_cn.map((d) => String(d))
+          : Array.isArray(errorData?.duplicates)
+          ? errorData.duplicates.map((d) => String(d))
+          : [];
+
+        const messageWithDup = dupList.length
+          ? `${errorData?.message || "Upload failed."} (${dupList.join(", ")})`
+          : errorData?.message || "Upload failed.";
+
+        console.log("Final Duplicate List:", dupList);
+        console.log("Final Error Message:", messageWithDup);
+
+        setDuplicateList(dupList);
+        setError(messageWithDup);
+        setToastMessage(null);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+
       setToastMessage(null);
-      setError("Error submitting forms. Please try again.");
+      setError(err?.message || "Error submitting forms. Please try again.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setSubmitLoading(false);
     }
@@ -665,13 +768,22 @@ export const BatchUploadPage = ({ resourceName, title }) => {
               {error && (
                 <div className="mt-6 rounded-xl p-4 flex items-start gap-3 bg-red-50 border-l-4 border-red-500 text-red-800 dark:bg-red-900/20 dark:text-red-300 animate-slideIn">
                   <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 animate-pulse" />
-                  <div>
+                  <div className="flex-1">
                     <p className="font-semibold text-sm">Error</p>
                     <p className="text-sm mt-1">{error}</p>
+                    {duplicateList.length > 0 && (
+                      <div className="mt-3 p-3 rounded-lg bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800">
+                        <p className="text-xs font-semibold text-red-900 dark:text-red-200 mb-2">
+                          Duplicate Files Found:
+                        </p>
+                        <p className="text-sm font-mono text-red-800 dark:text-red-300">
+                          {duplicateList.join(", ")}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
-
               {uploadedFiles.length > 0 && (
                 <div className="mt-6 p-4 rounded-xl bg-green-50 border border-green-200 dark:bg-green-900/10 dark:border-green-800 animate-slideIn">
                   <p className="text-sm text-green-800 dark:text-green-300">
@@ -769,6 +881,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                 <div>
                   <p className="font-semibold text-sm">Error</p>
                   <p className="text-sm mt-1">{error}</p>
+                  {duplicateList.length > 0 && (
+                    <div className="mt-2 text-xs text-red-700 dark:text-red-300">
+                      Duplicates: {duplicateList.join(", ")}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -783,9 +900,21 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                         : resourceName === "debitnotes"
                         ? form.dn_no
                         : null;
-                    const isDuplicate = recordNumber
-                      ? duplicateList.includes(String(recordNumber))
-                      : false;
+
+                    // Check for duplicates by record number or document filename
+                    const docName =
+                      form.cn_doc ||
+                      form.dn_doc ||
+                      form.as_doc ||
+                      form.file ||
+                      form.do_doc ||
+                      "";
+                    const isDuplicate =
+                      (recordNumber &&
+                        duplicateList.includes(String(recordNumber))) ||
+                      duplicateList.some(
+                        (dup) => docName.includes(dup) || dup.includes(docName)
+                      );
                     return (
                       <div
                         key={idx}
@@ -806,7 +935,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                           <div className="flex items-center gap-2">
                             {isDuplicate ? (
                               <div className="px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-xs font-medium">
-                                Duplicate invoice: {recordNumber}
+                                Duplicate {recordNumber || "document"}
                               </div>
                             ) : (
                               <div className="px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">
@@ -824,9 +953,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                         </div>
                         {isDuplicate && (
                           <div className="mb-4 text-sm text-red-700 dark:text-red-300">
-                            This record matches a duplicate invoice returned by
-                            the server. Clear it or adjust the number before
-                            re-submitting.
+                            This record is a duplicate. Please remove it or
+                            modify the document before re-submitting.
                           </div>
                         )}
                         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -845,6 +973,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(idx, "user_id", v)
                                   }
                                   placeholder="Select a company..."
+                                  required
+                                  error={fieldHasError(idx, "user_id")}
                                 />
                               </div>
                               <div className="relative">
@@ -861,7 +991,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "customer_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -878,7 +1012,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "amount"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -895,7 +1033,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "po_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -912,7 +1054,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "ref_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -929,7 +1075,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "cn_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -946,7 +1096,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "cn_date"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -963,7 +1117,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
+                                    idx,
+                                    "cn_doc"
+                                  )}`}
                                   placeholder="Auto from parsed file"
                                 />
                               </div>
@@ -981,7 +1139,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "payment_term"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative md:col-span-2">
@@ -1017,6 +1179,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(idx, "user_id", v)
                                   }
                                   placeholder="Select a company..."
+                                  required
+                                  error={fieldHasError(idx, "user_id")}
                                 />
                               </div>
                               <div className="relative">
@@ -1033,7 +1197,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "customer_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1050,7 +1218,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "amount"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1067,7 +1239,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "po_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1084,7 +1260,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "ref_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1101,7 +1281,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "dn_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1118,7 +1302,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "dn_date"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1135,7 +1323,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
+                                    idx,
+                                    "dn_doc"
+                                  )}`}
                                   placeholder="Auto from parsed file"
                                 />
                               </div>
@@ -1153,7 +1345,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "payment_term"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative md:col-span-2">
@@ -1189,6 +1385,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(idx, "user_id", v)
                                   }
                                   placeholder="Select a company..."
+                                  required
+                                  error={fieldHasError(idx, "user_id")}
                                 />
                               </div>
                               <div className="relative">
@@ -1205,7 +1403,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "customer_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1222,7 +1424,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
+                                    idx,
+                                    "as_doc"
+                                  )}`}
                                   placeholder="Auto from parsed file"
                                 />
                               </div>
@@ -1240,7 +1446,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "as_date"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative md:col-span-2">
@@ -1276,6 +1486,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(idx, "user_id", v)
                                   }
                                   placeholder="Select a company..."
+                                  required
+                                  error={fieldHasError(idx, "user_id")}
                                 />
                               </div>
                               <div className="relative">
@@ -1292,7 +1504,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "customer_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1309,7 +1525,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "po_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1326,7 +1546,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "invoiceId"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1343,7 +1567,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "invoice_date"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1360,7 +1588,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "do_no"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1377,7 +1609,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "date"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1394,7 +1630,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "amount"
+                                  )}`}
                                 />
                               </div>
                               <div className="relative">
@@ -1405,7 +1645,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   type="text"
                                   value={form.file ?? ""}
                                   readOnly
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
+                                    idx,
+                                    "file"
+                                  )}`}
                                   placeholder="Parsed file name"
                                 />
                               </div>
@@ -1452,6 +1696,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   }}
                                   onSearch={setInvoiceSearchQuery}
                                   placeholder="Select an invoice..."
+                                  required
+                                  error={fieldHasError(idx, "invoice_id")}
                                 />
                               </div>
                               <div className="relative">
@@ -1462,7 +1708,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   type="text"
                                   value={form.invoice_no ?? ""}
                                   readOnly
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white read-only:cursor-not-allowed"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white read-only:cursor-not-allowed ${errorClass(
+                                    idx,
+                                    "invoice_no"
+                                  )}`}
                                   placeholder="Auto-filled from invoice"
                                 />
                               </div>
@@ -1474,7 +1724,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   type="text"
                                   value={form.do_no ?? ""}
                                   readOnly
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white read-only:cursor-not-allowed"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white read-only:cursor-not-allowed ${errorClass(idx, "do_no")}`}
                                   placeholder="Auto-filled from invoice"
                                 />
                               </div> */}
@@ -1486,7 +1737,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   type="text"
                                   value={form.do_doc ?? ""}
                                   readOnly
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white"
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
+                                    idx,
+                                    "do_doc"
+                                  )}`}
                                   placeholder="Uploaded document"
                                 />
                               </div>

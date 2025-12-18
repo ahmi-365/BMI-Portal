@@ -8,6 +8,9 @@ export default function SearchableSelect({
   placeholder = "",
   disabled = false,
   id,
+  required = false,
+  error = false,
+  inputClassName = "",
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -97,7 +100,12 @@ export default function SearchableSelect({
         onKeyDown={handleKeyDown}
         onFocus={() => setOpen(true)}
         disabled={disabled}
-        className="w-full rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        required={required}
+        className={`w-full rounded-lg border border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white ${
+          error
+            ? "border-red-500 focus:border-red-500 ring-2 ring-red-100 dark:border-red-500 dark:focus:border-red-400 dark:ring-red-800/40"
+            : ""
+        } ${inputClassName}`}
       />
 
       {open && filtered.length > 0 && (

@@ -59,8 +59,39 @@ const apiCall = async (endpoint, options = {}) => {
     }
 
     if (!response.ok) {
-      const message = await parseErrorResponse(response);
-      throw new Error(message);
+      // CRITICAL FIX: Parse the full error response and attach it to the error
+      const contentType = response.headers.get("content-type") || "";
+      let errorData = null;
+
+      try {
+        const text = await response.text();
+        if (text && contentType.includes("application/json")) {
+          errorData = JSON.parse(text);
+        } else {
+          errorData = {
+            message: text || `Request failed with status ${response.status}`,
+          };
+        }
+      } catch (parseError) {
+        errorData = {
+          message: `Request failed with status ${response.status}`,
+        };
+      }
+
+      // Create error with message
+      const message =
+        errorData?.message ||
+        errorData?.error ||
+        (Array.isArray(errorData?.errors) ? errorData.errors[0] : null) ||
+        `Request failed with status ${response.status}`;
+
+      const error = new Error(message);
+
+      // IMPORTANT: Attach the full error data to the error object
+      error.responseData = errorData;
+      error.status = response.status;
+
+      throw error;
     }
 
     const contentType = response.headers.get("content-type") || "";
@@ -397,7 +428,8 @@ export const getResourceById = async (resourceName, id) => {
   const { resource } = parseResourceName(resourceName);
   // Many backend endpoints expose a show route at /<resource>/show/:id
   // But invoices use /invoices/:id
-  const endpoint = resource === "invoices" ? `/${resource}/${id}` : `/${resource}/show/${id}`;
+  const endpoint =
+    resource === "invoices" ? `/${resource}/${id}` : `/${resource}/show/${id}`;
   const res = await apiCall(endpoint);
   return res?.data ?? res;
 };
@@ -787,12 +819,14 @@ export const paymentsAPI = {
       method: "DELETE",
     }),
   bulkDelete: async (ids) => {
-    const results = await Promise.allSettled(ids.map(id => paymentsAPI.delete(id)));
-    const failures = results.filter(result => result.status === 'rejected');
+    const results = await Promise.allSettled(
+      ids.map((id) => paymentsAPI.delete(id))
+    );
+    const failures = results.filter((result) => result.status === "rejected");
     if (failures.length > 0) {
       throw new Error(`Failed to delete ${failures.length} payment(s)`);
     }
-    return results.map(result => result.value);
+    return results.map((result) => result.value);
   },
 };
 

@@ -99,7 +99,7 @@ export const BatchUpload = ({
           Select Files
         </button>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-          Max {maxFiles} files • PDF, DOC, DOCX, XLS, XLSX, Images allowed
+          Max {maxFiles} files • PDF allowed
         </p>
         <input
           ref={fileInputRef}
