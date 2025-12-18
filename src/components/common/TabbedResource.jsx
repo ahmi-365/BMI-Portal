@@ -67,7 +67,7 @@ export default function TabbedResource({
       </div>
 
       <div className="mt-4 stagger">
-        {ActiveComponent ? <ActiveComponent /> : null}
+        {ActiveComponent ? <ActiveComponent key={active} /> : null}
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { ResourceForm } from "../../components/common/ResourceForm";
 import { apiCallFormData, invoicesAPI, companiesAPI } from "../../services/api";
 
 export default function InvoicesAdd() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const isEditMode = !!id;
 
   const [companyOptions, setCompanyOptions] = useState([]);
@@ -44,7 +45,7 @@ export default function InvoicesAdd() {
       label: "Company Name",
       type: "select",
       searchable: true,
-      required: false,
+      required: true,
       options: companyOptions,
       placeholder: "Select a company...",
     },
@@ -125,8 +126,8 @@ export default function InvoicesAdd() {
       }
     });
 
-    // Add resourceNameName for backend
-    fd.append("reseNamourceName", "invoices");
+    // Add resourceName for backend
+    fd.append("resourceName", "invoices");
 
     if (isEditMode) {
       return await apiCallFormData(`/invoices/update/${id}`, fd, "POST");
@@ -140,6 +141,7 @@ export default function InvoicesAdd() {
       fields={FORM_FIELDS}
       title={isEditMode ? "Edit Invoice" : "New Invoice"}
       onSubmit={handleSubmit}
+      onSubmitSuccess={() => navigate('/invoices/view')}
     />
   );
 }

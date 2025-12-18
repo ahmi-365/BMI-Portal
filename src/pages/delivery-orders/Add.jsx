@@ -52,7 +52,9 @@ export default function DeliveryOrdersAdd() {
   const FORM_FIELDS = [
     {
       name: "do_no",
-      label: "DO No.", // Label remains the same (UI unchanged)
+      label: "DO No.",
+      required: true,
+       // Label remains the same (UI unchanged)
       type: "select",
       searchable: true,
       options: invoiceOptions,
@@ -86,6 +88,7 @@ export default function DeliveryOrdersAdd() {
       name: "file",
       label: "DO Document",
       type: "file",
+      required: true,
     },
   ];
 
