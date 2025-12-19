@@ -703,6 +703,40 @@ export const creditNotesAPI = {
     }),
 };
 
+// CN PPI APIs
+export const ppisAPI = {
+  list: (params) => listResource("ppis", params),
+
+  show: (id) => apiCall(`/ppis/${id}`),
+
+  create: (formData) => apiCallFormData("/ppis/create", formData, "POST"),
+
+  update: (id, formData) =>
+    apiCallFormData(`/ppis/update/${id}`, formData, "POST"),
+
+  delete: (id) =>
+    apiCall(`/ppis/delete/${id}`, {
+      method: "DELETE",
+    }),
+
+  download: (id) => apiCall(`/ppis/download/${id}`),
+
+  bulkDelete: (ids) =>
+    apiCall("/ppis/delete/bulk", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+
+  bulkParse: (formData) =>
+    apiCallFormData("/ppis/bulk-parse", formData, "POST"),
+
+  bulkUpload: (data) =>
+    apiCall("/ppis/bulk-upload", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
 // Account Statements APIs
 export const statementsAPI = {
   list: (params) => listResource("statements", params),

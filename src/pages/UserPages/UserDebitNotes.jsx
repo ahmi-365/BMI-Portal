@@ -48,14 +48,28 @@ const COLUMNS = [
       });
     },
   },
-  { header: "Customer No.", accessor: "customer_no" },
+  {
+    header: "Customer No.",
+    accessor: "customer_no",
+    filterKey: "customer_no",
+  },
   { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
   { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no" },
-  { header: "Amount", accessor: "amount" },
-  { header: "Remarks", accessor: "remarks" },
+  {
+    header: "Amount",
+    accessor: "amount",
+    filterKey: "amount",
+  },
+  {
+    header: "Remarks",
+    accessor: "remarks",
+    filterKey: "remarks",
+  },
   {
     header: "Created At",
     accessor: "created_at",
+    filterKey: "created_at",
+    filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";
       return new Date(row.created_at).toLocaleDateString("en-US", {

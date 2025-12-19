@@ -38,8 +38,8 @@ const COLUMNS = [
       });
     },
   },
-  { header: "Amount", accessor: "amount" },
-  { header: "Outstanding", accessor: "outstanding" },
+  { header: "Amount", accessor: "amount", filterKey: "amount" },
+  { header: "Outstanding", accessor: "outstanding", filterKey: "outstanding" },
   {
     header: "Status",
     accessor: "status",
@@ -68,6 +68,8 @@ const COLUMNS = [
   {
     header: "Created At",
     accessor: "created_at",
+    filterKey: "uploaded_at",
+    filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";
       return new Date(row.created_at).toLocaleDateString("en-US", {

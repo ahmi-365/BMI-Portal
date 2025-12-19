@@ -2,6 +2,7 @@ import PageMeta from "../../components/common/PageMeta";
 import TabbedResource from "../../components/common/TabbedResource";
 import ChangePassword from "./ChangePassword";
 import ActivityLogs from "./ActivityLogs";
+import ExportReport from "../reports/ExportReport";
 
 export default function AdministrationIndex() {
   const tabs = [
@@ -11,6 +12,7 @@ export default function AdministrationIndex() {
       component: ChangePassword,
     },
     { key: "activitylogs", label: "Activity Logs", component: ActivityLogs },
+    { key: "exportreports", label: "Export Reports", component: ExportReport },
   ];
 
   return (

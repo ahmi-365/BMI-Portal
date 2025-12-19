@@ -153,3 +153,5 @@ export const BatchUpload = ({
     </div>
   );
 };
+
+export default BatchUpload;

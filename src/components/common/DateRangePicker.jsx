@@ -6,7 +6,13 @@ import { Calendar as CalendarIcon, X } from "lucide-react";
 const customFlatpickrStyles = `
   .flatpickr-calendar {
     transform: scale(0.9);
+    /* Default origin */
     transform-origin: top left;
+  }
+  
+  /* Fix animation origin when opening above */
+  .flatpickr-calendar.arrowBottom {
+    transform-origin: bottom left;
   }
 
   .flatpickr-day.selected, 
@@ -60,7 +66,8 @@ export const DateRangePicker = ({ dateFrom, dateTo, onDateChange }) => {
             onDateChange("clear", null);
           }
         },
-        position: "below",
+        // CHANGED: Force the calendar to always open ABOVE the input
+        position: "above",
       });
     }
 
