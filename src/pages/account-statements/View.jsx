@@ -55,12 +55,16 @@ const COLUMNS = [
   {
     header: "Statement Date",
     accessor: "statement_date",
+    filterKey: "statement_date",
+    filterType: "date-range",
     render: (row) =>
       row.statement_date ? row.statement_date.split("T")[0] : "-",
   },
   {
     header: "Updated At",
     accessor: "updated_at",
+    filterKey: "updated_at",
+    filterType: "date-range",
     render: (row) =>
       row.updated_at || row.created_at
         ? (row.updated_at || row.created_at).split("T")[0]
@@ -124,6 +128,7 @@ export default function AccountStatementsView() {
         resourceName="statements"
         columns={COLUMNS}
         title="Account Statements"
+        subtitle="View and manage all account statements"
         addButtonText="New Account Statement"
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}

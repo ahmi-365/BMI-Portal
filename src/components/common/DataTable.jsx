@@ -3,6 +3,7 @@ import { Eye, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "../ui/modal"; // Ensure this path is correct for your project
 import { deleteResource, paymentsAPI } from "../../services/api";
+import { DateRangePicker } from "./DateRangePicker";
 
 export const DataTable = ({
   columns,
@@ -14,6 +15,7 @@ export const DataTable = ({
   showFilters,
   filters,
   onFilterChange,
+  onApplyFilters,
   // New props for selection
   selectedIds = [],
   onSelectionChange,
@@ -113,25 +115,68 @@ export const DataTable = ({
                 <tr className="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm">
                   {onSelectionChange && <th className="px-4 py-2"></th>}
                   {columns.map((column, index) => {
-                    // Determine the key to use for filtering (accessor or accessorKey)
-                    const filterKey = column.accessor || column.accessorKey;
+                    const filterKey =
+                      column.filterKey || column.accessor || column.accessorKey;
+                    const filterType = column.filterType || "text";
+                    const allowFilter =
+                      filterKey &&
+                      column.showFilter !== false &&
+                      column.disableFilter !== true;
+
+                    const renderFilterControl = () => {
+                      if (filterType === "date-range") {
+                        const fromKey = `${filterKey}_from`;
+                        const toKey = `${filterKey}_to`;
+
+                        return (
+                          <DateRangePicker
+                            dateFrom={filters?.[fromKey] || ""}
+                            dateTo={filters?.[toKey] || ""}
+                            onDateChange={(type, value) => {
+                              if (type === "from") {
+                                onFilterChange &&
+                                  onFilterChange(fromKey, value);
+                              } else if (type === "to") {
+                                onFilterChange && onFilterChange(toKey, value);
+                              } else if (type === "clear") {
+                                onFilterChange && onFilterChange(fromKey, "");
+                                onFilterChange && onFilterChange(toKey, "");
+                              }
+                              // Auto-apply on date selection
+                              if (onApplyFilters) {
+                                setTimeout(() => onApplyFilters(), 100);
+                              }
+                            }}
+                          />
+                        );
+                      }
+
+                      return (
+                        <input
+                          type={filterType}
+                          placeholder={
+                            filterType === "date" ? "" : column.header
+                          }
+                          value={filters?.[filterKey] || ""}
+                          onChange={(e) =>
+                            onFilterChange &&
+                            onFilterChange(filterKey, e.target.value)
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && onApplyFilters) {
+                              onApplyFilters();
+                            }
+                          }}
+                          className="w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-sm font-normal text-gray-700 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 disabled:cursor-default disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                        />
+                      );
+                    };
 
                     return (
                       <th key={`filter-${index}`} className="px-4 py-2">
-                        {/* Only render input if there is a data key (skips Action columns) */}
-                        {filterKey ? (
-                          <input
-                            type="text"
-                            placeholder={column.header}
-                            value={filters?.[filterKey] || ""}
-                            onChange={(e) =>
-                              onFilterChange &&
-                              onFilterChange(filterKey, e.target.value)
-                            }
-                            className="w-full rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-sm font-normal text-gray-700 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 disabled:cursor-default disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
-                          />
+                        {allowFilter ? (
+                          <div className="w-full">{renderFilterControl()}</div>
                         ) : (
-                          // Spacer for columns without filtering (like Actions)
                           <div className="h-9"></div>
                         )}
                       </th>

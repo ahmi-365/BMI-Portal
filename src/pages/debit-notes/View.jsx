@@ -12,17 +12,25 @@ const COLUMNS = [
   {
     header: "Customer No.",
     accessor: "customer_no",
+    filterKey: "customer_no",
     render: (row) => row.customer_no || "-",
   },
   {
     header: "Company Name",
     accessor: "company_name",
+    filterKey: "company",
     render: (row) => row.user.company || "-",
   },
-  { header: "DN No.", accessor: "dn_no", render: (row) => row.dn_no || "-" },
+  {
+    header: "DN No.",
+    accessor: "dn_no",
+    filterKey: "dn_no",
+    render: (row) => row.dn_no || "-",
+  },
   {
     header: "DN Document",
     accessor: "dn_doc",
+    filterKey: "dn_doc",
     render: (row) => (
       <FileDownloadButton
         file={row.dn_doc}
@@ -35,17 +43,26 @@ const COLUMNS = [
   {
     header: "DN Date",
     accessor: "dn_date",
+    filterKey: "dn_date",
+    filterType: "date-range",
     render: (row) => (row.dn_date ? String(row.dn_date).split("T")[0] : "-"),
   },
   {
     header: "PO No.",
     accessor: "po_no",
+    filterKey: "po_no",
     render: (row) => (row.po_no ? row.po_no : "-"),
   },
-  { header: "Ref No.", accessor: "ref_no", render: (row) => row.ref_no || "-" },
+  {
+    header: "Ref No.",
+    accessor: "ref_no",
+    filterKey: "ref_no",
+    render: (row) => row.ref_no || "-",
+  },
   {
     header: "Amount",
     accessor: "amount",
+    filterKey: "amount",
     render: (row) => (row.amount ? row.amount : "0"),
   },
   // {
@@ -64,12 +81,15 @@ const COLUMNS = [
   {
     header: "Uploaded At",
     accessor: "created_at",
+    filterKey: "uploaded_at",
+    filterType: "date-range",
     render: (row) =>
       row.created_at ? String(row.created_at).split("T")[0] : "-",
   },
   {
     header: "Uploaded By",
     accessor: "admin_id",
+    filterKey: "uploaded_by",
     render: (row) => row.admin.name || "-",
   },
 ];
@@ -127,6 +147,7 @@ export default function DebitNotesView() {
         resourceName="debitnotes"
         columns={COLUMNS}
         title="Debit Notes"
+        subtitle="View and manage all debit notes"
         addButtonText="New Debit Note"
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}

@@ -6,7 +6,7 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
 
 const COLUMNS = [
-  { header: "Invoice No.", accessor: "invoiceId" },
+  { header: "Invoice No.", accessor: "invoiceId", filterKey: "invoiceId" },
   {
     header: "Invoice Doc",
     accessor: "invoice_doc",
@@ -24,6 +24,8 @@ const COLUMNS = [
   {
     header: "Invoice Date",
     accessor: "invoice_date",
+    filterKey: "invoice_date",
+    filterType: "date-range",
     render: (row) => {
       if (!row.invoice_date) return "-";
       return new Date(row.invoice_date).toLocaleDateString("en-US", {

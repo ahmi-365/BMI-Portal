@@ -5,7 +5,11 @@ import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 
 const COLUMNS = [
-  { header: "Reference ID", accessor: "reference_id" },
+  {
+    header: "Reference ID",
+    accessor: "reference_id",
+    filterKey: "reference_id",
+  },
   {
     header: "Proof",
     accessor: "proof",
@@ -23,6 +27,8 @@ const COLUMNS = [
   {
     header: "Payment Date",
     accessor: "payment_date",
+    filterKey: "payment_date",
+    filterType: "date-range",
     render: (row) => {
       if (!row.payment_date) return "-";
       return new Date(row.payment_date).toLocaleDateString("en-US", {

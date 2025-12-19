@@ -46,23 +46,31 @@ const PdfButton = ({ label, file, id, endpoint }) =>
     "-"
   );
 const PAID_COLUMNS = [
-  { header: "Amount (MYR)", accessor: "amount" },
+  {
+    header: "Amount (MYR)",
+    accessor: "amount",
+    filterKey: "amount",
+  },
 
   {
     header: "Customer No.",
     accessor: "invoice",
+    filterKey: "user_invoices",
     render: (row) => row.user?.customer_no ?? "-",
   },
 
   {
     header: "Company Name",
     accessor: "company",
+    filterKey: "company",
     render: (row) => row.user?.company ?? "-",
   },
 
   {
     header: "Payment Date",
     accessor: "payment_date",
+    filterKey: "payment_date",
+    filterType: "date-range",
     render: (row) => formatDateISO(row.payment_date),
   },
   {
@@ -78,7 +86,11 @@ const PAID_COLUMNS = [
     ),
   },
 
-  { header: "Reference No.", accessor: "reference_id" },
+  {
+    header: "Reference No.",
+    accessor: "reference_id",
+    filterKey: "reference_id",
+  },
 
   {
     header: "Invoice Doc",
@@ -136,20 +148,32 @@ const createNotAcknowledgedColumns = (onApprove) => [
   {
     header: "Customer No.",
     accessor: "customerNo",
+    filterKey: "user_invoices",
     render: (row) => row.user?.customer_no ?? row.user?.id ?? "-",
   },
 
   {
     header: "Company Name",
     accessor: "companyName",
+    filterKey: "company",
     render: (row) => row.user?.company ?? "-",
   },
 
-  { header: "Amount", accessor: "amount" },
-  { header: "Outstanding", accessor: "outstanding" },
+  {
+    header: "Amount",
+    accessor: "amount",
+    filterKey: "amount",
+  },
+  {
+    header: "Outstanding",
+    accessor: "outstanding",
+    filterKey: "outstanding",
+  },
   {
     header: "Payment Date",
     accessor: "payment_date",
+    filterKey: "payment_date",
+    filterType: "date-range",
     render: (row) => formatDateISO(row.payment_date),
   },
 
@@ -161,7 +185,11 @@ const createNotAcknowledgedColumns = (onApprove) => [
     ),
   },
 
-  { header: "Reference No.", accessor: "reference_id" },
+  {
+    header: "Reference No.",
+    accessor: "reference_id",
+    filterKey: "reference_id",
+  },
 
   {
     header: "DO DOC",
@@ -222,20 +250,32 @@ const NOT_ACKNOWLEDGED_COLUMNS = [
   {
     header: "Customer No.",
     accessor: "customerNo",
+    filterKey: "user_invoices",
     render: (row) => row.user?.customer_no ?? row.user?.id ?? "-",
   },
 
   {
     header: "Company Name",
     accessor: "companyName",
+    filterKey: "company",
     render: (row) => row.user?.company ?? "-",
   },
 
-  { header: "Amount", accessor: "amount" },
-  { header: "Outstanding", accessor: "outstanding" },
+  {
+    header: "Amount",
+    accessor: "amount",
+    filterKey: "amount",
+  },
+  {
+    header: "Outstanding",
+    accessor: "outstanding",
+    filterKey: "outstanding",
+  },
   {
     header: "Payment Date",
     accessor: "payment_date",
+    filterKey: "payment_date",
+    filterType: "date-range",
     render: (row) => formatDateISO(row.payment_date),
   },
 
@@ -247,7 +287,11 @@ const NOT_ACKNOWLEDGED_COLUMNS = [
     ),
   },
 
-  { header: "Reference No.", accessor: "reference_id" },
+  {
+    header: "Reference No.",
+    accessor: "reference_id",
+    filterKey: "reference_id",
+  },
 
   {
     header: "DO DOC",
@@ -394,6 +438,7 @@ export default function PaymentRecordsView() {
           resourceName="payments/approved"
           columns={PAID_COLUMNS}
           title="Paid Invoices"
+          subtitle="View all paid and processed invoices"
           showEdit={false}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
@@ -417,6 +462,7 @@ export default function PaymentRecordsView() {
           resourceName="payments/pending"
           columns={notAcknowledgedColumns}
           title="Not Acknowledged"
+          subtitle="View pending payment acknowledgments"
           showEdit={false}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}

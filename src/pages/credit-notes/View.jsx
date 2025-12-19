@@ -9,20 +9,34 @@ import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfi
 import { render } from "@fullcalendar/core/preact.js";
 
 const COLUMNS = [
-  { header: "Customer No.", accessor: "customer_no" },
+  {
+    header: "Customer No.",
+    accessor: "customer_no",
+    filterKey: "customer_no",
+    render: (row) => row.customer_no || "-",
+  },
   {
     header: "Company",
-    accessor: "companyName",
+    accessor: "company",
+    filterKey: "company",
     render: (row) => row.user?.company || "-",
-  }, // from nested user
-  { header: "CN No.", accessor: "cn_no", render: (row) => row.cn_no || "N/A" },
+  },
   {
-    header: "Do No.", accessor: "do_no",
-    render: (row) => row.invoice?.do_no || "-",
+    header: "CN No.",
+    accessor: "cn_no",
+    filterKey: "cn_no",
+    render: (row) => row.cn_no || "N/A",
+  },
+  {
+    header: "Do No.",
+    accessor: "do_no",
+    filterKey: "do_no",
+    render: (row) => row.invoice?.do_no || row.do_no || "-",
   },
   {
     header: "CN Document",
     accessor: "cn_doc",
+    filterKey: "cn_doc",
     render: (row) => (
       <FileDownloadButton
         file={row.cn_doc}
@@ -33,9 +47,9 @@ const COLUMNS = [
     ),
   },
   {
-
     header: "Do Document",
     accessor: "do_doc",
+    filterKey: "do_doc",
     render: (row) => (
       <FileDownloadButton
         file={row.invoice?.do_doc}
@@ -48,29 +62,45 @@ const COLUMNS = [
   {
     header: "CN Date",
     accessor: "cn_date",
-    render: (row) => new Date(row.cn_date).toLocaleDateString(),
+    filterKey: "cn_date",
+    filterType: "date-range",
+    render: (row) => {
+      if (!row.cn_date) return "-";
+      return String(row.cn_date).split("T")[0];
+    },
   },
-  { header: "PO No.", accessor: "po_no", render: (row) => row.po_no || "N/A" },
-  { header: "Ref No.", accessor: "ref_no", render: (row) => row.ref_no || "-" },
-  { header: "Amount", accessor: "amount" },
-  // {
-  //   header: "Remarks",
-  //   accessor: "remarks",
-  //   render: (row) => row.remarks || "-",
-  // },
-  // {
-  //   header: "Payment Term",
-  //   accessor: "payment_term",
-  //   render: (row) => (row.payment_term ? row.payment_term.split("T")[0] : "-"),
-  // },
+  {
+    header: "PO No.",
+    accessor: "po_no",
+    filterKey: "po_no",
+    render: (row) => row.po_no || "N/A",
+  },
+  {
+    header: "Ref No.",
+    accessor: "ref_no",
+    filterKey: "ref_no",
+    render: (row) => row.ref_no || "-",
+  },
+  {
+    header: "Amount",
+    accessor: "amount",
+    filterKey: "amount",
+    render: (row) => row.amount || "-",
+  },
   {
     header: "Uploaded At",
-    accessor: "created_at",
-    render: (row) => new Date(row.created_at).toLocaleString(),
+    accessor: "uploaded_at",
+    filterKey: "uploaded_at",
+    filterType: "date-range",
+    render: (row) => {
+      if (!row.created_at) return "-";
+      return String(row.created_at).split("T")[0];
+    },
   },
   {
     header: "Uploaded By",
-    accessor: "admin_id",
+    accessor: "uploaded_by",
+    filterKey: "uploaded_by",
     render: (row) => row.admin?.name || "N/A",
   },
 ];
@@ -124,6 +154,7 @@ export default function CreditNotesView() {
         resourceName="creditnotes"
         columns={COLUMNS}
         title="Credit Notes"
+        subtitle="View and manage all credit notes"
         addButtonText="New Credit Note"
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}

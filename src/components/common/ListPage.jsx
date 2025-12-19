@@ -87,6 +87,7 @@ export const ListPage = ({
   headerAction,
   refreshKey = 0,
   additionalParams = {},
+  initialFilters = null,
 }) => {
   const navigate = useNavigate();
 
@@ -102,9 +103,18 @@ export const ListPage = ({
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filters, setFilters] = useState({});
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [tempFilters, setTempFilters] = useState(initialFilters || {});
+  const [filters, setFilters] = useState(initialFilters || {});
   const [showFilters, setShowFilters] = useState(false);
+
+  // Sync filters when parent provides a new initial set
+  useEffect(() => {
+    if (initialFilters) {
+      setFilters(initialFilters);
+      setTempFilters(initialFilters);
+    }
+  }, [initialFilters]);
 
   // Delete Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -112,23 +122,14 @@ export const ListPage = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
-  // 1. Debounce Search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      if (searchQuery !== debouncedSearch) setCurrentPage(1);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchQuery, debouncedSearch]);
-
-  // 2. Load Data Function
+  // Load Data Function
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
       const params = {
         page: currentPage,
         perPage: perPageState,
-        search: debouncedSearch,
+        search: appliedSearch,
         ...filters,
         ...additionalParams,
       };
@@ -153,19 +154,43 @@ export const ListPage = ({
     resourceName,
     currentPage,
     perPageState,
-    debouncedSearch,
+    appliedSearch,
     filters,
     refreshKey,
   ]);
 
-  // 3. Trigger Load
+  // Trigger Load
   useEffect(() => {
     loadData();
   }, [loadData]);
 
+  // Handle search with Enter key
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter") {
+      setAppliedSearch(searchQuery);
+      setCurrentPage(1);
+    }
+  };
+
+  // Handle filter change (temporary, not applied yet)
   const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    setTempFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // Apply filters
+  const handleApplyFilters = () => {
+    setFilters(tempFilters);
     setCurrentPage(1);
+  };
+
+  // Clear filters
+  const handleClearFilters = () => {
+    setTempFilters({});
+    setFilters({});
+    setSearchQuery("");
+    setAppliedSearch("");
+    setCurrentPage(1);
+    setShowFilters(false);
   };
 
   const resolvedBase = basePath || `/${resourceName}`;
@@ -280,8 +305,8 @@ export const ListPage = ({
           <div className="flex gap-2">{headerAction}</div>
         </div>
       )}
-      {/* Search */}
-      <div className="mb-4 gap-3 flex justify-end">
+      {/* Apply/Clear Filters Buttons + Search + Filter Toggle (Inline) */}
+      <div className="mb-4 gap-3 flex justify-end flex-wrap">
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
           <input
@@ -289,6 +314,7 @@ export const ListPage = ({
             placeholder={`Search ${title.toLowerCase()}...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             disabled={isLoading}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
@@ -303,7 +329,25 @@ export const ListPage = ({
         >
           <Filter className="w-5 h-5" />
           {showFilters ? "Hide Filters" : "Filter"}
-        </button>
+        </button>{" "}
+        {showFilters && (
+          <>
+            <button
+              onClick={handleApplyFilters}
+              disabled={isLoading}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 border border-brand-500 px-4 py-2 text-center font-medium text-white hover:bg-brand-600 transition-colors disabled:opacity-50"
+            >
+              Apply
+            </button>
+            <button
+              onClick={handleClearFilters}
+              disabled={isLoading}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-white border border-gray-300 px-4 py-2 text-center font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              Clear
+            </button>
+          </>
+        )}
       </div>
       {isLoading && data.length === 0 ? (
         <div className="flex justify-center items-center h-96">
@@ -318,8 +362,9 @@ export const ListPage = ({
               resourceName={resourceName}
               onRefresh={loadData}
               showFilters={showFilters}
-              filters={filters}
+              filters={tempFilters}
               onFilterChange={handleFilterChange}
+              onApplyFilters={handleApplyFilters}
               selectedIds={selectedIds}
               onSelectionChange={onSelectionChange}
             />

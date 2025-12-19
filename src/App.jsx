@@ -92,6 +92,7 @@ import UserPaymentShow from "./pages/UserPages/UserPaymentShow";
 import UserStatements from "./pages/UserPages/UserStatements";
 import UserStatementShow from "./pages/UserPages/UserStatementShow";
 import AdministrationIndex from "./pages/administration/Index";
+import ExportReport from "./pages/reports/ExportReport";
 
 export default function App() {
   return (
@@ -191,6 +192,7 @@ export default function App() {
               element={<CustomersShow />}
             />
             <Route path="/administration/*" element={<AdministrationIndex />} />
+            <Route path="/reports/export" element={<ExportReport />} />
           </Route>
 
           {/* Auth Layout */}

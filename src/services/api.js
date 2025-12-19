@@ -232,12 +232,13 @@ const normalizePagination = (res, fallbackPage = 1, fallbackPerPage = 25) => {
 // Unified list helper with search + pagination
 export const listResource = async (
   resource,
-  { page = 1, perPage = 25, search = "" } = {}
+  { page = 1, perPage = 25, search = "", ...rest } = {}
 ) => {
   const qs = buildQueryString({
     page,
     per_page: perPage,
     ...(search ? { search } : {}),
+    ...rest,
   });
   const res = await apiCall(`/${resource}${qs}`);
   return normalizePagination(res, page, perPage);
@@ -246,12 +247,13 @@ export const listResource = async (
 // User Panel list helper (uses userAuth)
 export const userListResource = async (
   resource,
-  { page = 1, perPage = 25, search = "" } = {}
+  { page = 1, perPage = 25, search = "", ...rest } = {}
 ) => {
   const qs = buildQueryString({
     page,
     per_page: perPage,
     ...(search ? { search } : {}),
+    ...rest,
   });
   const res = await userApiCall(`/${resource}${qs}`);
   return normalizePagination(res, page, perPage);
@@ -733,6 +735,44 @@ export const statementsAPI = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+};
+
+// Reports / exports
+export const reportsAPI = {
+  export: async ({
+    resource,
+    user_ids = [],
+    date_from = null,
+    date_to = null,
+  }) => {
+    const url = `${API_BASE_URL}/reports/export`;
+    const token = auth?.getToken?.();
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Accept: "application/octet-stream",
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ resource, user_ids, date_from, date_to }),
+    });
+
+    if (response.status === 401) {
+      try {
+        auth.clear();
+      } catch (e) {}
+      if (typeof window !== "undefined") window.location.href = "/signin";
+      throw new Error("Unauthorized");
+    }
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(response);
+      throw new Error(message);
+    }
+
+    return await response.blob();
+  },
 };
 
 // Helper to download binary content (blob) from an endpoint with auth handling

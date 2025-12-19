@@ -11,17 +11,25 @@ const COLUMNS = [
   {
     header: "Customer No.",
     accessor: "customer_no",
-    render: (row) => row.user?.customer_no || "-",
+    filterKey: "customer_no",
+    render: (row) => row.user?.customer_no || row.customer_no || "-",
   },
   {
-    header: "Company Name",
-    accessor: "company_name",
-    render: (row) => row.user.company || "-",
+    header: "Company",
+    accessor: "company",
+    filterKey: "company",
+    render: (row) => row.user?.company || "-",
   },
-  { header: "DO No.", accessor: "do_no", render: (row) => row.do_no || "-" },
+  {
+    header: "DO No.",
+    accessor: "do_no",
+    filterKey: "do_no",
+    render: (row) => row.do_no || "-",
+  },
   {
     header: "DO Doc",
     accessor: "do_doc",
+    filterKey: "do_doc",
     render: (row) => (
       <FileDownloadButton
         file={row.do_doc}
@@ -34,36 +42,47 @@ const COLUMNS = [
   {
     header: "Invoice No.",
     accessor: "invoice_no",
-    render: (row) => row.invoice.invoiceId || "-",
+    filterKey: "invoice_no",
+    render: (row) => row.invoice?.invoiceId || row.invoice_no || "-",
   },
   {
     header: "PO No.",
     accessor: "po_no",
-    render: (row) => row.invoice.po_no || "-",
+    filterKey: "po_no",
+    render: (row) => row.invoice?.po_no || row.po_no || "-",
   },
   {
     header: "Invoice Date",
     accessor: "invoice_date",
+    filterKey: "invoice_date",
+    filterType: "date-range",
     render: (row) => {
       if (!row.invoice?.invoice_date) return "-";
       return row.invoice.invoice_date.split("T")[0];
     },
   },
-
-  // {
-  //   header: "Amount",
-  //   accessor: "amount",
-  //   render: (row) => (row.invoice.amount ? row.invoice.amount : "0"),
-  // },
+  {
+    header: "Due Date",
+    accessor: "date",
+    filterKey: "due_date",
+    filterType: "date-range",
+    render: (row) => {
+      if (!row.date) return "-";
+      return String(row.date).split("T")[0];
+    },
+  },
   {
     header: "Uploaded At",
-    accessor: "created_at",
+    accessor: "uploaded_at",
+    filterKey: "uploaded_at",
+    filterType: "date-range",
     render: (row) =>
       row.created_at ? String(row.created_at).split("T")[0] : "-",
   },
   {
     header: "Uploaded By",
     accessor: "uploaded_by",
+    filterKey: "uploaded_by",
     render: (row) => row.admin?.name || "-",
   },
 ];

@@ -15,6 +15,7 @@ import {
   Plus,
   Upload,
   ChartBar,
+  FileDown,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -52,6 +53,11 @@ const othersItems = [
     name: "Account Statements",
     icon: <FileText className="w-5 h-5" />,
     path: "/statements",
+  },
+  {
+    name: "Export Reports",
+    icon: <FileDown className="w-5 h-5" />,
+    path: "/reports/export",
   },
   { name: "Customers", icon: <User className="w-5 h-5" />, path: "/customers" },
   {

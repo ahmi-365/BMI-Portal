@@ -23,6 +23,8 @@ const COLUMNS = [
   {
     header: "Statement Date",
     accessor: "statement_date",
+    filterKey: "statement_date",
+    filterType: "date-range",
     render: (row) => {
       if (!row.statement_date) return "-";
       return new Date(row.statement_date).toLocaleDateString("en-US", {
@@ -33,7 +35,7 @@ const COLUMNS = [
     },
   },
   { header: "Customer No.", accessor: "customer_no" },
-  { header: "Remarks", accessor: "remarks" },
+  { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
   {
     header: "Created At",
     accessor: "created_at",
@@ -60,12 +62,9 @@ export default function UserStatements() {
 
     setIsDownloading(true);
     try {
-      const blob = await userDownloadBlob(
-        `/user/statements/bulk-download`,
-        {
-          ids: selectedIds,
-        }
-      );
+      const blob = await userDownloadBlob(`/user/statements/bulk-download`, {
+        ids: selectedIds,
+      });
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;

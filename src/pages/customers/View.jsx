@@ -8,35 +8,53 @@ const APPROVED_COLUMNS = [
   {
     header: "Customer No.",
     accessor: "customer_no",
+    filterKey: "customer_no",
     render: (row) => row.customer_no || row.customerNo || "-",
   },
   {
     header: "Company",
     accessor: "company",
+    filterKey: "company",
     render: (row) => row.company || "-",
   },
-  { header: "Name", accessor: "name", render: (row) => row.name || "-" },
-  { header: "Email", accessor: "email", render: (row) => row.email || "-" },
+  {
+    header: "Name",
+    accessor: "name",
+    filterKey: "name",
+    render: (row) => row.name || "-",
+  },
+  {
+    header: "Email",
+    accessor: "email",
+    filterKey: "email",
+    render: (row) => row.email || "-",
+  },
   {
     header: "Payment Term",
     accessor: "payment_term",
+    filterKey: "payment_term",
     render: (row) => row.payment_term ?? row.paymentTerm ?? "-",
   },
   {
-  header: "Status",
-  accessor: "form_status",
-  render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
-}
-  ,
- {
-  header: "Created At",
-  accessor: "created_at",
-  render: (row) => (row.created_at || row.createdAt) ? (row.created_at || row.createdAt).split("T")[0] : "-",
-}
-,
+    header: "Status",
+    accessor: "form_status",
+    filterKey: "form_status",
+    render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
+  },
+  {
+    header: "Created At",
+    accessor: "created_at",
+    filterKey: "created_at",
+    filterType: "date-range",
+    render: (row) =>
+      row.created_at || row.createdAt
+        ? (row.created_at || row.createdAt).split("T")[0]
+        : "-",
+  },
   {
     header: "Added By",
     accessor: "admin_id",
+    filterKey: "admin_id",
     render: (row) => row.admin_id || "-",
   },
 ];
@@ -45,41 +63,47 @@ const PENDING_COLUMNS = [
   {
     header: "Business Contact Name",
     accessor: "name",
+    filterKey: "name",
     render: (row) => row.name || "-",
   },
   {
     header: "Customer No.",
     accessor: "customer_no",
+    filterKey: "customer_no",
     render: (row) => row.customer_no || "-",
   },
   {
     header: "Company/Business Name",
     accessor: "company",
+    filterKey: "company",
     render: (row) => row.company || "-",
   },
   {
-  header: "Status",
-  accessor: "form_status",
-  render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
-}
-  ,
+    header: "Status",
+    accessor: "form_status",
+    filterKey: "form_status",
+    render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
+  },
   // {
   //   header: "Business Contact Number",
   //   accessor: "phone",
   //   render: (row) => row.phone || "-",
   // },
   {
-  header: "Created At",
-  accessor: "created_at",
-  render: (row) => (row.created_at || row.createdAt) ? (row.created_at || row.createdAt).split("T")[0] : "-",
-}
-,
+    header: "Created At",
+    accessor: "created_at",
+    filterKey: "created_at",
+    filterType: "date-range",
+    render: (row) =>
+      row.created_at || row.createdAt
+        ? (row.created_at || row.createdAt).split("T")[0]
+        : "-",
+  },
   {
     header: "Approve",
     accessor: "id",
     render: (row) => (
       <div className="flex items-center gap-2">
-        
         {/* Approve Button */}
         <button
           onClick={async (e) => {
@@ -152,6 +176,7 @@ export default function CustomersView() {
             resourceName="approved-customers"
             columns={APPROVED_COLUMNS}
             title="Approved Customers"
+            subtitle="View and manage all approved customers"
             basePath="/customers"
           />
         )}
@@ -161,6 +186,7 @@ export default function CustomersView() {
             resourceName="pending-customers"
             columns={PENDING_COLUMNS}
             title="Pending Customers"
+            subtitle="Review and manage pending customer approvals"
             basePath="/customers"
           />
         )}

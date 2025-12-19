@@ -18,10 +18,11 @@ const COLUMNS = [
     accessor: "companyName",
     render: (row) => row.user?.company ?? "-",
   },
-  { header: "Invoice No.", accessor: "invoiceId" },
+  { header: "Invoice No.", accessor: "invoiceId", filterKey: "invoiceId" },
   {
     header: "Invoice Doc",
     accessor: "invoice_doc",
+    filterKey: "invoice_doc",
     render: (row) => (
       <FileDownloadButton
         file={row.invoice_doc}
@@ -34,6 +35,8 @@ const COLUMNS = [
   {
     header: "Invoice Date",
     accessor: "invoice_date",
+    filterKey: "invoice_date",
+    filterType: "date-range",
     render: (row) => {
       const invoiceDateValue = row.invoice_date
         ? String(row.invoice_date).split("T")[0]
@@ -44,6 +47,7 @@ const COLUMNS = [
   {
     header: "PO No.",
     accessor: "po_no",
+    filterKey: "po_no",
     render: (row) => {
       const poNoValue = row.po_no ? row.po_no : "-";
       return poNoValue;
@@ -52,6 +56,8 @@ const COLUMNS = [
   {
     header: "DO No.",
     accessor: "do_no",
+    filterKey: "do_no",
+
     render: (row) => {
       const doNoValue = row.do_no ? row.do_no : "-";
       return doNoValue;
@@ -60,6 +66,7 @@ const COLUMNS = [
   {
     header: "Amount",
     accessor: "amount",
+    filterKey: "amount",
     render: (row) => {
       const amountValue = row.amount ? row.amount : "0";
       return amountValue;
@@ -68,6 +75,7 @@ const COLUMNS = [
   {
     header: "Outstanding",
     accessor: "outstanding",
+    filterKey: "outstanding",
     render: (row) => {
       const outstandingValue = row.outstanding ? row.outstanding : "0";
       return outstandingValue;
@@ -76,6 +84,8 @@ const COLUMNS = [
   {
     header: "Due Date",
     accessor: "date",
+    filterKey: "due_date",
+    filterType: "date-range",
     render: (row) => {
       const dateValue = row.date ? String(row.date).split("T")[0] : "-";
       return dateValue;
@@ -84,6 +94,8 @@ const COLUMNS = [
   {
     header: "Uploaded At",
     accessor: "created_at",
+    filterKey: "uploaded_at",
+    filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";
       return row.created_at.split("T")[0]; // Only date part
@@ -92,6 +104,8 @@ const COLUMNS = [
   {
     header: "Uploaded By",
     accessor: "uploadedBy",
+    filterKey: "uploaded_by",
+
     render: (row) => row.admin?.name ?? "-",
   },
 ];
@@ -111,21 +125,20 @@ export default function InvoicesView() {
   };
 
   const handleSingleDelete = async (id) => {
-  try {
-    setLoading(true);
-    await invoicesAPI.delete(id);
-    setToast({ message: "Invoice deleted successfully", type: "success" });
-    window.location.reload();
-  } catch (error) {
-    setToast({
-      message: error.message || "Failed to delete invoice",
-      type: "error",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
+    try {
+      setLoading(true);
+      await invoicesAPI.delete(id);
+      setToast({ message: "Invoice deleted successfully", type: "success" });
+      window.location.reload();
+    } catch (error) {
+      setToast({
+        message: error.message || "Failed to delete invoice",
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBulkDelete = async () => {
     try {
@@ -163,6 +176,7 @@ export default function InvoicesView() {
         resourceName="invoices/index"
         columns={COLUMNS}
         title="Invoices"
+        subtitle="View and manage all invoices"
         basePath="/invoices"
         showEdit={true}
         selectedIds={selectedIds}

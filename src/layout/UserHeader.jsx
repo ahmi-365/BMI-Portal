@@ -138,7 +138,9 @@ const UserHeader = () => {
     try {
       await userNotificationsAPI.markAsRead(id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        prev.map((n) =>
+          n.id === id ? { ...n, read_at: new Date().toISOString() } : n
+        )
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
@@ -149,7 +151,9 @@ const UserHeader = () => {
   const handleMarkAllAsRead = async () => {
     try {
       await userNotificationsAPI.markAllAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, read_at: new Date().toISOString() }))
+      );
       setUnreadCount(0);
     } catch (error) {
       console.error("Error marking all as read:", error);
@@ -374,24 +378,40 @@ const UserHeader = () => {
                       notifications.map((notification) => (
                         <div
                           key={notification.id}
-                          onClick={() => handleMarkAsRead(notification.id)}
+                          onClick={() => {
+                            if (!notification.read_at) {
+                              handleMarkAsRead(notification.id);
+                            }
+                            // Navigate if action_url exists
+                            if (notification.data?.action_url) {
+                              const url = new URL(notification.data.action_url);
+                              navigate(url.pathname);
+                              setIsNotificationDropdownOpen(false);
+                            }
+                          }}
                           className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
-                            !notification.read
+                            !notification.read_at
                               ? "bg-blue-50/50 dark:bg-blue-900/10"
                               : ""
                           }`}
                         >
                           <div className="flex items-start gap-3">
-                            {!notification.read && (
+                            {!notification.read_at && (
                               <div className="w-2 h-2 rounded-full bg-brand-500 mt-1.5 flex-shrink-0"></div>
                             )}
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {notification.title || "Notification"}
+                                {notification.data?.message || "Notification"}
                               </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                {notification.message || notification.body}
-                              </p>
+                              <div
+                                className="text-xs text-gray-500 dark:text-gray-400 mt-1"
+                                dangerouslySetInnerHTML={{
+                                  __html:
+                                    notification.data?.description ||
+                                    notification.data?.message ||
+                                    "",
+                                }}
+                              />
                               {notification.created_at && (
                                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                                   {new Date(
