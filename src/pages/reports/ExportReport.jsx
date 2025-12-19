@@ -3,15 +3,15 @@ import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
 import { DateRangePicker } from "../../components/common/DateRangePicker";
 import { listResource, reportsAPI } from "../../services/api";
-import { Download, Users, Calendar } from "lucide-react";
+import { Download, Users, Calendar, FileText, CheckSquare } from "lucide-react";
 
 const RESOURCE_OPTIONS = [
   { value: "invoices", label: "Invoices" },
   { value: "deliveryorders", label: "Delivery Orders" },
   { value: "creditnotes", label: "Credit Notes" },
   { value: "debitnotes", label: "Debit Notes" },
-  { value: "statements", label: "Account Statements" },
-  { value: "payments", label: "Payment Records" },
+  { value: "statements", label: "Statements" }, // Shortened label for space
+  { value: "payments", label: "Payments" }, // Shortened label
   { value: "customers", label: "Customers" },
 ];
 
@@ -124,7 +124,8 @@ export default function ExportReport() {
   };
 
   return (
-    <div className="space-y-6">
+    // Main container set to fixed height relative to viewport to prevent page scroll
+    <div className="h-[calc(100vh-100px)] flex flex-col space-y-4">
       {toast.message && (
         <Toast
           message={toast.message}
@@ -133,154 +134,160 @@ export default function ExportReport() {
         />
       )}
       <PageMeta
-        title="Export Reports - BMI Invoice Management System"
-        description="Export data across invoices, delivery orders, notes, statements, and more."
+        title="Export Reports"
+        description="Generate and download data reports."
       />
 
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Export Reports
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Select a page, date range, and users to generate and download
-            reports
-          </p>
+      <div className="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-4 overflow-hidden flex flex-col">
+        {/* Header - Compact */}
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Download className="w-5 h-5 text-blue-600" />
+              Export Manager
+            </h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Configure parameters to download your report archive.
+            </p>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Step 1: Select Resource */}
-          <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs font-semibold">
-                1
-              </span>
-              Choose Report Type
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {RESOURCE_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setResource(option.value)}
-                  className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
-                    resource === option.value
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600"
-                  }`}
-                >
-                  <p
-                    className={`font-medium text-sm ${
+        <form
+          onSubmit={handleSubmit}
+          className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0"
+        >
+          {/* LEFT COLUMN: Controls (Fixed, non-scrollable) */}
+          <div className="lg:col-span-4 flex flex-col gap-4 overflow-y-auto pr-2">
+            {/* 1. Resource Type */}
+            <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <FileText size={16} className="text-blue-500" />
+                Report Type
+              </h2>
+              <div className="grid grid-cols-2 gap-2">
+                {RESOURCE_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setResource(option.value)}
+                    className={`px-3 py-2 rounded-md text-xs font-medium text-left transition-all duration-200 border ${
                       resource === option.value
-                        ? "text-blue-600 dark:text-blue-400"
-                        : "text-gray-900 dark:text-gray-200"
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm"
+                        : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-blue-300"
                     }`}
                   >
                     {option.label}
-                  </p>
-                </button>
-              ))}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Step 2: Date Range */}
-          <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs font-semibold">
-                2
-              </span>
-              Date Range (Optional)
-            </h2>
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar
-                size={16}
-                className="text-blue-600 dark:text-blue-400"
-              />
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Leave empty to export all records
-              </p>
-            </div>
-            <DateRangePicker
-              dateFrom={dateFrom}
-              dateTo={dateTo}
-              onDateChange={handleDateChange}
-            />
-          </div>
-
-          {/* Step 3: Select Users */}
-          <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs font-semibold">
-                  3
+            {/* 2. Date Range */}
+            <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <Calendar size={16} className="text-blue-500" />
+                Time Period{" "}
+                <span className="text-xs font-normal text-gray-500">
+                  (Optional)
                 </span>
-                Select Users
               </h2>
+              <DateRangePicker
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                onDateChange={handleDateChange}
+              />
+            </div>
+
+            {/* Submit Button (Pushed to bottom of left col or just inline) */}
+            <div className="mt-auto pt-2">
               <button
-                type="button"
-                onClick={handleSelectAllUsers}
-                className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                type="submit"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 py-3 text-sm font-bold text-white transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
               >
-                {selectedUsers.length === users.length
-                  ? "Clear All"
-                  : "Select All"}
+                {isLoading ? (
+                  <span className="animate-pulse">Processing...</span>
+                ) : (
+                  <>
+                    <Download size={18} />
+                    Download Report Archive
+                  </>
+                )}
               </button>
             </div>
-            <div className="max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800 space-y-2">
-              {users.length === 0 ? (
-                <div className="text-center py-6">
-                  <Users
-                    size={24}
-                    className="text-gray-300 dark:text-gray-600 mx-auto mb-2"
-                  />
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    No users found
-                  </p>
-                </div>
-              ) : (
-                users.map((user) => (
-                  <label
-                    key={user.value}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(user.value)}
-                      onChange={() => handleToggleUser(user.value)}
-                      className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-200 flex-1 truncate">
-                      {user.label}
-                    </span>
-                  </label>
-                ))
-              )}
-            </div>
-            {selectedUsers.length > 0 && (
-              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <p className="text-xs font-medium text-blue-800 dark:text-blue-300 mb-1">
-                  Selected: {selectedUsers.length} user(s)
-                </p>
-                <p className="text-xs text-blue-700 dark:text-blue-400 line-clamp-2">
-                  {selectedUsers
-                    .map((id) => userLookup.get(id))
-                    .filter(Boolean)
-                    .join(", ")}
-                </p>
-              </div>
-            )}
           </div>
 
-          {/* Export Button */}
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 px-6 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download size={18} />
-              {isLoading ? "Exporting..." : "Export Report"}
-            </button>
+          {/* RIGHT COLUMN: Users (Takes remaining height, Scrollable) */}
+          <div className="lg:col-span-8 flex flex-col bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden h-full">
+            {/* User List Header */}
+            <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-between shrink-0">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Users size={16} className="text-blue-500" />
+                Target Users
+                <span className="text-xs font-normal text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">
+                  {users.length} total
+                </span>
+              </h2>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                  {selectedUsers.length} selected
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSelectAllUsers}
+                  className="flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
+                  <CheckSquare size={14} />
+                  {selectedUsers.length === users.length
+                    ? "Clear All"
+                    : "Select All"}
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable User List Area */}
+            <div className="flex-1 overflow-y-auto p-2 min-h-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
+                {users.length === 0 ? (
+                  <div className="col-span-full h-40 flex flex-col items-center justify-center text-gray-400">
+                    <Users size={32} className="mb-2 opacity-20" />
+                    <p className="text-sm">No users found</p>
+                  </div>
+                ) : (
+                  users.map((user) => (
+                    <label
+                      key={user.value}
+                      className={`flex items-start gap-3 p-2 rounded border transition-all cursor-pointer ${
+                        selectedUsers.includes(user.value)
+                          ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                          : "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-blue-300"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.value)}
+                        onChange={() => handleToggleUser(user.value)}
+                        className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-offset-0 focus:ring-1 focus:ring-blue-500"
+                      />
+                      <div className="min-w-0">
+                        <p
+                          className={`text-xs font-medium truncate ${
+                            selectedUsers.includes(user.value)
+                              ? "text-blue-800 dark:text-blue-200"
+                              : "text-gray-700 dark:text-gray-200"
+                          }`}
+                        >
+                          {user.label}
+                        </p>
+                        <p className="text-[10px] text-gray-400 truncate">
+                          ID: {user.value}
+                        </p>
+                      </div>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </form>
       </div>

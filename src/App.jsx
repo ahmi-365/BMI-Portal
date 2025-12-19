@@ -93,6 +93,10 @@ import UserStatements from "./pages/UserPages/UserStatements";
 import UserStatementShow from "./pages/UserPages/UserStatementShow";
 import AdministrationIndex from "./pages/administration/Index";
 import ExportReport from "./pages/reports/ExportReport";
+// CN PPI
+import PpisIndex from "./pages/ppis/Index";
+import PpisShow from "./pages/ppis/Show";
+import PpisEdit from "./pages/ppis/Edit";
 
 export default function App() {
   return (
@@ -193,6 +197,9 @@ export default function App() {
             />
             <Route path="/administration/*" element={<AdministrationIndex />} />
             <Route path="/reports/export" element={<ExportReport />} />
+            <Route path="/ppis/*" element={<PpisIndex />} />
+            <Route path="/ppis/show/:id" element={<PpisShow />} />
+            <Route path="/ppis/edit/:id" element={<PpisEdit />} />
           </Route>
 
           {/* Auth Layout */}

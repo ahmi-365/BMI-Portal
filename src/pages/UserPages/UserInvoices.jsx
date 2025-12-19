@@ -6,10 +6,15 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
 
 const COLUMNS = [
-  { header: "Invoice No.", accessor: "invoiceId", filterKey: "invoiceId" },
+  {
+    header: "Invoice No.",
+    accessor: "invoiceId",
+    filterKey: "invoice_no",
+  },
   {
     header: "Invoice Doc",
     accessor: "invoice_doc",
+    filterKey: "invoice_doc",
     render: (row) => (
       <FileDownloadButton
         file={row.invoice_doc}
@@ -35,14 +40,16 @@ const COLUMNS = [
       });
     },
   },
-  { header: "Customer No.", accessor: "customer_no" },
-  { header: "PO No.", accessor: "po_no" },
+  { header: "Customer No.", accessor: "customer_no", filterKey: "customer_no" },
+  { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
   { header: "DO No.", accessor: "do_no" },
-  { header: "Amount", accessor: "amount" },
-  { header: "Remarks", accessor: "remarks" },
+  { header: "Amount", accessor: "amount", filterKey: "amount" },
+  { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
   {
     header: "Created At",
     accessor: "created_at",
+    filterKey: "uploaded_at",
+    filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";
       return new Date(row.created_at).toLocaleDateString("en-US", {

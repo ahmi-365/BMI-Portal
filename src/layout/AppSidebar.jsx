@@ -50,14 +50,14 @@ const othersItems = [
     path: "/creditnotes",
   },
   {
+    name: "CN PPI",
+    icon: <FileText className="w-5 h-5" />,
+    path: "/ppis",
+  },
+  {
     name: "Account Statements",
     icon: <FileText className="w-5 h-5" />,
     path: "/statements",
-  },
-  {
-    name: "Export Reports",
-    icon: <FileDown className="w-5 h-5" />,
-    path: "/reports/export",
   },
   { name: "Customers", icon: <User className="w-5 h-5" />, path: "/customers" },
   {
