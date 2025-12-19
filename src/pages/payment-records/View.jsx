@@ -149,7 +149,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
     header: "Customer No.",
     accessor: "customerNo",
     filterKey: "user_invoices",
-    render: (row) => row.user?.customer_no ?? row.user?.id ?? "-",
+    render: (row) => row.user?.customer_no ??  "-",
   },
 
   {
@@ -245,94 +245,6 @@ const createNotAcknowledgedColumns = (onApprove) => [
   },
 ];
 
-// Original NOT_ACKNOWLEDGED_COLUMNS (kept for reference if needed)
-const NOT_ACKNOWLEDGED_COLUMNS = [
-  {
-    header: "Customer No.",
-    accessor: "customerNo",
-    filterKey: "user_invoices",
-    render: (row) => row.user?.customer_no ?? row.user?.id ?? "-",
-  },
-
-  {
-    header: "Company Name",
-    accessor: "companyName",
-    filterKey: "company",
-    render: (row) => row.user?.company ?? "-",
-  },
-
-  {
-    header: "Amount",
-    accessor: "amount",
-    filterKey: "amount",
-  },
-  {
-    header: "Outstanding",
-    accessor: "outstanding",
-    filterKey: "outstanding",
-  },
-  {
-    header: "Payment Date",
-    accessor: "payment_date",
-    filterKey: "payment_date",
-    filterType: "date-range",
-    render: (row) => formatDateISO(row.payment_date),
-  },
-
-  {
-    header: "Proof Of Payment",
-    accessor: "proofOfPayment",
-    render: (row) => (
-      <PdfButton file={row.proof} id={row.id} endpoint="payments" />
-    ),
-  },
-
-  {
-    header: "Reference No.",
-    accessor: "reference_id",
-    filterKey: "reference_id",
-  },
-
-  {
-    header: "DO DOC",
-    accessor: "doDoc",
-    render: (row) => (
-      <PdfButton file={row.do_doc} id={row.id} endpoint="payments" />
-    ),
-  },
-
-  {
-    header: "DN DOC",
-    accessor: "dnDoc",
-    render: (row) => (
-      <PdfButton file={row.dn_doc} id={row.id} endpoint="payments" />
-    ),
-  },
-
-  {
-    header: "CN DOC",
-    accessor: "cnDoc",
-    render: (row) => (
-      <PdfButton file={row.cn_doc} id={row.id} endpoint="payments" />
-    ),
-  },
-
-  {
-    header: "Status",
-    accessor: "status",
-    render: (row) => (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          row.status === 0
-            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-        }`}
-      >
-        {row.status === 0 ? "Pending" : "Approved"}
-      </span>
-    ),
-  },
-];
 
 export default function PaymentRecordsView() {
   const [activeTab, setActiveTab] = useState("paid");

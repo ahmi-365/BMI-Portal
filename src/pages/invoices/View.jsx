@@ -18,7 +18,7 @@ const COLUMNS = [
     accessor: "companyName",
     render: (row) => row.user?.company ?? "-",
   },
-  { header: "Invoice No.", accessor: "invoiceId", filterKey: "invoiceId" },
+  { header: "Invoice No.", accessor: "invoiceId", filterKey: "invoice_no" },
   {
     header: "Invoice Doc",
     accessor: "invoice_doc",
