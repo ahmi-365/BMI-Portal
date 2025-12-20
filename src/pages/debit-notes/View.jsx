@@ -23,8 +23,10 @@ const COLUMNS = [
   },
   {
     header: "DN No.",
+
     accessor: "dn_no",
     filterKey: "dn_no",
+    // render: (row) => row.dn_no || "-" ,
     render: (row) => row.dn_no || "-",
   },
   {
@@ -32,6 +34,7 @@ const COLUMNS = [
     accessor: "dn_doc",
     filterKey: "dn_doc",
     render: (row) => (
+
       <FileDownloadButton
         file={row.dn_doc}
         id={row.id}
@@ -47,11 +50,13 @@ const COLUMNS = [
     filterType: "date-range",
     render: (row) => (row.dn_date ? String(row.dn_date).split("T")[0] : "-"),
   },
+
   {
     header: "PO No.",
     accessor: "po_no",
     filterKey: "po_no",
     render: (row) => (row.po_no ? row.po_no : "-"),
+    endpoint: "debitnotes",
   },
   {
     header: "Ref No.",
