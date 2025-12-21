@@ -7,8 +7,10 @@ import { ppisAPI } from "../../services/api";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 import { Trash2 } from "lucide-react";
 
+
 const COLUMNS = [
   { header: "PPI No.", accessor: "ppi_no", filterKey: "ppi_no" },
+  // { header: "PPI No.", accessor: "ppi_no", filterKey: "ppi_no" },
   { header: "Customer No.", accessor: "customer_no", filterKey: "customer_no" },
   { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
   { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no" },
