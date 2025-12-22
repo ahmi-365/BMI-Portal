@@ -6,14 +6,14 @@ import Toast from "../../components/common/Toast";
 import { Trash2 } from "lucide-react";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "/api";
 
 const COLUMNS = [
-  { header: "Customer No", accessor: "customer_no" },
+  { header: "Customer No", accessor: "customer_no",filterKey: "customer_no"  },
   {
     header: "Company Name",
     accessor: "company_name",
     render: (row) => row.user?.company || row.company_name || "-",
+    filterKey: "company",
   },
   {
     header: "Statement Doc",
@@ -51,6 +51,8 @@ const COLUMNS = [
       ) : (
         "-"
       ),
+      filterKey: "statement_doc",
+      
   },
   {
     header: "Statement Date",
@@ -60,22 +62,23 @@ const COLUMNS = [
     render: (row) =>
       row.statement_date ? row.statement_date.split("T")[0] : "-",
   },
-  {
-    header: "Updated At",
-    accessor: "updated_at",
-    filterKey: "updated_at",
-    filterType: "date-range",
-    render: (row) =>
-      row.updated_at || row.created_at
-        ? (row.updated_at || row.created_at).split("T")[0]
-        : "-",
-  },
+  // {
+  //   header: "Updated At",
+  //   accessor: "updated_at",
+  //   filterKey: "updated_at",
+  //   filterType: "date-range",
+  //   render: (row) =>
+  //     row.updated_at || row.created_at
+  //       ? (row.updated_at || row.created_at).split("T")[0]
+  //       : "-",
+  // },
 
   {
     header: "Uploaded By",
     accessor: "uploaded_by",
     render: (row) =>
       row.admin?.name || row.user?.name || row.uploaded_by || "-",
+    filterKey: "uploaded_by",
   },
 ];
 

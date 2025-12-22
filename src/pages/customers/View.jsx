@@ -40,11 +40,12 @@ const APPROVED_COLUMNS = [
     accessor: "form_status",
     filterKey: "form_status",
     render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
+    disableFilter: true,
   },
   {
     header: "Created At",
     accessor: "created_at",
-    filterKey: "created_at",
+    filterKey: "created",
     filterType: "date-range",
     render: (row) =>
       row.created_at || row.createdAt
@@ -52,13 +53,13 @@ const APPROVED_COLUMNS = [
         : "-",
   },
   {
-    header: "Added By",
-    accessor: "admin_id",
-    filterKey: "admin_id",
-    render: (row) => row.admin_id || "-",
+    header: "Added By", 
+    accessor: "uploaded_by",
+    filterKey: "uploaded_by",   
+    render: (row) => row.admin?.name || "-", 
   },
 ];
-
+  
 const PENDING_COLUMNS = [
   {
     header: "Business Contact Name",
@@ -67,7 +68,7 @@ const PENDING_COLUMNS = [
     render: (row) => row.name || "-",
   },
   {
-    header: "Customer No.",
+    header: "Customer No.", 
     accessor: "customer_no",
     filterKey: "customer_no",
     render: (row) => row.customer_no || "-",
