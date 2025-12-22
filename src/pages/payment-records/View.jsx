@@ -127,6 +127,7 @@ const PAID_COLUMNS = [
   {
     header: "Status",
     accessor: "status",
+    disableFilter: true,
     render: (row) => (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -149,7 +150,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
     header: "Customer No.",
     accessor: "customerNo",
     filterKey: "user_invoices",
-    render: (row) => row.user?.customer_no ??  "-",
+    render: (row) => row.user?.customer_no ?? "-",
   },
 
   {
@@ -218,6 +219,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
   {
     header: "Status",
     accessor: "status",
+    disableFilter: true,
     render: (row) => (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -244,7 +246,6 @@ const createNotAcknowledgedColumns = (onApprove) => [
     ),
   },
 ];
-
 
 export default function PaymentRecordsView() {
   const [activeTab, setActiveTab] = useState("paid");

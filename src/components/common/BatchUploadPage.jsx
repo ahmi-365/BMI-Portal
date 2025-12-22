@@ -7,6 +7,7 @@ import {
   creditNotesAPI,
   deliveryOrdersAPI,
   statementsAPI,
+  ppisAPI,
 } from "../../services/api";
 import { companiesAPI, invoicesAPI } from "../../services/api";
 import SearchableSelect from "./SearchableSelect";
@@ -78,6 +79,8 @@ const getAPI = (resourceName) => {
       return deliveryOrdersAPI;
     case "statements":
       return statementsAPI;
+    case "ppis":
+      return ppisAPI;
     default:
       return null;
   }
@@ -293,6 +296,12 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           } else if (resourceName === "invoices") {
             form.file =
               parseData.files?.[idx] ?? parseData.prev_files?.[idx] ?? "";
+          } else if (resourceName === "ppis") {
+            form.ppi_doc =
+              parseData.prev_files?.[idx] ??
+              parseData.files?.[idx] ??
+              parseData.data?.[idx] ??
+              "";
           }
 
           // Ensure expected fields exist for credit/debit notes
@@ -309,6 +318,19 @@ export const BatchUploadPage = ({ resourceName, title }) => {
               dueFromTermCN || toISODate(form.payment_term) || ""; // due date
             form.remarks = form.remarks ?? "";
             form.cn_doc = form.cn_doc ?? "";
+          }
+          if (resourceName === "ppis") {
+            form.user_id = form.user_id ?? "";
+            form.customer_no = form.customer_no ?? "";
+            form.amount = extractAmount(form.amount ?? "");
+            form.po_no = form.po_no ?? "";
+            form.ref_no = form.ref_no ?? "";
+            form.ppi_no = form.ppi_no ?? "";
+            form.ppi_date = toISODate(form.ppi_date) || form.ppi_date || "";
+            form.payment_term = form.payment_term ?? "";
+            form.ppi_percentage = form.ppi_percentage ?? "";
+            form.remarks = form.remarks ?? "";
+            form.ppi_doc = form.ppi_doc ?? "";
           }
           if (resourceName === "debitnotes") {
             console.log(
@@ -438,15 +460,28 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     setError(null);
     setToastMessage(null);
 
-    // Validate required fields (all except remarks, index, folder)
+    // Validate required fields
     const errors = {};
     formData.forEach((form, idx) => {
-      const missing = Object.entries(form).reduce((acc, [key, value]) => {
-        if (key === "index" || key === "folder" || key === "remarks")
+      let missing = [];
+      if (resourceName === "ppis") {
+        const required = [
+          "user_id",
+          "ppi_no",
+          "ppi_date",
+          "payment_term",
+          "amount",
+          "ppi_doc",
+        ];
+        missing = required.filter((f) => isFieldEmpty(form[f]));
+      } else {
+        missing = Object.entries(form).reduce((acc, [key, value]) => {
+          if (key === "index" || key === "folder" || key === "remarks")
+            return acc;
+          if (isFieldEmpty(value)) acc.push(key);
           return acc;
-        if (isFieldEmpty(value)) acc.push(key);
-        return acc;
-      }, []);
+        }, []);
+      }
       if (missing.length) errors[idx] = missing;
     });
 
@@ -958,7 +993,230 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                           </div>
                         )}
                         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                          {resourceName === "creditnotes" ? (
+                          {resourceName === "ppis" ? (
+                            <>
+                              {/* Company (searchable) */}
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Company Name
+                                </label>
+                                <SearchableSelect
+                                  id={`company-${idx}`}
+                                  options={companyOptions}
+                                  value={form.user_id || null}
+                                  onChange={(v) =>
+                                    handleFormChange(idx, "user_id", v)
+                                  }
+                                  placeholder="Select a company..."
+                                  required
+                                  error={fieldHasError(idx, "user_id")}
+                                />
+                              </div>
+
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  PPI No.
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.ppi_no ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "ppi_no",
+                                      e.target.value
+                                    )
+                                  }
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "ppi_no"
+                                  )}`}
+                                />
+                              </div>
+
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  PPI Date
+                                </label>
+                                <input
+                                  type="date"
+                                  value={form.ppi_date ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "ppi_date",
+                                      e.target.value
+                                    )
+                                  }
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "ppi_date"
+                                  )}`}
+                                />
+                              </div>
+
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Payment Term
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.payment_term ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "payment_term",
+                                      e.target.value
+                                    )
+                                  }
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "payment_term"
+                                  )}`}
+                                />
+                              </div>
+
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Amount (MYR)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.amount ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "amount",
+                                      e.target.value
+                                    )
+                                  }
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "amount"
+                                  )}`}
+                                />
+                              </div>
+
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  PPI Percentage (%)
+                                </label>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  value={form.ppi_percentage ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "ppi_percentage",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Customer No.
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.customer_no ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "customer_no",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Customer PO No.
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.po_no ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "po_no",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Reference No.
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.ref_no ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "ref_no",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  PPI Document
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.ppi_doc ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "ppi_doc",
+                                      e.target.value
+                                    )
+                                  }
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
+                                    idx,
+                                    "ppi_doc"
+                                  )}`}
+                                  placeholder="Auto from parsed file"
+                                />
+                              </div>
+
+                              <div className="relative md:col-span-2">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  Remarks
+                                </label>
+                                <textarea
+                                  value={form.remarks ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "remarks",
+                                      e.target.value
+                                    )
+                                  }
+                                  rows={3}
+                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
+                                />
+                              </div>
+                            </>
+                          ) : resourceName === "creditnotes" ? (
                             <>
                               {/* Company (searchable) */}
                               <div className="relative">

@@ -1,5 +1,6 @@
 import { ShowPage } from "../../components/common/ShowPage";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { ppisAPI } from "../../services/api";
 
 const FIELDS = [
   { name: "id", label: "ID" },
@@ -46,5 +47,12 @@ const FIELDS = [
 ];
 
 export default function PpisShow() {
-  return <ShowPage resourceName="ppis" fields={FIELDS} title="PPI" />;
+  return (
+    <ShowPage
+      resourceName="ppis"
+      fields={FIELDS}
+      title="PPI"
+      apiCall={ppisAPI.show}
+    />
+  );
 }
