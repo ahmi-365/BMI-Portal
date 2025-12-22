@@ -49,13 +49,13 @@ const COLUMNS = [
   {
     header: "Uploaded By",
     accessor: "admin.name",
-    filterKey: "admin.name",
+    filterKey: "uploaded_by",
     render: (row) => row.admin?.name || "-",
   },
   {
     header: "Created At",
     accessor: "created_at",
-    filterKey: "created",
+    filterKey: "uploaded_at",
     filterType: "date-range",
     render: (row) =>
       row.created_at ? String(row.created_at).split("T")[0] : "-",
