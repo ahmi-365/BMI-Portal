@@ -12,18 +12,18 @@ const COLUMNS = [
   {
     header: "Company",
     accessor: "user.company",
-    filterKey: "user.company",
+    filterKey: "company",
     render: (row) => row.user?.company || "-",
   },
   { header: "Customer No.", accessor: "customer_no", filterKey: "customer_no" },
   { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
   { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no" },
   { header: "Amount", accessor: "amount", filterKey: "amount" },
-  { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
+  // { header: "Remarks", accessor: "remarks", filterKey: "remarks",disableFilter: true, },
   {
     header: "PPI Date",
     accessor: "ppi_date",
-    filterKey: "ppi_date",
+    filterKey: "date",
     filterType: "date-range",
     render: (row) => (row.ppi_date ? String(row.ppi_date).split("T")[0] : "-"),
   },
@@ -55,7 +55,7 @@ const COLUMNS = [
   {
     header: "Created At",
     accessor: "created_at",
-    filterKey: "created_at",
+    filterKey: "created",
     filterType: "date-range",
     render: (row) =>
       row.created_at ? String(row.created_at).split("T")[0] : "-",

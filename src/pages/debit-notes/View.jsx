@@ -86,7 +86,7 @@ const COLUMNS = [
   {
     header: "Uploaded At",
     accessor: "created_at",
-    filterKey: "uploaded_at",
+    filterKey: "uploaded",
     filterType: "date-range",
     render: (row) =>
       row.created_at ? String(row.created_at).split("T")[0] : "-",
