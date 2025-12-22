@@ -13,7 +13,7 @@ const COLUMNS = [
     header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
-    render: (row) => row.customer_no || "-",
+    render: (row) => row.user?.customer_no || "-",
   },
   {
     header: "Company",
@@ -90,7 +90,7 @@ const COLUMNS = [
   {
     header: "Uploaded At",
     accessor: "uploaded_at",
-    filterKey: "uploaded_at",
+    filterKey: "uploaded",
     filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";

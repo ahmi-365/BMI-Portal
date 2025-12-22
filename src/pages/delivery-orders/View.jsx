@@ -54,7 +54,7 @@ const COLUMNS = [
   {
     header: "Invoice Date",
     accessor: "invoice_date",
-    filterKey: "uploaded_by",
+    filterKey: "date",
     filterType: "date-range",
     render: (row) => {
       if (!row.invoice?.invoice_date) return "-";
