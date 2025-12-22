@@ -1,65 +1,50 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import PageMeta from "../../components/common/PageMeta";
-import Toast from "../../components/common/Toast";
-import { ppisAPI } from "../../services/api";
+import { ShowPage } from "../../components/common/ShowPage";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
+
+const FIELDS = [
+  { name: "id", label: "ID" },
+  {
+    name: "user.company",
+    label: "Company Name",
+    render: (_v, row) => row.user?.company ?? "-",
+  },
+  { name: "ppi_no", label: "PPI No." },
+  {
+    name: "ppi_date",
+    label: "PPI Date",
+    render: (value) => (value ? String(value).split("T")[0] : "-"),
+  },
+  { name: "payment_term", label: "Payment Term" },
+  { name: "amount", label: "Amount" },
+  { name: "ppi_percentage", label: "PPI %" },
+  { name: "customer_no", label: "Customer No." },
+  { name: "po_no", label: "PO No." },
+  { name: "ref_no", label: "Reference No." },
+  { name: "remarks", label: "Remarks" },
+  {
+    name: "ppi_doc",
+    label: "PPI Document",
+    render: (_v, row) => (
+      <FileDownloadButton
+        file={row.ppi_doc}
+        id={row.id}
+        endpoint="ppis"
+        path="download"
+      />
+    ),
+  },
+  {
+    name: "created_at",
+    label: "Uploaded At",
+    render: (value) => (value ? String(value).split("T")[0] : "-"),
+  },
+  {
+    name: "admin_id",
+    label: "Uploaded By",
+    render: (_v, row) => row.admin?.name || "-",
+  },
+];
 
 export default function PpisShow() {
-  const { id } = useParams();
-  const [record, setRecord] = useState(null);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await ppisAPI.show(id);
-        setRecord(res?.data || res);
-      } catch (err) {
-        setError(err.message || "Failed to load record");
-      }
-    };
-    load();
-  }, [id]);
-
-  if (error) {
-    return (
-      <div>
-        <Toast message={error} type="error" onClose={() => setError(null)} />
-        <p className="text-red-600">{error}</p>
-      </div>
-    );
-  }
-
-  if (!record) return null;
-
-  return (
-    <div className="space-y-4">
-      <PageMeta
-        title={`CN PPI ${record.ppi_no || "Details"}`}
-        description="CN PPI details"
-      />
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 space-y-3">
-        {[
-          ["PPI No", record.ppi_no],
-          ["Customer No", record.customer_no],
-          ["PO No", record.po_no],
-          ["Ref No", record.ref_no],
-          ["Amount", record.amount],
-          ["Remarks", record.remarks],
-          ["PPI Date", record.ppi_date],
-          ["Payment Term", record.payment_term],
-          ["PPI %", record.ppi_percentage],
-          ["PPI Doc", record.ppi_doc],
-          ["Created At", record.created_at],
-        ].map(([label, value]) => (
-          <div key={label} className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">{label}</span>
-            <span className="text-gray-900 dark:text-white">
-              {value || "-"}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <ShowPage resourceName="ppis" fields={FIELDS} title="PPI" />;
 }

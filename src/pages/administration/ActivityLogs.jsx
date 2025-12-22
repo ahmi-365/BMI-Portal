@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useTheme } from "../../context/ThemeContext";
 import Loader from "../../components/common/Loader";
 import { adminAPI } from "../../services/api";
 
 export default function SystemLogsViewer() {
-  const { isDarkMode } = useTheme();
+  // Removed useTheme hook as we are now using native Tailwind dark classes
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -34,6 +33,7 @@ export default function SystemLogsViewer() {
       setLoading(false);
     }
   };
+
   const toggleExpanded = (id) => {
     setExpandedLogs((prev) => ({
       ...prev,
@@ -60,57 +60,35 @@ export default function SystemLogsViewer() {
 
   if (loading) {
     return (
-      <div
-        className={`flex items-center justify-center min-h-screen ${
-          isDarkMode ? "bg-gray-900" : "bg-gray-50"
-        }`}
-      >
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <Loader />
       </div>
     );
   }
 
   return (
-    <div
-      className={`min-h-screen p-6 ${
-        isDarkMode ? "bg-gray-900" : "bg-gray-50"
-      }`}
-    >
+    <div className="min-h-screen p-6 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1
-            className={`text-3xl font-bold ${
-              isDarkMode ? "text-white" : "text-gray-800"
-            }`}
-          >
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
             Activity Logs
           </h1>
-          <p
-            className={`text-sm mt-2 ${
-              isDarkMode ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+          <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
             View and monitor system activity logs.
           </p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 rounded bg-red-100 border border-red-400 text-red-700">
+          <div className="mb-6 p-4 rounded bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400">
             {error}
           </div>
         )}
 
         {/* Empty State */}
         {!loading && logs.length === 0 && (
-          <div
-            className={`text-center py-12 rounded-lg ${
-              isDarkMode
-                ? "bg-gray-800 text-gray-400"
-                : "bg-white text-gray-600"
-            }`}
-          >
+          <div className="text-center py-12 rounded-lg bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
             <p className="text-lg">No activity logs available.</p>
           </div>
         )}
@@ -125,42 +103,22 @@ export default function SystemLogsViewer() {
                 return (
                   <div
                     key={log.id}
-                    className={`rounded-lg border ${
-                      isDarkMode
-                        ? "bg-gray-800 border-gray-700"
-                        : "bg-white border-gray-200"
-                    } overflow-hidden`}
+                    className="rounded-lg border overflow-hidden bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm"
                   >
                     {/* Log Header */}
                     <button
                       onClick={() => toggleExpanded(log.id)}
-                      className={`w-full p-4 flex items-center justify-between hover:${
-                        isDarkMode ? "bg-gray-700" : "bg-gray-50"
-                      } transition`}
+                      className="w-full p-4 flex items-center justify-between transition hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                       <div className="flex items-center flex-1 text-left">
-                        <div
-                          className={`w-14 h-14 rounded-full flex items-center justify-center mr-4 ${
-                            isDarkMode
-                              ? "bg-blue-900 text-blue-300"
-                              : "bg-blue-100 text-blue-600"
-                          } font-semibold text-sm`}
-                        >
+                        <div className="w-14 h-14 rounded-full flex items-center justify-center mr-4 font-semibold text-sm bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
                           #{log.id}
                         </div>
                         <div>
-                          <p
-                            className={`font-medium ${
-                              isDarkMode ? "text-white" : "text-gray-800"
-                            }`}
-                          >
+                          <p className="font-medium text-gray-800 dark:text-white">
                             {log.action} — {log.model_type}
                           </p>
-                          <p
-                            className={`text-xs ${
-                              isDarkMode ? "text-gray-400" : "text-gray-500"
-                            }`}
-                          >
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {log.model_id
                               ? `Model ID: ${log.model_id}`
                               : "No Model"}
@@ -169,53 +127,27 @@ export default function SystemLogsViewer() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span
-                          className={`text-xs ${
-                            isDarkMode ? "text-gray-400" : "text-gray-600"
-                          }`}
-                        >
+                        <span className="text-xs text-gray-600 dark:text-gray-400">
                           {formatDate(log.created_at)}
                         </span>
                         {isExpanded ? (
-                          <ChevronUp
-                            className={`w-5 h-5 ${
-                              isDarkMode ? "text-gray-400" : "text-gray-600"
-                            }`}
-                          />
+                          <ChevronUp className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                         ) : (
-                          <ChevronDown
-                            className={`w-5 h-5 ${
-                              isDarkMode ? "text-gray-400" : "text-gray-600"
-                            }`}
-                          />
+                          <ChevronDown className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                         )}
                       </div>
                     </button>
 
                     {/* Expanded Content */}
                     {isExpanded && (
-                      <div
-                        className={`border-t ${
-                          isDarkMode ? "border-gray-700" : "border-gray-200"
-                        } p-4 space-y-4`}
-                      >
+                      <div className="border-t p-4 space-y-4 border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
                         {/* Old Values */}
                         {log.old_values && (
                           <div>
-                            <h4
-                              className={`text-sm font-semibold mb-2 ${
-                                isDarkMode ? "text-gray-300" : "text-gray-700"
-                              }`}
-                            >
+                            <h4 className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                               OLD Values
                             </h4>
-                            <pre
-                              className={`p-3 rounded text-xs overflow-auto max-h-48 ${
-                                isDarkMode
-                                  ? "bg-gray-900 text-gray-300 border border-gray-700"
-                                  : "bg-gray-100 text-gray-800 border border-gray-300"
-                              }`}
-                            >
+                            <pre className="p-3 rounded text-xs overflow-auto max-h-48 bg-gray-100 text-gray-800 border border-gray-300 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700">
                               {formatJSON(log.old_values)}
                             </pre>
                           </div>
@@ -224,20 +156,10 @@ export default function SystemLogsViewer() {
                         {/* New Values */}
                         {log.new_values && (
                           <div>
-                            <h4
-                              className={`text-sm font-semibold mb-2 ${
-                                isDarkMode ? "text-gray-300" : "text-gray-700"
-                              }`}
-                            >
+                            <h4 className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                               NEW Values
                             </h4>
-                            <pre
-                              className={`p-3 rounded text-xs overflow-auto max-h-48 ${
-                                isDarkMode
-                                  ? "bg-gray-900 text-gray-300 border border-gray-700"
-                                  : "bg-gray-100 text-gray-800 border border-gray-300"
-                              }`}
-                            >
+                            <pre className="p-3 rounded text-xs overflow-auto max-h-48 bg-gray-100 text-gray-800 border border-gray-300 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700">
                               {formatJSON(log.new_values)}
                             </pre>
                           </div>
@@ -255,11 +177,7 @@ export default function SystemLogsViewer() {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded border ${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
-                      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                  } disabled:opacity-50 disabled:cursor-not-allowed transition`}
+                  className="px-4 py-2 rounded border bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
                   Previous
                 </button>
@@ -271,12 +189,8 @@ export default function SystemLogsViewer() {
                       onClick={() => setCurrentPage(page)}
                       className={`px-3 py-2 rounded border transition ${
                         currentPage === page
-                          ? isDarkMode
-                            ? "bg-blue-600 border-blue-600 text-white"
-                            : "bg-blue-500 border-blue-500 text-white"
-                          : isDarkMode
-                          ? "bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
-                          : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                          ? "bg-blue-500 border-blue-500 text-white dark:bg-blue-600 dark:border-blue-600"
+                          : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:bg-gray-700"
                       }`}
                     >
                       {page}
@@ -289,11 +203,7 @@ export default function SystemLogsViewer() {
                     setCurrentPage(Math.min(lastPage, currentPage + 1))
                   }
                   disabled={currentPage === lastPage}
-                  className={`px-4 py-2 rounded border ${
-                    isDarkMode
-                      ? "bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
-                      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                  } disabled:opacity-50 disabled:cursor-not-allowed transition`}
+                  className="px-4 py-2 rounded border bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
                   Next
                 </button>

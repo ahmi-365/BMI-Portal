@@ -16,6 +16,7 @@ import {
   Upload,
   ChartBar,
   FileDown,
+  LineChart,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -51,7 +52,7 @@ const othersItems = [
   },
   {
     name: "CN PPI",
-    icon: <FileText className="w-5 h-5" />,
+    icon: <LineChart  className="w-5 h-5" />,
     path: "/ppis",
   },
   {
@@ -161,16 +162,19 @@ const AppSidebar = () => {
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
               className={`
-                 w-full group relative flex items-center gap-3 rounded-xl px-4 py-3 font-medium duration-300 ease-in-out transform hover:scale-[1.02] active:scale-[0.98]
-                ${
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? "bg-brand-100/80 text-brand-700 shadow-md border border-brand-200 dark:bg-brand-900/30 dark:text-brand-100 dark:border-brand-800"
-                    : "text-gray-600 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:from-gray-800 dark:hover:to-gray-800/50 dark:hover:text-white hover:shadow-md"
-                }
-                ${
-                  !isExpanded && !isHovered ? "justify-center" : "justify-start"
-                }
-              `}
+                  w-full group relative flex items-center gap-3 rounded-xl px-4 py-3 font-medium duration-300 ease-in-out transform hover:scale-[1.02] active:scale-[0.98]
+                 ${
+                   openSubmenu?.type === menuType &&
+                   openSubmenu?.index === index
+                     ? "bg-brand-100/80 text-brand-700 shadow-md border border-brand-200 dark:bg-brand-900/30 dark:text-brand-100 dark:border-brand-800"
+                     : "text-gray-600 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:from-gray-800 dark:hover:to-gray-800/50 dark:hover:text-white hover:shadow-md"
+                 }
+                 ${
+                   !isExpanded && !isHovered
+                     ? "justify-center"
+                     : "justify-start"
+                 }
+               `}
             >
               <span
                 className={`flex-shrink-0 transition-transform duration-300 ${
@@ -291,7 +295,9 @@ const AppSidebar = () => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+        /* CHANGED: Fixed height calculation for mobile to avoid cutoff */
+        h-[calc(100vh-4rem)] lg:h-screen
         ${
           isExpanded || isMobileOpen
             ? "w-[250px]"
@@ -305,7 +311,7 @@ const AppSidebar = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex ${
+        className={`py-8 flex shrink-0 ${
           !isExpanded && !isHovered ? "justify-center" : "justify-start"
         } animate-pop`}
       >
@@ -329,7 +335,8 @@ const AppSidebar = () => {
           )}
         </Link>
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar animate-fade-in-up">
+      {/* CHANGED: Added flex-1 and h-full to force scrollbar to appear within bounds */}
+      <div className="flex flex-col flex-1 h-full overflow-y-auto duration-300 ease-linear no-scrollbar animate-fade-in-up pb-10">
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
             <div>

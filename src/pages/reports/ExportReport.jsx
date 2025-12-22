@@ -2,21 +2,28 @@ import { useEffect, useMemo, useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
 import { DateRangePicker } from "../../components/common/DateRangePicker";
-import { listResource, reportsAPI } from "../../services/api";
+import { companiesAPI, reportsAPI } from "../../services/api";
 import { Download, Users, Calendar, FileText, CheckSquare } from "lucide-react";
 
 const RESOURCE_OPTIONS = [
-  { value: "invoices", label: "Invoices" },
-  { value: "deliveryorders", label: "Delivery Orders" },
-  { value: "creditnotes", label: "Credit Notes" },
-  { value: "debitnotes", label: "Debit Notes" },
-  { value: "statements", label: "Statements" }, // Shortened label for space
-  { value: "payments", label: "Payments" }, // Shortened label
-  { value: "customers", label: "Customers" },
+  { value: "invoice", label: "Invoices" },
+  { value: "deliveryOrder", label: "Delivery Orders" },
+  { value: "creditNote", label: "Credit Notes" },
+  { value: "debitNote", label: "Debit Notes" },
+  { value: "statement", label: "Statements" },
+  { value: "payment", label: "Payments" },
+];
+
+const EXPORT_TYPE_OPTIONS = [
+  { value: "zip", label: "ZIP" },
+  { value: "excel", label: "Excel" },
 ];
 
 export default function ExportReport() {
   const [resource, setResource] = useState(RESOURCE_OPTIONS[0]?.value || "");
+  const [exportType, setExportType] = useState(
+    EXPORT_TYPE_OPTIONS[0]?.value || "zip"
+  );
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [dateFrom, setDateFrom] = useState("");
@@ -27,19 +34,15 @@ export default function ExportReport() {
   useEffect(() => {
     const loadUsers = async () => {
       try {
-        const res = await listResource("customers", { perPage: 500 });
-        const options = (res.rows || []).map((row) => ({
-          value: row.id,
-          label:
-            row.company_name ||
-            row.user?.company ||
-            row.customer_no ||
-            "Unknown",
-        }));
-        setUsers(options);
+        const res = await companiesAPI.list();
+        const list = res?.data ?? res ?? [];
+        const opts = Array.isArray(list)
+          ? list.map((c) => ({ value: c.id, label: c.company || c.name }))
+          : [];
+        setUsers(opts);
       } catch (error) {
         setToast({
-          message: error.message || "Failed to load users",
+          message: error.message || "Failed to load companies",
           type: "error",
         });
       }
@@ -97,13 +100,15 @@ export default function ExportReport() {
       setIsLoading(true);
       setToast({ message: null, type: "success" });
       const payload = {
-        resource,
-        user_ids: selectedUsers,
-        date_from: dateFrom || null,
-        date_to: dateTo || null,
+        model: resource,
+        user_ids: selectedUsers.length > 0 ? selectedUsers : undefined,
+        type: exportType,
+        date_from: dateFrom || undefined,
+        date_to: dateTo || undefined,
       };
-      const blob = await reportsAPI.export(payload);
-      const filename = `report-${resource}.zip`;
+      const blob = await reportsAPI.bulkDownload(payload);
+      const extension = exportType === "excel" ? "xlsx" : "zip";
+      const filename = `report-${resource}-${new Date().getTime()}.${extension}`;
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
@@ -182,7 +187,31 @@ export default function ExportReport() {
               </div>
             </div>
 
-            {/* 2. Date Range */}
+            {/* 2. Export Type */}
+            <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <FileText size={16} className="text-green-500" />
+                Export Format
+              </h2>
+              <div className="grid grid-cols-2 gap-2">
+                {EXPORT_TYPE_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setExportType(option.value)}
+                    className={`px-3 py-2 rounded-md text-xs font-medium text-left transition-all duration-200 border ${
+                      exportType === option.value
+                        ? "border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 shadow-sm"
+                        : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-green-300"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 3. Date Range */}
             <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
               <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                 <Calendar size={16} className="text-blue-500" />

@@ -7,10 +7,14 @@ import { ppisAPI } from "../../services/api";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 import { Trash2 } from "lucide-react";
 
-
 const COLUMNS = [
   { header: "PPI No.", accessor: "ppi_no", filterKey: "ppi_no" },
-  // { header: "PPI No.", accessor: "ppi_no", filterKey: "ppi_no" },
+  {
+    header: "Company",
+    accessor: "user.company",
+    filterKey: "user.company",
+    render: (row) => row.user?.company || "-",
+  },
   { header: "Customer No.", accessor: "customer_no", filterKey: "customer_no" },
   { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
   { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no" },
@@ -41,6 +45,12 @@ const COLUMNS = [
         path="download"
       />
     ),
+  },
+  {
+    header: "Uploaded By",
+    accessor: "admin.name",
+    filterKey: "admin.name",
+    render: (row) => row.admin?.name || "-",
   },
   {
     header: "Created At",
@@ -97,14 +107,14 @@ export default function PpisView() {
         />
       )}
       <PageMeta
-        title="CN PPI - BMI Invoice Management System"
-        description="View and manage CN PPI records."
+        title="PPI - BMI Invoice Management System"
+        description="View and manage PPI records."
       />
       <ListPage
         resourceName="ppis"
         columns={COLUMNS}
-        title="CN PPI"
-        subtitle="View and manage CN PPI records"
+        title="PPI"
+        subtitle="View and manage PPI records"
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         headerAction={

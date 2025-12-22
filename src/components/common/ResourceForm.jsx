@@ -93,6 +93,20 @@ export const ResourceForm = ({
           }
         }
 
+        // For debit notes edit forms, map backend dn_doc to file field
+        if (resourceName === "debitnotes") {
+          if (flat.dn_doc && !flat.file) {
+            flat.file = flat.dn_doc;
+          }
+        }
+
+        // For PPIs edit forms, map backend ppi_doc to file field
+        if (resourceName === "ppis") {
+          if (flat.ppi_doc && !flat.file) {
+            flat.file = flat.ppi_doc;
+          }
+        }
+
         setFormData(pickFieldValues(flat));
       }
     } catch (error) {
