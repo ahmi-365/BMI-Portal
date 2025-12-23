@@ -29,10 +29,15 @@ const COLUMNS = [
   {
     header: "Created At",
     accessor: "created_at",
-    disableFilter: true,
-    // FIX: Access row.created_at
+    filterKey: "uploaded",
+    filterType: "date-range",
     render: (row) =>
-      row.created_at ? new Date(row.created_at).toLocaleDateString() : "—",
+      row.created_at
+        ? row.created_at.split("T")[0]
+        : "-",
+    // render: (row) => new Date(row.created_at).toLocaleDateString(),
+    // responsive: { lg: true },
+    
   },
 ];
 
