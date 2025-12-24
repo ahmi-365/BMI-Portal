@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import { downloadBlob, paymentsAPI } from "../../services/api";
-import { Check, Trash2 } from "lucide-react";
+import { Check, Trash2, Download } from "lucide-react";
 import Toast from "../../components/common/Toast";
 import { formatDateISO } from "../../lib/dateUtils";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
@@ -254,6 +254,7 @@ export default function PaymentRecordsView() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleBulkDeleteClick = () => {
@@ -263,6 +264,29 @@ export default function PaymentRecordsView() {
       return;
     }
     setIsDeleteModalOpen(true); // ✅ opens modal
+  };
+
+  const handleBulkDownload = async () => {
+    try {
+      setIsDownloading(true);
+      const blob = await paymentsAPI.bulkDownload(selectedIds);
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `payment-records-${new Date().getTime()}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      setToastType("success");
+      setToastMessage("Download started successfully");
+    } catch (error) {
+      console.error("Bulk download failed:", error);
+      setToastType("error");
+      setToastMessage(error.message || "Failed to download items");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleBulkDelete = async () => {
@@ -358,13 +382,28 @@ export default function PaymentRecordsView() {
           refreshKey={refreshKey}
           headerAction={
             selectedIds.length > 0 && (
-              <button
-                onClick={handleBulkDeleteClick}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-              >
-                <Trash2 size={18} />
-                Delete ({selectedIds.length})
-              </button>
+              <div className="flex items-center gap-3">
+                {/* <button
+                  onClick={handleBulkDownload}
+                  disabled={isDownloading}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  {isDownloading
+                    ? "Downloading..."
+                    : `Download (${selectedIds.length})`}
+                </button> */}
+                <button
+                  onClick={handleBulkDeleteClick}
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {isDeleting
+                    ? "Deleting..."
+                    : `Delete (${selectedIds.length})`}
+                </button>
+              </div>
             )
           }
         />
@@ -382,13 +421,28 @@ export default function PaymentRecordsView() {
           refreshKey={refreshKey}
           headerAction={
             selectedIds.length > 0 && (
-              <button
-                onClick={handleBulkDeleteClick} // ✅ OPEN MODAL
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-              >
-                <Trash2 size={18} />
-                Delete ({selectedIds.length})
-              </button>
+              <div className="flex items-center gap-3">
+                {/* <button
+                  onClick={handleBulkDownload}
+                  disabled={isDownloading}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  {isDownloading
+                    ? "Downloading..."
+                    : `Download (${selectedIds.length})`}
+                </button> */}
+                <button
+                  onClick={handleBulkDeleteClick} // ✅ OPEN MODAL
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {isDeleting
+                    ? "Deleting..."
+                    : `Delete (${selectedIds.length})`}
+                </button>
+              </div>
             )
           }
         />

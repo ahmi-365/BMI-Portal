@@ -4,7 +4,7 @@ import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { creditNotesAPI } from "../../services/api";
 import Toast from "../../components/common/Toast";
-import { Trash2 } from "lucide-react";
+import { Trash2, Download } from "lucide-react";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 import { render } from "@fullcalendar/core/preact.js";
 
@@ -109,6 +109,7 @@ export default function CreditNotesView() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState({ message: null, type: "success" });
 
@@ -118,6 +119,30 @@ export default function CreditNotesView() {
       return;
     }
     setIsDeleteModalOpen(true);
+  };
+
+  const handleBulkDownload = async () => {
+    try {
+      setIsDownloading(true);
+      const blob = await creditNotesAPI.bulkDownload(selectedIds);
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `credit-notes-${new Date().getTime()}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      setToast({ message: "Download started successfully", type: "success" });
+    } catch (error) {
+      console.error("Bulk download failed:", error);
+      setToast({
+        message: error.message || "Failed to download items",
+        type: "error",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleBulkDelete = async () => {
@@ -150,6 +175,10 @@ export default function CreditNotesView() {
           onClose={() => setToast({ message: null, type: "success" })}
         />
       )}
+      <PageMeta
+        title="Credit Notes - BMI Invoice Management System"
+        description="Manage and track all credit notes. View credit note details and associated financial records."
+      />
       <ListPage
         resourceName="creditnotes"
         columns={COLUMNS}
@@ -161,14 +190,26 @@ export default function CreditNotesView() {
         refreshKey={refreshKey}
         headerAction={
           selectedIds.length > 0 && (
-            <button
-              onClick={handleBulkDeleteClick}
-              disabled={isDeleting}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
-            >
-              <Trash2 size={18} />
-              {isDeleting ? "Deleting..." : `Delete (${selectedIds.length})`}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleBulkDownload}
+                disabled={isDownloading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                {isDownloading
+                  ? "Downloading..."
+                  : `Download (${selectedIds.length})`}
+              </button>
+              <button
+                onClick={handleBulkDeleteClick}
+                disabled={isDeleting}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                {isDeleting ? "Deleting..." : `Delete (${selectedIds.length})`}
+              </button>
+            </div>
           )
         }
       />

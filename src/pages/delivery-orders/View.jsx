@@ -4,7 +4,7 @@ import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { deliveryOrdersAPI } from "../../services/api";
 import Toast from "../../components/common/Toast";
-import { Trash2 } from "lucide-react";
+import { Trash2, Download } from "lucide-react";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 
 const COLUMNS = [
@@ -90,7 +90,8 @@ const COLUMNS = [
 export default function DeliveryOrdersView() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [toast, setToast] = useState({ message: null, type: "success" });
-  const [loading, setLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleBulkDeleteClick = () => {
@@ -101,9 +102,33 @@ export default function DeliveryOrdersView() {
     setIsDeleteModalOpen(true);
   };
 
+  const handleBulkDownload = async () => {
+    try {
+      setIsDownloading(true);
+      const blob = await deliveryOrdersAPI.bulkDownload(selectedIds);
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `delivery-orders-${new Date().getTime()}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      setToast({ message: "Download started successfully", type: "success" });
+    } catch (error) {
+      console.error("Bulk download failed:", error);
+      setToast({
+        message: error.message || "Failed to download items",
+        type: "error",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const handleBulkDelete = async () => {
     try {
-      setLoading(true);
+      setIsDeleting(true);
       await deliveryOrdersAPI.bulkDelete(selectedIds);
       setToast({ message: "Items deleted successfully", type: "success" });
       setSelectedIds([]);
@@ -142,14 +167,26 @@ export default function DeliveryOrdersView() {
         onSelectionChange={setSelectedIds}
         headerAction={
           selectedIds.length > 0 ? (
-            <button
-              onClick={handleBulkDeleteClick}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-              {loading ? "Deleting..." : `Delete (${selectedIds.length})`}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleBulkDownload}
+                disabled={isDownloading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                {isDownloading
+                  ? "Downloading..."
+                  : `Download (${selectedIds.length})`}
+              </button>
+              <button
+                onClick={handleBulkDeleteClick}
+                disabled={isDeleting}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                {isDeleting ? "Deleting..." : `Delete (${selectedIds.length})`}
+              </button>
+            </div>
           ) : null
         }
       />
@@ -157,7 +194,7 @@ export default function DeliveryOrdersView() {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleBulkDelete}
-        isLoading={loading}
+        isLoading={isDeleting}
         count={selectedIds.length}
       />
     </div>

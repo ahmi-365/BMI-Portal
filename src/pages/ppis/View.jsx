@@ -5,7 +5,7 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import Toast from "../../components/common/Toast";
 import { ppisAPI } from "../../services/api";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
-import { Trash2 } from "lucide-react";
+import { Trash2, Download } from "lucide-react";
 
 const COLUMNS = [
   { header: "PPI No.", accessor: "ppi_no", filterKey: "ppi_no" },
@@ -65,6 +65,7 @@ const COLUMNS = [
 export default function PpisView() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState({ message: null, type: "success" });
 
@@ -74,6 +75,30 @@ export default function PpisView() {
       return;
     }
     setIsDeleteModalOpen(true);
+  };
+
+  const handleBulkDownload = async () => {
+    try {
+      setIsDownloading(true);
+      const blob = await ppisAPI.bulkDownload(selectedIds);
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `ppis-${new Date().getTime()}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      setToast({ message: "Download started successfully", type: "success" });
+    } catch (error) {
+      console.error("Bulk download failed:", error);
+      setToast({
+        message: error.message || "Failed to download items",
+        type: "error",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleBulkDelete = async () => {
@@ -119,14 +144,26 @@ export default function PpisView() {
         onSelectionChange={setSelectedIds}
         headerAction={
           selectedIds.length > 0 && (
-            <button
-              onClick={handleBulkDeleteClick}
-              disabled={isDeleting}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
-            >
-              <Trash2 size={18} />
-              {isDeleting ? "Deleting..." : `Delete (${selectedIds.length})`}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleBulkDownload}
+                disabled={isDownloading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                {isDownloading
+                  ? "Downloading..."
+                  : `Download (${selectedIds.length})`}
+              </button>
+              <button
+                onClick={handleBulkDeleteClick}
+                disabled={isDeleting}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                {isDeleting ? "Deleting..." : `Delete (${selectedIds.length})`}
+              </button>
+            </div>
           )
         }
       />

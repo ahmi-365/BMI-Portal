@@ -8,8 +8,8 @@ export default function BulkDownloadBar({
   if (selectedCount === 0) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-2xl animate-slide-up">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div className="fixed inset-x-0 bottom-0 bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-2xl animate-slide-up z-9999">
+      <div className="max-w-full mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Download className="w-5 h-5" />
           <span className="text-sm font-medium">

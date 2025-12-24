@@ -588,6 +588,8 @@ export const customersAPI = {
     apiCall(`/customers/${id}/approve`, {
       method: "POST",
     }),
+
+  bulkDownload: (ids) => downloadBlobPost("/customers/bulk-download", { ids }),
 };
 
 // Companies API (for dropdowns and lookups)
@@ -624,6 +626,8 @@ export const invoicesAPI = {
       body: JSON.stringify({ ids }),
     }),
 
+  bulkDownload: (ids) => downloadBlobPost("/invoices/bulk-download", { ids }),
+
   bulkParse: (formData) =>
     apiCallFormData("/invoices/bulk-parse", formData, "POST"),
 
@@ -657,6 +661,8 @@ export const debitNotesAPI = {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
+
+  bulkDownload: (ids) => downloadBlobPost("/debitnotes/bulk-download", { ids }),
 
   bulkParse: (formData) =>
     apiCallFormData("/debitnotes/bulk-parse", formData, "POST"),
@@ -693,6 +699,9 @@ export const creditNotesAPI = {
       body: JSON.stringify({ ids }),
     }),
 
+  bulkDownload: (ids) =>
+    downloadBlobPost("/creditnotes/bulk-download", { ids }),
+
   bulkParse: (formData) =>
     apiCallFormData("/creditnotes/bulk-parse", formData, "POST"),
 
@@ -720,6 +729,8 @@ export const ppisAPI = {
     }),
 
   download: (id) => apiCall(`/ppis/download/${id}`),
+
+  bulkDownload: (ids) => downloadBlobPost("/ppis/bulk-download", { ids }),
 
   bulkDelete: (ids) =>
     apiCall("/ppis/delete/bulk", {
@@ -754,6 +765,8 @@ export const statementsAPI = {
     }),
 
   download: (id) => apiCall(`/statements/download/${id}`),
+
+  bulkDownload: (ids) => downloadBlobPost("/statements/bulk-download", { ids }),
 
   bulkDelete: (ids) =>
     apiCall("/statements/delete/bulk", {
@@ -893,6 +906,40 @@ export const downloadBlob = async (endpoint) => {
   }
 };
 
+// Download blob with POST request (for bulk downloads)
+export const downloadBlobPost = async (endpoint, data) => {
+  const url = `${API_BASE_URL}${endpoint}`;
+  const token = auth?.getToken?.();
+
+  const config = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(data),
+  };
+
+  try {
+    const response = await fetch(url, config);
+    if (response.status === 401) {
+      try {
+        auth.clear();
+      } catch (e) {}
+      if (typeof window !== "undefined") window.location.href = "/signin";
+      throw new Error("Unauthorized");
+    }
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`API Error: ${response.status} ${text}`);
+    }
+    return await response.blob();
+  } catch (error) {
+    console.error("API Error (blob post):", error);
+    throw error;
+  }
+};
+
 // Delivery Orders APIs
 export const deliveryOrdersAPI = {
   list: (params) => listResource("deliveryorders", params),
@@ -918,6 +965,9 @@ export const deliveryOrdersAPI = {
       body: JSON.stringify({ ids }),
     }),
 
+  bulkDownload: (ids) =>
+    downloadBlobPost("/deliveryorders/bulk-download", { ids }),
+
   bulkParse: (formData) =>
     apiCallFormData("/deliveryorders/bulk-parse", formData, "POST"),
 
@@ -938,6 +988,9 @@ export const paymentsAPI = {
   delete: (id) => apiCall(`/payments/delete/${id}`, { method: "DELETE" }),
 
   download: (id) => apiCall(`/statements/download/${id}`),
+
+  bulkDownload: (ids) =>
+    downloadBlobPost("/payment-records/bulk-download", { ids }),
 
   uploadProof: (formData) =>
     apiCallFormData("/payments/upload-proof", formData, "POST"),
