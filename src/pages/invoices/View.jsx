@@ -11,12 +11,10 @@ const COLUMNS = [
   {
     header: "Customer No.",
     accessor: "customer_no",
-    render: (row) => row.user?.customer_no ?? row.user?.id ?? "-",
   },
   {
     header: "Company Name",
-    accessor: "companyName",
-    render: (row) => row.user?.company ?? "-",
+    accessor: "company",
   },
   { header: "Invoice No.", accessor: "invoiceId", filterKey: "invoice_no" },
   {
@@ -103,10 +101,9 @@ const COLUMNS = [
   },
   {
     header: "Uploaded By",
-    accessor: "uploadedBy",
+    accessor: "uploaded_by",
     filterKey: "uploaded_by",
 
-    render: (row) => row.admin?.name ?? "-",
   },
 ];
 
