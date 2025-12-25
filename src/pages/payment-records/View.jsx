@@ -180,7 +180,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
 
   {
     header: "Proof Of Payment",
-    accessor: "proofOfPayment",
+    accessor: "proof",
     render: (row) => (
       <PdfButton file={row.proof} id={row.id} endpoint="payments" />
     ),
@@ -235,6 +235,8 @@ const createNotAcknowledgedColumns = (onApprove) => [
   {
     header: "Approve",
     accessor: "actions",
+    disableFilter: true,
+
     render: (row) => (
       <button
         onClick={() => onApprove(row)}

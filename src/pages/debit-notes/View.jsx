@@ -104,6 +104,8 @@ export default function DebitNotesView() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDownloadOpen, setIsDownloadOpen] = useState(false);
+
   const [toast, setToast] = useState({ message: null, type: "success" });
 
   const handleBulkDeleteClick = () => {
@@ -158,6 +160,43 @@ export default function DebitNotesView() {
       setIsDeleting(false);
     }
   };
+const handleZipDownload = async () => {
+  try {
+    setIsDownloading(true);
+    const blob = await debitNotesAPI.bulkDownload(selectedIds);
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `debit-notes-${Date.now()}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch {
+    setToast({ message: "ZIP download failed", type: "error" });
+  } finally {
+    setIsDownloading(false);
+    setIsDownloadOpen(false);
+  }
+};
+
+const handleCSVDownload = async () => {
+  try {
+    setIsDownloading(true);
+    const blob = await debitNotesAPI.exportCSV(selectedIds);
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `debit-notes-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch {
+    setToast({ message: "CSV export failed", type: "error" });
+  } finally {
+    setIsDownloading(false);
+    setIsDownloadOpen(false);
+  }
+};
 
   return (
     <div>
@@ -182,29 +221,53 @@ export default function DebitNotesView() {
         onSelectionChange={setSelectedIds}
         refreshKey={refreshKey}
         headerAction={
-          selectedIds.length > 0 && (
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleBulkDownload}
-                disabled={isDownloading}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                {isDownloading
-                  ? "Downloading..."
-                  : `Download (${selectedIds.length})`}
-              </button>
-              <button
-                onClick={handleBulkDeleteClick}
-                disabled={isDeleting}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-                {isDeleting ? "Deleting..." : `Delete (${selectedIds.length})`}
-              </button>
-            </div>
-          )
-        }
+  selectedIds.length > 0 && (
+    <div className="flex items-center gap-3 relative">
+      
+      {/* Download Dropdown */}
+      <div className="relative">
+        <button
+          onClick={() => setIsDownloadOpen(!isDownloadOpen)}
+          disabled={isDownloading}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          <Download className="w-4 h-4" />
+          Download ({selectedIds.length})
+        </button>
+
+        {isDownloadOpen && (
+          <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
+            <button
+              onClick={handleZipDownload}
+              className="w-full px-4 py-2 text-left hover:bg-gray-100"
+            >
+              Download ZIP
+            </button>
+
+            <button
+              onClick={handleCSVDownload}
+              className="w-full px-4 py-2 text-left hover:bg-gray-100"
+            >
+              Export CSV
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Delete */}
+      <button
+        onClick={handleBulkDeleteClick}
+        disabled={isDeleting}
+        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+      >
+        <Trash2 className="w-4 h-4" />
+        Delete ({selectedIds.length})
+      </button>
+
+    </div>
+  )
+}
+
       />
       <BulkDeleteConfirmationModal
         isOpen={isDeleteModalOpen}

@@ -111,6 +111,7 @@ export default function InvoicesView() {
   const [toast, setToast] = useState({ message: null, type: "success" });
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDownloadOpen, setIsDownloadOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleBulkDeleteClick = () => {
@@ -179,6 +180,57 @@ export default function InvoicesView() {
       setIsDeleting(false);
     }
   };
+  const downloadFile = (blob, filename) => {
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+  };
+
+  const handleZipDownload = async () => {
+    try {
+      setIsDownloading(true);
+      const blob = await invoicesAPI.bulkDownload(selectedIds);
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoices-${Date.now()}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setToast({ message: "ZIP download failed", type: "error" });
+    } finally {
+      setIsDownloading(false);
+      setIsDownloadOpen(false);
+    }
+  };
+
+
+  const handleCSVDownload = async () => {
+    try {
+      setIsDownloading(true);
+      const blob = await invoicesAPI.exportCSV(selectedIds);
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoices-${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setToast({ message: "CSV export failed", type: "error" });
+    } finally {
+      setIsDownloading(false);
+      setIsDownloadOpen(false);
+    }
+  };
+
+
 
   return (
     <div>
@@ -204,29 +256,53 @@ export default function InvoicesView() {
         onSelectionChange={setSelectedIds}
         onDelete={handleSingleDelete}
         headerAction={
-          selectedIds.length > 0 ? (
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleBulkDownload}
-                disabled={isDownloading}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                {isDownloading
-                  ? "Downloading..."
-                  : `Download (${selectedIds.length})`}
-              </button>
-              <button
-                onClick={handleBulkDeleteClick}
-                disabled={isDeleting}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-                {isDeleting ? "Deleting..." : `Delete (${selectedIds.length})`}
-              </button>
-            </div>
-          ) : null
-        }
+  selectedIds.length > 0 ? (
+    <div className="flex items-center gap-3 relative">
+
+      {/* DOWNLOAD BUTTON */}
+      <div className="relative">
+        <button
+          onClick={() => setIsDownloadOpen(!isDownloadOpen)}
+          disabled={isDownloading}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          <Download className="w-4 h-4" />
+          Download ({selectedIds.length})
+        </button>
+
+        {isDownloadOpen && (
+          <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
+            <button
+              onClick={handleZipDownload}
+              className="w-full px-4 py-2 text-left hover:bg-gray-100"
+            >
+              Download ZIP
+            </button>
+
+            <button
+              onClick={handleCSVDownload}
+              className="w-full px-4 py-2 text-left hover:bg-gray-100"
+            >
+              Export CSV
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 🔥 BULK DELETE BUTTON (THIS WAS MISSING) */}
+      <button
+        onClick={handleBulkDeleteClick}
+        disabled={isDeleting}
+        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+      >
+        <Trash2 className="w-4 h-4" />
+        Delete ({selectedIds.length})
+      </button>
+
+    </div>
+  ) : null
+}
+
       />
       <BulkDeleteConfirmationModal
         isOpen={isDeleteModalOpen}

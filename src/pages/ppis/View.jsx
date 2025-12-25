@@ -67,6 +67,7 @@ export default function PpisView() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
   const [toast, setToast] = useState({ message: null, type: "success" });
 
   const handleBulkDeleteClick = () => {
@@ -77,29 +78,34 @@ export default function PpisView() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleBulkDownload = async () => {
+  const handleBulkDownload = async (type) => {
     try {
       setIsDownloading(true);
-      const blob = await ppisAPI.bulkDownload(selectedIds);
-      const blobUrl = URL.createObjectURL(blob);
+      let blob;
+      if (type === "zip") {
+        blob = await ppisAPI.bulkDownload(selectedIds);
+      } else if (type === "csv") {
+        blob = await ppisAPI.exportCSV(selectedIds);
+      }
+
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `ppis-${new Date().getTime()}.zip`;
+      link.href = url;
+      link.download = `ppis-${new Date().getTime()}.${type === "zip" ? "zip" : "csv"}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
-      setToast({ message: "Download started successfully", type: "success" });
+      URL.revokeObjectURL(url);
+
+      setToast({ message: `${type.toUpperCase()} download started`, type: "success" });
     } catch (error) {
-      console.error("Bulk download failed:", error);
-      setToast({
-        message: error.message || "Failed to download items",
-        type: "error",
-      });
+      console.error("Download failed:", error);
+      setToast({ message: "Download failed", type: "error" });
     } finally {
       setIsDownloading(false);
     }
   };
+
 
   const handleBulkDelete = async () => {
     try {
@@ -145,16 +151,58 @@ export default function PpisView() {
         headerAction={
           selectedIds.length > 0 && (
             <div className="flex items-center gap-3">
-              <button
-                onClick={handleBulkDownload}
-                disabled={isDownloading}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                {isDownloading
-                  ? "Downloading..."
-                  : `Download (${selectedIds.length})`}
-              </button>
+              <div className="relative inline-block text-left">
+  {/* Download Button */}
+  <button
+    onClick={() => setIsDownloadMenuOpen(!isDownloadMenuOpen)}
+    disabled={isDownloading}
+    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+  >
+    <Download className="w-4 h-4" />
+    {isDownloading ? "Downloading..." : `Download (${selectedIds.length})`}
+    {/* Arrow Icon */}
+    <svg
+      className={`w-4 h-4 ml-2 transition-transform ${isDownloadMenuOpen ? "rotate-180" : ""}`}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+    </svg>
+  </button>
+
+  {/* Dropdown Menu */}
+  {isDownloadMenuOpen && (
+    <ul className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-10 divide-y divide-gray-100">
+      <li>
+        <button
+          className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+          onClick={() => {
+            handleBulkDownload("zip");
+            setIsDownloadMenuOpen(false);
+          }}
+        >
+          Download ZIP
+        </button>
+      </li>
+      <li>
+        <button
+          className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+          onClick={() => {
+            handleBulkDownload("csv");
+            setIsDownloadMenuOpen(false);
+          }}
+        >
+          Export CSV
+        </button>
+      </li>
+    </ul>
+  )}
+</div>
+
+
+
               <button
                 onClick={handleBulkDeleteClick}
                 disabled={isDeleting}

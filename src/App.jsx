@@ -97,6 +97,7 @@ import ExportReport from "./pages/reports/ExportReport";
 import PpisIndex from "./pages/ppis/Index";
 import PpisShow from "./pages/ppis/Show";
 import PpisEdit from "./pages/ppis/Edit";
+import UserPPIs from "./pages/UserPages/UserPpis";
 
 export default function App() {
   return (
@@ -249,6 +250,7 @@ export default function App() {
               element={<UserPaymentShow />}
             />
             <Route path="/user/statements" element={<UserStatements />} />
+            <Route path="/user/ppi" element={<UserPPIs />} />
             <Route
               path="/user/statements/show/:id"
               element={<UserStatementShow />}

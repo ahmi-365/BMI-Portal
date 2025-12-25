@@ -85,6 +85,8 @@ export default function AccountStatementsView() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState({ message: null, type: "success" });
 
@@ -96,29 +98,42 @@ export default function AccountStatementsView() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleBulkDownload = async () => {
+  const handleBulkDownload = async (type) => {
+    if (selectedIds.length === 0) {
+      setToast({ message: "No statements selected", type: "error" });
+      return;
+    }
+
     try {
       setIsDownloading(true);
-      const blob = await statementsAPI.bulkDownload(selectedIds);
+      let blob;
+
+      if (type === "zip") {
+        blob = await statementsAPI.bulkDownload(selectedIds);
+      } else if (type === "csv") {
+        blob = await statementsAPI.exportCSV(selectedIds);
+      }
+
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = blobUrl;
-      link.download = `account-statements-${new Date().getTime()}.zip`;
+      link.download = `account-statements-${new Date().getTime()}.${type === "zip" ? "zip" : "csv"}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
+
       setToast({ message: "Download started successfully", type: "success" });
     } catch (error) {
       console.error("Bulk download failed:", error);
-      setToast({
-        message: error.message || "Failed to download items",
-        type: "error",
-      });
+      setToast({ message: error.message || "Failed to download statements", type: "error" });
     } finally {
       setIsDownloading(false);
     }
   };
+
+
+
 
   const handleBulkDelete = async () => {
     try {
@@ -165,17 +180,57 @@ export default function AccountStatementsView() {
         refreshKey={refreshKey}
         headerAction={
           selectedIds.length > 0 && (
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleBulkDownload}
-                disabled={isDownloading}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                {isDownloading
-                  ? "Downloading..."
-                  : `Download (${selectedIds.length})`}
-              </button>
+            <div className="flex items-center gap-3 relative">
+              {/* Bulk Download Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsDownloadMenuOpen(!isDownloadMenuOpen)}
+                  disabled={isDownloading}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  {isDownloading ? "Downloading..." : `Download (${selectedIds.length})`}
+                  <svg
+                    className={`w-4 h-4 ml-1 transition-transform duration-300 ${isDownloadMenuOpen ? "rotate-180" : ""
+                      }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Dropdown Menu */}
+                {isDownloadMenuOpen && (
+                  <ul className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-20 divide-y divide-gray-100">
+                    <li>
+                      <button
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors"
+                        onClick={() => {
+                          handleBulkDownload("zip");
+                          setIsDownloadMenuOpen(false);
+                        }}
+                      >
+                        Download ZIP
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors"
+                        onClick={() => {
+                          handleBulkDownload("csv");
+                          setIsDownloadMenuOpen(false);
+                        }}
+                      >
+                        Export CSV
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </div>
+
+              {/* Bulk Delete Button */}
               <button
                 onClick={handleBulkDeleteClick}
                 disabled={isDeleting}
@@ -185,6 +240,9 @@ export default function AccountStatementsView() {
                 {isDeleting ? "Deleting..." : `Delete (${selectedIds.length})`}
               </button>
             </div>
+
+
+
           )
         }
       />

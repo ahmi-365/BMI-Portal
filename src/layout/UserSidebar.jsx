@@ -13,6 +13,7 @@ import {
   Eye,
   Plus,
   Upload,
+  LineChart,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -44,6 +45,11 @@ const othersItems = [
     name: "Credit Notes",
     icon: <Table className="w-5 h-5" />,
     path: "/user/credit-notes",
+  },
+  {
+    name: "CN PPI",
+    icon: <LineChart className="w-5 h-5" />,
+    path: "/user/ppi",
   },
   {
     name: "Account Statements",
