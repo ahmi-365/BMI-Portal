@@ -83,6 +83,7 @@ const PENDING_COLUMNS = [
     header: "Status",
     accessor: "form_status",
     filterKey: "form_status",
+    disableFilter: true,
     render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
   },
   // {
@@ -103,6 +104,7 @@ const PENDING_COLUMNS = [
   {
     header: "Approve",
     accessor: "id",
+    disableFilter: true,
     render: (row) => (
       <div className="flex items-center gap-2">
         {/* Approve Button */}

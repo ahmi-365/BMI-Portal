@@ -29,40 +29,74 @@ export default function PpisAdd() {
   }, []);
 
   const FIELDS = useMemo(
-    () => [
-      {
-        name: "user_id",
-        label: "Company Name",
-        type: "select",
-        searchable: true,
-        required: true,
-        options: companyOptions,
-        placeholder: "Select a company...",
-      },
-      { name: "ppi_no", label: "PPI No.", type: "text", required: true },
-      { name: "ppi_date", label: "PPI Date", type: "date", required: true },
-      {
-        name: "payment_term",
-        label: "Payment Term",
-        type: "text",
-        required: true,
-      },
-      { name: "amount", label: "Amount", type: "number", required: true },
-      {
-        name: "ppi_percentage",
-        label: "PPI Percentage (%)",
-        type: "number",
-        min: 0,
-        max: 100,
-      },
-      { name: "customer_no", label: "Customer No.", type: "text" },
-      { name: "po_no", label: "PO No.", type: "text" },
-      { name: "ref_no", label: "Reference No.", type: "text" },
-      { name: "remarks", label: "Remarks", type: "textarea" },
-      { name: "file", label: "PPI Document", type: "file" },
-    ],
-    [companyOptions]
-  );
+  () => [
+    {
+      name: "user_id", 
+      label: "Company Name",
+      type: "select",
+      searchable: true,
+      required: true,
+      options: companyOptions,
+      placeholder: "Select a company...",
+    },
+
+    {
+      name: "customer_no", 
+      label: "Customer No.",
+      type: "text",
+      disabled: true, 
+    },
+
+    {
+      name: "ppi_date", 
+      label: "PPI Date",
+      type: "date",
+      required: true,
+    },
+
+    {
+      name: "payment_term", 
+      label: "Payment Term",
+      type: "date",
+      required: true,
+    },
+
+    {
+      name: "amount",
+      label: "Amount",
+      type: "number",
+      required: true,
+    },
+    {
+      name: "cn_no",
+      label: "CN No.",
+      type: "number",
+      required: true,
+    },
+
+    {
+      name: "ppi_percentage", 
+      label: "PPI Percentage (%)",
+      type: "number",
+      min: 0,
+      max: 100,
+    },
+
+    {
+      name: "remarks",
+      label: "Remarks",
+      type: "textarea",
+    },
+
+    {
+      name: "file",
+      label: "PPI Document",
+      type: "file",
+    },
+  ],
+  [companyOptions]
+);
+
 
   const fieldNames = useMemo(
     () => new Set(FIELDS.map((f) => f.name)),
