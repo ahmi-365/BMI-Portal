@@ -284,7 +284,8 @@ export const ListPage = ({
   const endIndex = Math.min(currentPage * perPageState, total);
 
   return (
-    <div className="p-6 animate-fade-in-up">
+    <div className="p-6 mt-12 animate-fade-in-up">
+
       {deleteError && (
         <Toast
           message={deleteError}
