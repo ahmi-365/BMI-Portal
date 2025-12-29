@@ -159,12 +159,12 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const dataMap = {};
       const opts = Array.isArray(list)
         ? list.map((inv) => {
-            dataMap[inv.id] = inv;
-            return {
-              value: inv.id,
-              label: inv.do_no || `DO #${inv.id}`,
-            };
-          })
+          dataMap[inv.id] = inv;
+          return {
+            value: inv.id,
+            label: inv.do_no || `DO #${inv.id}`,
+          };
+        })
         : [];
       setInvoiceData(dataMap);
       setInvoiceOptions(opts);
@@ -256,8 +256,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         typeof parseData.files === "number"
           ? parseData.files
           : Array.isArray(parseData.files)
-          ? parseData.files.length
-          : uploadedFiles.length;
+            ? parseData.files.length
+            : uploadedFiles.length;
       console.log("File count:", fileCount, "ParseData:", parseData);
 
       const initialForms = Array(fileCount)
@@ -598,10 +598,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         const dupList = Array.isArray(duplicateInvoices)
           ? duplicateInvoices.map((d) => String(d))
           : Array.isArray(duplicateCN)
-          ? duplicateCN.map((d) => String(d))
-          : Array.isArray(duplicates)
-          ? duplicates.map((d) => String(d))
-          : [];
+            ? duplicateCN.map((d) => String(d))
+            : Array.isArray(duplicates)
+              ? duplicates.map((d) => String(d))
+              : [];
         const messageWithDup = dupList.length
           ? `${result?.message || "Upload failed."} (${dupList.join(", ")})`
           : result?.message || "Upload failed.";
@@ -664,10 +664,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         const dupList = Array.isArray(errorData?.duplicate_invoices)
           ? errorData.duplicate_invoices.map((d) => String(d))
           : Array.isArray(errorData?.duplicate_cn)
-          ? errorData.duplicate_cn.map((d) => String(d))
-          : Array.isArray(errorData?.duplicates)
-          ? errorData.duplicates.map((d) => String(d))
-          : [];
+            ? errorData.duplicate_cn.map((d) => String(d))
+            : Array.isArray(errorData?.duplicates)
+              ? errorData.duplicates.map((d) => String(d))
+              : [];
 
         const messageWithDup = dupList.length
           ? `${errorData?.message || "Upload failed."} (${dupList.join(", ")})`
@@ -712,21 +712,19 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             {/* Step 1 */}
             <div className="flex items-center flex-1">
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-300 ${
-                  step === 1
+                className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-300 ${step === 1
                     ? "bg-brand-500 text-white shadow-lg scale-110"
                     : "bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
-                }`}
+                  }`}
               >
                 {step > 1 ? "✓" : "1"}
               </div>
               <div className="ml-3 hidden sm:block">
                 <p
-                  className={`text-sm font-medium ${
-                    step === 1
+                  className={`text-sm font-medium ${step === 1
                       ? "text-brand-600 dark:text-brand-400"
                       : "text-gray-500 dark:text-gray-400"
-                  }`}
+                    }`}
                 >
                   Upload Files
                 </p>
@@ -735,29 +733,26 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
             {/* Connector */}
             <div
-              className={`h-1 flex-1 rounded transition-all duration-500 ${
-                step === 2 ? "bg-brand-500" : "bg-gray-200 dark:bg-gray-700"
-              }`}
+              className={`h-1 flex-1 rounded transition-all duration-500 ${step === 2 ? "bg-brand-500" : "bg-gray-200 dark:bg-gray-700"
+                }`}
             />
 
             {/* Step 2 */}
             <div className="flex items-center flex-1">
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-300 ${
-                  step === 2
+                className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-300 ${step === 2
                     ? "bg-brand-500 text-white shadow-lg scale-110"
                     : "bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
-                }`}
+                  }`}
               >
                 2
               </div>
               <div className="ml-3 hidden sm:block">
                 <p
-                  className={`text-sm font-medium ${
-                    step === 2
+                  className={`text-sm font-medium ${step === 2
                       ? "text-brand-600 dark:text-brand-400"
                       : "text-gray-500 dark:text-gray-400"
-                  }`}
+                    }`}
                 >
                   Review & Submit
                 </p>
@@ -933,8 +928,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                       resourceName === "creditnotes"
                         ? form.cn_no
                         : resourceName === "debitnotes"
-                        ? form.dn_no
-                        : null;
+                          ? form.dn_no
+                          : null;
 
                     // Check for duplicates by record number or document filename
                     const docName =
@@ -953,11 +948,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                     return (
                       <div
                         key={idx}
-                        className={`group rounded-xl border-2 p-6 hover:shadow-lg transition-all duration-300 animate-fadeIn ${
-                          isDuplicate
+                        className={`group rounded-xl border-2 p-6 hover:shadow-lg transition-all duration-300 animate-fadeIn ${isDuplicate
                             ? "border-red-400 bg-red-50/60 dark:border-red-700 dark:bg-red-900/20"
                             : "border-gray-200 hover:border-brand-300 dark:border-gray-700 dark:hover:border-brand-600"
-                        }`}
+                          }`}
                         style={{ animationDelay: `${idx * 50}ms` }}
                       >
                         <div className="flex items-center justify-between mb-5">

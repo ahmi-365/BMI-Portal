@@ -79,11 +79,10 @@ export const BatchUpload = ({
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-          dragActive
+        className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${dragActive
             ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10"
             : "border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-800"
-        }`}
+          }`}
       >
         <Upload className="mx-auto h-10 w-10 text-gray-400 mb-2" />
         <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">

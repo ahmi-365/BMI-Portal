@@ -256,52 +256,52 @@ export default function InvoicesView() {
         onSelectionChange={setSelectedIds}
         onDelete={handleSingleDelete}
         headerAction={
-  selectedIds.length > 0 ? (
-    <div className="flex items-center gap-3 relative">
+          selectedIds.length > 0 ? (
+            <div className="flex items-center gap-3 relative">
 
-      {/* DOWNLOAD BUTTON */}
-      <div className="relative">
-        <button
-          onClick={() => setIsDownloadOpen(!isDownloadOpen)}
-          disabled={isDownloading}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Download className="w-4 h-4" />
-          Download ({selectedIds.length})
-        </button>
+              {/* DOWNLOAD BUTTON */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsDownloadOpen(!isDownloadOpen)}
+                  disabled={isDownloading}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  <Download className="w-4 h-4" />
+                  Download ({selectedIds.length})
+                </button>
 
-        {isDownloadOpen && (
-          <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
-            <button
-              onClick={handleZipDownload}
-              className="w-full px-4 py-2 text-left hover:bg-gray-100"
-            >
-              Download ZIP
-            </button>
+                {isDownloadOpen && (
+                  <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
+                    <button
+                      onClick={handleZipDownload}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                    >
+                      Download ZIP
+                    </button>
 
-            <button
-              onClick={handleCSVDownload}
-              className="w-full px-4 py-2 text-left hover:bg-gray-100"
-            >
-              Export CSV
-            </button>
-          </div>
-        )}
-      </div>
+                    <button
+                      onClick={handleCSVDownload}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                    >
+                      Export CSV
+                    </button>
+                  </div>
+                )}
+              </div>
 
-      {/* 🔥 BULK DELETE BUTTON (THIS WAS MISSING) */}
-      <button
-        onClick={handleBulkDeleteClick}
-        disabled={isDeleting}
-        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-      >
-        <Trash2 className="w-4 h-4" />
-        Delete ({selectedIds.length})
-      </button>
+              {/* 🔥 BULK DELETE BUTTON (THIS WAS MISSING) */}
+              <button
+                onClick={handleBulkDeleteClick}
+                disabled={isDeleting}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete ({selectedIds.length})
+              </button>
 
-    </div>
-  ) : null
-}
+            </div>
+          ) : null
+        }
 
       />
       <BulkDeleteConfirmationModal

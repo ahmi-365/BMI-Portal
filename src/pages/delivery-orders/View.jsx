@@ -128,6 +128,7 @@ export default function DeliveryOrdersView() {
     }
   };
 
+
   const handleBulkDelete = async () => {
     try {
       setIsDeleting(true);
@@ -191,7 +192,7 @@ export default function DeliveryOrdersView() {
         title="Delivery Orders"
         subtitle="View and manage all delivery orders"
         selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
+        onSelectionChange={setSelectedIds}   
         headerAction={
           selectedIds.length > 0 ? (
             <div className="flex items-center gap-3 relative">
@@ -240,6 +241,7 @@ export default function DeliveryOrdersView() {
           ) : null
         }
 
+
       />
       <BulkDeleteConfirmationModal
         isOpen={isDeleteModalOpen}
@@ -251,3 +253,4 @@ export default function DeliveryOrdersView() {
     </div>
   );
 }
+

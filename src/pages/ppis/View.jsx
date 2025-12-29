@@ -152,57 +152,54 @@ export default function PpisView() {
           selectedIds.length > 0 && (
             <div className="flex items-center gap-3">
               <div className="relative inline-block text-left">
-  {/* Download Button */}
-  <button
-    onClick={() => setIsDownloadMenuOpen(!isDownloadMenuOpen)}
-    disabled={isDownloading}
-    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
-  >
-    <Download className="w-4 h-4" />
-    {isDownloading ? "Downloading..." : `Download (${selectedIds.length})`}
-    {/* Arrow Icon */}
-    <svg
-      className={`w-4 h-4 ml-2 transition-transform ${isDownloadMenuOpen ? "rotate-180" : ""}`}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-    </svg>
-  </button>
+                {/* Download Button */}
+                <button
+                  onClick={() => setIsDownloadMenuOpen(!isDownloadMenuOpen)}
+                  disabled={isDownloading}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  {isDownloading ? "Downloading..." : `Download (${selectedIds.length})`}
+                  {/* Arrow Icon */}
+                  <svg
+                    className={`w-4 h-4 ml-2 transition-transform ${isDownloadMenuOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </button>
 
-  {/* Dropdown Menu */}
-  {isDownloadMenuOpen && (
-    <ul className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-10 divide-y divide-gray-100">
-      <li>
-        <button
-          className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
-          onClick={() => {
-            handleBulkDownload("zip");
-            setIsDownloadMenuOpen(false);
-          }}
-        >
-          Download ZIP
-        </button>
-      </li>
-      <li>
-        <button
-          className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
-          onClick={() => {
-            handleBulkDownload("csv");
-            setIsDownloadMenuOpen(false);
-          }}
-        >
-          Export CSV
-        </button>
-      </li>
-    </ul>
-  )}
-</div>
-
-
-
+                {/* Dropdown Menu */}
+                {isDownloadMenuOpen && (
+                  <ul className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-10 divide-y divide-gray-100">
+                    <li>
+                      <button
+                        className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+                        onClick={() => {
+                          handleBulkDownload("zip");
+                          setIsDownloadMenuOpen(false);
+                        }}
+                      >
+                        Download ZIP
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+                        onClick={() => {
+                          handleBulkDownload("csv");
+                          setIsDownloadMenuOpen(false);
+                        }}
+                      >
+                        Export CSV
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </div>
               <button
                 onClick={handleBulkDeleteClick}
                 disabled={isDeleting}

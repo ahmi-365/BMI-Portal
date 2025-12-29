@@ -168,48 +168,48 @@ export default function CreditNotesView() {
     }
   };
   const handleZipDownload = async () => {
-  try {
-    setIsDownloading(true);
+    try {
+      setIsDownloading(true);
 
-    const blob = await creditNotesAPI.bulkDownload(selectedIds);
-    const url = URL.createObjectURL(blob);
+      const blob = await creditNotesAPI.bulkDownload(selectedIds);
+      const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `credit-notes-${Date.now()}.zip`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  } catch (e) {
-    setToast({ message: "ZIP download failed", type: "error" });
-  } finally {
-    setIsDownloading(false);
-    setIsDownloadOpen(false);
-  }
-};
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `credit-notes-${Date.now()}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setToast({ message: "ZIP download failed", type: "error" });
+    } finally {
+      setIsDownloading(false);
+      setIsDownloadOpen(false);
+    }
+  };
 
-const handleCSVDownload = async () => {
-  try {
-    setIsDownloading(true);
+  const handleCSVDownload = async () => {
+    try {
+      setIsDownloading(true);
 
-    const blob = await creditNotesAPI.exportCSV(selectedIds);
-    const url = URL.createObjectURL(blob);
+      const blob = await creditNotesAPI.exportCSV(selectedIds);
+      const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `credit-notes-${Date.now()}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  } catch (e) {
-    setToast({ message: "CSV export failed", type: "error" });
-  } finally {
-    setIsDownloading(false);
-    setIsDownloadOpen(false);
-  }
-};
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `credit-notes-${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setToast({ message: "CSV export failed", type: "error" });
+    } finally {
+      setIsDownloading(false);
+      setIsDownloadOpen(false);
+    }
+  };
 
 
   return (
@@ -235,50 +235,50 @@ const handleCSVDownload = async () => {
         onSelectionChange={setSelectedIds}
         refreshKey={refreshKey}
         headerAction={
-  selectedIds.length > 0 && (
-    <div className="relative flex items-center gap-3">
-      {/* DOWNLOAD DROPDOWN */}
-      <div className="relative">
-        <button
-          onClick={() => setIsDownloadOpen(!isDownloadOpen)}
-          disabled={isDownloading}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          <Download className="w-4 h-4" />
-          Download ({selectedIds.length})
-        </button>
+          selectedIds.length > 0 && (
+            <div className="relative flex items-center gap-3">
+              {/* DOWNLOAD DROPDOWN */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsDownloadOpen(!isDownloadOpen)}
+                  disabled={isDownloading}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  Download ({selectedIds.length})
+                </button>
 
-        {isDownloadOpen && (
-          <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
-            <button
-              onClick={handleZipDownload}
-              className="w-full px-4 py-2 text-left hover:bg-gray-100"
-            >
-              Download ZIP
-            </button>
+                {isDownloadOpen && (
+                  <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
+                    <button
+                      onClick={handleZipDownload}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                    >
+                      Download ZIP
+                    </button>
 
-            <button
-              onClick={handleCSVDownload}
-              className="w-full px-4 py-2 text-left hover:bg-gray-100"
-            >
-              Export CSV
-            </button>
-          </div>
-        )}
-      </div>
+                    <button
+                      onClick={handleCSVDownload}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                    >
+                      Export CSV
+                    </button>
+                  </div>
+                )}
+              </div>
 
-      {/* DELETE BUTTON */}
-      <button
-        onClick={handleBulkDeleteClick}
-        disabled={isDeleting}
-        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-      >
-        <Trash2 className="w-4 h-4" />
-        Delete ({selectedIds.length})
-      </button>
-    </div>
-  )
-}
+              {/* DELETE BUTTON */}
+              <button
+                onClick={handleBulkDeleteClick}
+                disabled={isDeleting}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete ({selectedIds.length})
+              </button>
+            </div>
+          )
+        }
 
       />
       <BulkDeleteConfirmationModal

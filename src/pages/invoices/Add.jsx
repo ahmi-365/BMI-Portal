@@ -10,9 +10,7 @@ export default function InvoicesAdd() {
 
   const [companyOptions, setCompanyOptions] = useState([]);
 
-  // ---------------------------
-  // Load company dropdown data
-  // ---------------------------
+ 
   useEffect(() => {
     const loadCompanies = async () => {
       try {
@@ -21,9 +19,9 @@ export default function InvoicesAdd() {
 
         const opts = Array.isArray(list)
           ? list.map((c) => ({
-              value: c.id,
-              label: c.company || c.name,
-            }))
+            value: c.id,
+            label: c.company || c.name,
+          }))
           : [];
 
         setCompanyOptions(opts);

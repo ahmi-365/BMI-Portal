@@ -48,17 +48,6 @@ const FIELDS = [
     render: (value) => (value ? String(value).split("T")[0] : "-"),
   },
 
-  // {
-  //   name: "created_at",
-  //   label: "Uploaded At",
-  //   render: (value) => (value ? String(value).split("T")[0] : "-"),
-  // },
-
-  // {
-  //   name: "uploadedBy",
-  //   label: "Uploaded By",
-  //   render: (_v, row) => row.admin?.name ?? "-",
-  // },
 ];
 
 
