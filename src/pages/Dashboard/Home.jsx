@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
-import { FileText, CreditCard, Package, DollarSign, ClipboardList, Users, UserCheck, Clock, } from "lucide-react";
-import PageBreadcrumb from "../../components/common/PageBreadcrumb";
+import {
+  FileText,
+  CreditCard,
+  Package,
+  DollarSign,
+  ClipboardList,
+  Users,
+  UserCheck,
+  Clock,
+} from "lucide-react";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import { Link } from "react-router-dom";
-
 
 export default function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState(null);
@@ -114,7 +122,6 @@ export default function AdminDashboard() {
             <h2 className="mb-4 text-xl font-semibold">Documents Overview</h2>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-
               <Link to="/invoices" className="group">
                 <DashboardCard
                   title="Invoices"
@@ -150,10 +157,8 @@ export default function AdminDashboard() {
                   color="bg-green-500"
                 />
               </Link>
-
             </div>
           </div>
-
 
           {/* Financial Info */}
           <div className="mb-6">
@@ -162,7 +167,6 @@ export default function AdminDashboard() {
             </h2>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-
               <Link to="/payments" className="group">
                 <DashboardCard
                   title="Payments"
@@ -189,17 +193,13 @@ export default function AdminDashboard() {
                   color="bg-teal-500"
                 />
               </Link>
-
             </div>
           </div>
 
           <div className="mb-6">
-            <h2 className="mb-4 text-xl font-semibold">
-              Customer OPR Status
-            </h2>
+            <h2 className="mb-4 text-xl font-semibold">Customer OPR Status</h2>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-
               {/* TOTAL CUSTOMERS */}
               <Link
                 to="/customers"
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
                 <DashboardCard
                   title="Approved Customers"
                   value={dashboardData?.approved_customers || 0}
-                  icon={UserCheck}  
+                  icon={UserCheck}
                   color="bg-green-600"
                   subtitle="OPR approved"
                 />
@@ -241,10 +241,8 @@ export default function AdminDashboard() {
                   subtitle="Waiting for approval"
                 />
               </Link>
-
             </div>
           </div>
-
 
           <div className="grid grid-cols-1 lg:grid-cols gap-6">
             <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 p-6">
@@ -253,7 +251,9 @@ export default function AdminDashboard() {
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Total Documents</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Total Documents
+                  </span>
                   <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
                     {(dashboardData?.invoices || 0) +
                       (dashboardData?.credit_notes || 0) +
@@ -262,21 +262,23 @@ export default function AdminDashboard() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Total Payments</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Total Payments
+                  </span>
                   <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
                     {dashboardData?.payments || 0}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Total Statements</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Total Statements
+                  </span>
                   <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
                     {dashboardData?.statements || 0}
                   </span>
                 </div>
               </div>
             </div>
-
-
           </div>
 
           {/* Refresh */}
