@@ -108,18 +108,16 @@ export default function AdminDashboard() {
           />
 
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Dashboard
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              System overview and statistics
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Dashboard
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            System overview and statistics
+          </p>
 
           {/* Documents */}
           <div className="mb-6">
-            <h2 className="mb-4 text-xl font-semibold">Documents Overview</h2>
+            <h2 className="mb-4 text-xl font-semibold dark:text-white/90">Documents Overview</h2>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
               <Link to="/invoices" className="group">
@@ -162,7 +160,7 @@ export default function AdminDashboard() {
 
           {/* Financial Info */}
           <div className="mb-6">
-            <h2 className="mb-4 text-xl font-semibold">
+            <h2 className="mb-4 text-xl font-semibold dark:text-white">
               Financial Information
             </h2>
 
@@ -197,7 +195,17 @@ export default function AdminDashboard() {
           </div>
 
           <div className="mb-6">
+<<<<<<< Updated upstream
             <h2 className="mb-4 text-xl font-semibold">Customer OPR Status</h2>
+=======
+<<<<<<< HEAD
+            <h2 className="mb-4 text-xl font-semibold dark:text-white/90">
+              Customers
+            </h2>
+=======
+            <h2 className="mb-4 text-xl font-semibold">Customer OPR Status</h2>
+>>>>>>> 470726aed21cde701f904a5551be59ef6fcd202e
+>>>>>>> Stashed changes
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {/* TOTAL CUSTOMERS */}

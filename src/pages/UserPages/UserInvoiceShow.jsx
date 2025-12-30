@@ -88,7 +88,7 @@ export default function UserInvoiceShow() {
       label: "Updated At",
       value: data.updated_at ? String(data.updated_at).split("T")[0] : "-",
     },
-    { label: "Admin ID", value: data.admin_id || "-" },
+    // { label: "Admin ID", value: data.admin_id || "-" },
   ];
 
   return (
