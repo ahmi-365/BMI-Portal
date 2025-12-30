@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { FileText, CreditCard, Package, DollarSign, ClipboardList } from "lucide-react";
-import PageBreadcrumb from "../../components/common/PageBreadcrumb";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import { userAuthAPI } from "../../services/api";
 
