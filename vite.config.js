@@ -13,13 +13,4 @@ export default defineConfig({
       },
     }),
   ],
-  server: {
-    proxy: {
-      "/api": {
-        target: "https://bmi.majesticsofts.com",
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
 });
