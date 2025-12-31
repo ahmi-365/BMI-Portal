@@ -8,10 +8,85 @@ import {
   Users,
   UserCheck,
   Clock,
+  RefreshCw,
+  TrendingUp,
+  Activity,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import CountUp from "react-countup";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import { Link } from "react-router-dom";
+
+// Utility for cleaner tailwind classes
+function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
+
+// --- Sub Components ---
+
+const SkeletonCard = () => (
+  <div className="rounded-2xl border border-gray-100 bg-white/50 p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
+    <div className="flex items-start justify-between">
+      <div className="space-y-3 w-full">
+        <div className="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+      </div>
+      <div className="h-12 w-12 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+    </div>
+  </div>
+);
+
+const StatCard = ({ title, value, icon: Icon, colorClass, subtitle, to }) => {
+  const CardContent = (
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-2xl border border-white/20 bg-white p-6 shadow-sm transition-all duration-300",
+        "hover:-translate-y-1 hover:shadow-xl",
+        "dark:border-gray-800 dark:bg-gray-900/80 dark:backdrop-blur-xl",
+        "group cursor-pointer"
+      )}
+    >
+      <div
+        className={cn(
+          "absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-2xl transition-all group-hover:opacity-20",
+          colorClass.replace("bg-", "bg-")
+        )}
+      />
+
+      <div className="relative z-10 flex items-start justify-between">
+        <div>
+          <p className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+            {title}
+          </p>
+          <h3 className="mb-1 text-3xl font-bold text-gray-800 dark:text-white">
+            <CountUp end={value} duration={2} separator="," />
+          </h3>
+          {subtitle && (
+            <div className="mt-2 flex items-center gap-1">
+              <TrendingUp className="h-3 w-3 text-green-500" />
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                {subtitle}
+              </p>
+            </div>
+          )}
+        </div>
+        <div
+          className={cn(
+            "rounded-xl p-3 shadow-sm transition-transform group-hover:scale-110",
+            colorClass
+          )}
+        >
+          <Icon className="h-6 w-6 text-white" />
+        </div>
+      </div>
+    </div>
+  );
+
+  return to ? <Link to={to}>{CardContent}</Link> : CardContent;
+};
 
 export default function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState(null);
@@ -53,242 +128,279 @@ export default function AdminDashboard() {
     }
   };
 
-  const DashboardCard = ({ title, value, icon: Icon, color, subtitle }) => (
-    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
-            {title}
-          </p>
-          <h3 className="mb-1 text-3xl font-semibold text-gray-800 dark:text-white">
-            {value}
-          </h3>
-          {subtitle && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {subtitle}
-            </p>
-          )}
-        </div>
-        <div className={`rounded-full p-3 ${color}`}>
-          <Icon className="h-6 w-6 text-white" />
-        </div>
-      </div>
-    </div>
-  );
-
-  /* -------------------- LOADING -------------------- */
-  if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
-      </div>
-    );
-  }
-
-  /* -------------------- ERROR -------------------- */
+  /* -------------------- ERROR STATE -------------------- */
   if (error) {
     return (
-      <div className="flex h-64 items-center justify-center text-lg text-red-600">
-        Error loading dashboard: {error}
+      <div className="flex h-[80vh] flex-col items-center justify-center gap-4 text-center">
+        <div className="rounded-full bg-red-100 p-4 dark:bg-red-900/20">
+          <Activity className="h-8 w-8 text-red-600" />
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          Failed to load data
+        </h2>
+        <p className="text-gray-500">{error}</p>
+        <button
+          onClick={fetchDashboardData}
+          className="rounded-lg bg-gray-900 px-6 py-2 text-white hover:bg-gray-800"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
+
+  // Calculated Totals
+  const totalDocuments =
+    (dashboardData?.invoices || 0) +
+    (dashboardData?.credit_notes || 0) +
+    (dashboardData?.debit_notes || 0) +
+    (dashboardData?.delivery_orders || 0);
 
   return (
     <>
       <PageMeta title="Admin Dashboard" />
 
-      <div className="min-h-screen bg-gray-50 p-6 dark:bg-gray-950">
-        <div className="mx-auto max-w-7xl">
-          <PageBreadcrumb
-            items={[
-              { label: "Admin", href: "/admin" },
-              { label: "Dashboard", href: "/admin/dashboard" },
-            ]}
-          />
-
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Dashboard
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              System overview and statistics
-            </p>
-          </div>
-
-          {/* Documents */}
-          <div className="mb-6">
-            <h2 className="mb-4 text-xl font-semibold">Documents Overview</h2>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <Link to="/invoices" className="group">
-                <DashboardCard
-                  title="Invoices"
-                  value={dashboardData?.invoices || 0}
-                  icon={FileText}
-                  color="bg-blue-500"
-                />
-              </Link>
-
-              <Link to="/creditnotes" className="group">
-                <DashboardCard
-                  title="Credit Notes"
-                  value={dashboardData?.credit_notes || 0}
-                  icon={CreditCard}
-                  color="bg-purple-500"
-                />
-              </Link>
-
-              <Link to="/debitnotes" className="group">
-                <DashboardCard
-                  title="Debit Notes"
-                  value={dashboardData?.debit_notes || 0}
-                  icon={FileText}
-                  color="bg-orange-500"
-                />
-              </Link>
-
-              <Link to="/deliveryorders" className="group">
-                <DashboardCard
-                  title="Delivery Orders"
-                  value={dashboardData?.delivery_orders || 0}
-                  icon={Package}
-                  color="bg-green-500"
-                />
-              </Link>
-            </div>
-          </div>
-
-          {/* Financial Info */}
-          <div className="mb-6">
-            <h2 className="mb-4 text-xl font-semibold">
-              Financial Information
-            </h2>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Link to="/payments" className="group">
-                <DashboardCard
-                  title="Payments"
-                  value={dashboardData?.payments || 0}
-                  icon={DollarSign}
-                  color="bg-indigo-500"
-                />
-              </Link>
-
-              <Link to="/ppis" className="group">
-                <DashboardCard
-                  title="PPI Credit Notes"
-                  value={dashboardData?.ppi_cn || 0}
-                  icon={CreditCard}
-                  color="bg-pink-500"
-                />
-              </Link>
-
-              <Link to="/statements" className="group">
-                <DashboardCard
-                  title="Statements"
-                  value={dashboardData?.statements || 0}
-                  icon={ClipboardList}
-                  color="bg-teal-500"
-                />
-              </Link>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h2 className="mb-4 text-xl font-semibold">Customer OPR Status</h2>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {/* TOTAL CUSTOMERS */}
-              <Link
-                to="/customers"
-                className="group transition hover:scale-[1.02]"
-              >
-                <DashboardCard
-                  title="Total Customers"
-                  value={dashboardData?.total_customers || 0}
-                  icon={Users}
-                  color="bg-blue-600"
-                  subtitle="All registered customers"
-                />
-              </Link>
-
-              {/* APPROVED CUSTOMERS */}
-              <Link
-                to="/customers/approved"
-                className="group transition hover:scale-[1.02]"
-              >
-                <DashboardCard
-                  title="Approved Customers"
-                  value={dashboardData?.approved_customers || 0}
-                  icon={UserCheck}
-                  color="bg-green-600"
-                  subtitle="OPR approved"
-                />
-              </Link>
-
-              {/* PENDING CUSTOMERS */}
-              <Link
-                to="/customers/pending"
-                className="group transition hover:scale-[1.02]"
-              >
-                <DashboardCard
-                  title="Pending Customers"
-                  value={dashboardData?.pending_customers || 0}
-                  icon={Clock}
-                  color="bg-yellow-500"
-                  subtitle="Waiting for approval"
-                />
-              </Link>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols gap-6">
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 p-6">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">
-                Account Summary
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Total Documents
-                  </span>
-                  <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                    {(dashboardData?.invoices || 0) +
-                      (dashboardData?.credit_notes || 0) +
-                      (dashboardData?.debit_notes || 0) +
-                      (dashboardData?.delivery_orders || 0)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Total Payments
-                  </span>
-                  <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                    {dashboardData?.payments || 0}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Total Statements
-                  </span>
-                  <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                    {dashboardData?.statements || 0}
-                  </span>
-                </div>
+      <div className="min-h-screen ">
+        <div className="mx-auto max-w-7xl space-y-8">
+          {/* Top Header Section */}
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <PageBreadcrumb
+                items={[
+                  { label: "Admin", href: "/admin" },
+                  { label: "Dashboard", href: "/admin/dashboard" },
+                ]}
+              />
+              <div className="mt-2">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                  Dashboard Overview
+                </h1>
+                <p className="mt-1 text-gray-500 dark:text-gray-400">
+                  Welcome back. Here's what's happening with your documents
+                  today.
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* Refresh */}
-          <div className="flex justify-end mt-6">
             <button
               onClick={fetchDashboardData}
-              className="rounded-lg bg-gray-800 px-6 py-2 text-sm font-medium text-white transition hover:bg-gray-700"
+              disabled={loading}
+              className="group flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-200 transition-all hover:bg-gray-50 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700 dark:hover:bg-gray-700"
             >
-              Refresh Data
+              <RefreshCw
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  loading && "animate-spin"
+                )}
+              />
+              {loading ? "Refreshing..." : "Refresh Data"}
             </button>
+          </div>
+
+          {/* DOCUMENT SECTION */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-gray-800">
+              <FileText className="h-5 w-5 text-gray-400" />
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                Documents
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {loading ? (
+                [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
+              ) : (
+                <>
+                  <StatCard
+                    to="/invoices"
+                    title="Invoices"
+                    value={dashboardData?.invoices || 0}
+                    icon={FileText}
+                    colorClass="bg-gradient-to-br from-blue-500 to-blue-600"
+                  />
+                  <StatCard
+                    to="/creditnotes"
+                    title="Credit Notes"
+                    value={dashboardData?.credit_notes || 0}
+                    icon={CreditCard}
+                    colorClass="bg-gradient-to-br from-purple-500 to-purple-600"
+                  />
+                  <StatCard
+                    to="/debitnotes"
+                    title="Debit Notes"
+                    value={dashboardData?.debit_notes || 0}
+                    icon={FileText}
+                    colorClass="bg-gradient-to-br from-orange-500 to-orange-600"
+                  />
+                  <StatCard
+                    to="/deliveryorders"
+                    title="Delivery Orders"
+                    value={dashboardData?.delivery_orders || 0}
+                    icon={Package}
+                    colorClass="bg-gradient-to-br from-emerald-500 to-emerald-600"
+                  />
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* FINANCIAL SECTION */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-gray-800">
+              <DollarSign className="h-5 w-5 text-gray-400" />
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                Financials
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {loading ? (
+                [...Array(3)].map((_, i) => <SkeletonCard key={i} />)
+              ) : (
+                <>
+                  {/* FIX: Use bracket notation for keys with hyphens */}
+                  <StatCard
+                    to="/payments"
+                    title="Total Payments"
+                    value={dashboardData?.["total-payments"] || 0}
+                    icon={DollarSign}
+                    colorClass="bg-gradient-to-br from-indigo-500 to-indigo-600"
+                    subtitle="Processed transactions"
+                  />
+                  <StatCard
+                    to="/ppis"
+                    title="PPI Credit Notes"
+                    value={dashboardData?.ppi_cn || 0}
+                    icon={CreditCard}
+                    colorClass="bg-gradient-to-br from-pink-500 to-pink-600"
+                    subtitle="PPI Adjustments"
+                  />
+                  <StatCard
+                    to="/statements"
+                    title="Statements"
+                    value={dashboardData?.statements || 0}
+                    icon={ClipboardList}
+                    colorClass="bg-gradient-to-br from-teal-500 to-teal-600"
+                    subtitle="Generated reports"
+                  />
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* BOTTOM GRID: Customers & Summary */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            {/* Customer Status Column (Span 2) */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-gray-800">
+                <Users className="h-5 w-5 text-gray-400" />
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                  Customer OPR
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                {loading ? (
+                  [...Array(3)].map((_, i) => <SkeletonCard key={i} />)
+                ) : (
+                  <>
+                    {/* FIX: Use bracket notation for keys with hyphens */}
+                    <StatCard
+                      to="/customers"
+                      title="Total"
+                      value={dashboardData?.["total-customers"] || 0}
+                      icon={Users}
+                      colorClass="bg-blue-600"
+                    />
+                    <StatCard
+                      to="/customers/approved"
+                      title="Approved"
+                      value={dashboardData?.["approved-customers"] || 0}
+                      icon={UserCheck}
+                      colorClass="bg-green-600"
+                    />
+                    <StatCard
+                      to="/customers/pending"
+                      title="Pending"
+                      value={dashboardData?.["pending-customers"] || 0}
+                      icon={Clock}
+                      colorClass="bg-yellow-500"
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Account Summary Card */}
+            <div className="rounded-2xl border border-gray-200 bg-gradient-to-b from-white to-gray-50 p-6 shadow-lg dark:border-gray-800 dark:from-gray-900 dark:to-gray-900/50">
+              <h3 className="mb-6 text-lg font-bold text-gray-800 dark:text-white">
+                Quick Summary
+              </h3>
+
+              {loading ? (
+                <div className="space-y-4">
+                  <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
+                  <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
+                  <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="h-2 w-2 rounded-full bg-blue-500" />
+                      Total Documents
+                    </span>
+                    <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
+                      <CountUp
+                        end={totalDocuments}
+                        duration={2}
+                        separator=","
+                      />
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="h-2 w-2 rounded-full bg-indigo-500" />
+                      Total Payments
+                    </span>
+                    <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
+                      {/* FIX: Bracket notation */}
+                      <CountUp
+                        end={dashboardData?.["total-payments"] || 0}
+                        duration={2}
+                        separator=","
+                      />
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="h-2 w-2 rounded-full bg-teal-500" />
+                      Total Statements
+                    </span>
+                    <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
+                      <CountUp
+                        end={dashboardData?.statements || 0}
+                        duration={2}
+                        separator=","
+                      />
+                    </span>
+                  </div>
+
+                  <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
+                    <div className="rounded-lg bg-blue-50 p-4 text-center dark:bg-blue-900/20">
+                      <p className="text-xs font-medium uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                        System Health
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-blue-800 dark:text-blue-300">
+                        Operational
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

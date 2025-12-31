@@ -8,7 +8,6 @@ import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfi
 import { Trash2, Download } from "lucide-react";
 
 const COLUMNS = [
-  { header: "PPI No.", accessor: "ppi_no", filterKey: "ppi_no" },
   {
     header: "Company",
     accessor: "user.company",

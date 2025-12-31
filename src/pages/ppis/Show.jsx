@@ -9,7 +9,6 @@ const FIELDS = [
     label: "Company Name",
     render: (_v, row) => row.user?.company ?? "-",
   },
-  { name: "ppi_no", label: "PPI No." },
   {
     name: "ppi_date",
     label: "PPI Date",
