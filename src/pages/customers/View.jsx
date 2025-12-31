@@ -45,7 +45,7 @@ const APPROVED_COLUMNS = [
   {
     header: "Created At",
     accessor: "created_at",
-    filterKey: "created",
+    filterKey: "uploaded",
     filterType: "date-range",
     render: (row) =>
       row.created_at || row.createdAt
@@ -94,7 +94,7 @@ const PENDING_COLUMNS = [
   {
     header: "Created At",
     accessor: "created_at",
-    filterKey: "created_at",
+    filterKey: "uploaded",
     filterType: "date-range",
     render: (row) =>
       row.created_at || row.createdAt

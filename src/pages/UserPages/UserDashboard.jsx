@@ -169,7 +169,7 @@ export default function UserDashboard() {
     <>
       <PageMeta title="User Dashboard" />
 
-      <div className="min-h-screen bg-gray-50/50 p-6 dark:bg-gray-950">
+      <div className="min-h-screen bg-gray-50/50 p-6 dark:bg-gray-950 mt-12" >
         <div className="mx-auto max-w-7xl space-y-8">
           {/* Top Header Section */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -228,7 +228,7 @@ export default function UserDashboard() {
                     subtitle="View Invoices"
                   />
                   <StatCard
-                    to="/credit-notes"
+                    to="/creditnotes"
                     title="Credit Notes"
                     value={dashboardData?.credit_notes || 0}
                     icon={CreditCard}
@@ -236,7 +236,7 @@ export default function UserDashboard() {
                     subtitle="View Credits"
                   />
                   <StatCard
-                    to="/debit-notes"
+                    to="/debitnotes"
                     title="Debit Notes"
                     value={dashboardData?.debit_notes || 0}
                     icon={FileText}
@@ -244,7 +244,7 @@ export default function UserDashboard() {
                     subtitle="View Debits"
                   />
                   <StatCard
-                    to="/delivery-orders"
+                    to="/deliveryorders"
                     title="Delivery Orders"
                     value={dashboardData?.delivery_orders || 0}
                     icon={Package}
@@ -281,7 +281,7 @@ export default function UserDashboard() {
                       subtitle="Processed transactions"
                     />
                     <StatCard
-                      to="/ppi-notes"
+                      to="/ppis"
                       title="PPI Credit Notes"
                       value={dashboardData?.ppi_cn || 0}
                       icon={CreditCard}

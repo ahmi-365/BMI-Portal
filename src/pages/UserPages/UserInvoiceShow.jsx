@@ -92,7 +92,7 @@ export default function UserInvoiceShow() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto p-6 animate-fadeIn">
+    <div className="max-w-6xl mx-auto p-6 animate-fadeIn mt-12">
       {/* Breadcrumb Navigation */}
       <PageBreadcrumb
         pageTitle="Invoice Details"
