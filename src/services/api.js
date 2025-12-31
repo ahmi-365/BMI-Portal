@@ -727,7 +727,9 @@ export const creditNotesAPI = {
 // CN PPI APIs
 export const ppisAPI = {
   list: (params) => listResource("ppis", params),
-
+ allCreditnotes: () => {
+    return apiCall(`/ppis/all-creditnotes`);
+  },
   show: (id) => apiCall(`/ppis/${id}`),
 
   create: (formData) => apiCallFormData("/ppis/create", formData, "POST"),

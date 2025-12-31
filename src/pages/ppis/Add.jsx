@@ -14,14 +14,14 @@ export default function PpisAdd() {
   const [creditNoteMap, setCreditNoteMap] = useState({});
   const [key, setKey] = useState(0);
 
-  // Load credit notes for CN No. dropdown
+  // --- 1. Load ALL Credit Notes ONCE (Frontend Search) ---
   useEffect(() => {
-    const loadCreditNotes = async (search = "") => {
+    const loadAllCreditNotes = async () => {
       try {
-        const res = await ppisAPI.allCreditnotes(search);
+        // Pass empty string or null to fetch ALL records
+        const res = await ppisAPI.allCreditnotes(""); 
         const list = res?.data ?? res ?? [];
 
-        // FIX: Use cn_no (string) as the value to match backend data
         const opts = Array.isArray(list)
           ? list.map((c) => ({
               value: c.cn_no,
@@ -30,7 +30,7 @@ export default function PpisAdd() {
           : [];
         setCreditNoteOptions(opts);
 
-        // Map by cn_no string for easy lookup
+        // Create map for quick lookup
         const map = {};
         if (Array.isArray(list)) {
           list.forEach((c) => {
@@ -41,13 +41,15 @@ export default function PpisAdd() {
         }
         setCreditNoteMap(map);
       } catch (err) {
+        console.error("Error loading credit notes:", err);
         setCreditNoteOptions([]);
         setCreditNoteMap({});
       }
     };
-    loadCreditNotes();
+    loadAllCreditNotes();
   }, []);
 
+  // --- 2. Load Companies ---
   useEffect(() => {
     const loadCompanies = async () => {
       try {
@@ -93,28 +95,24 @@ export default function PpisAdd() {
           }));
         },
       },
-
       {
         name: "customer_no",
         label: "Customer No.",
         type: "text",
         disabled: true,
       },
-
       {
         name: "ppi_date",
         label: "PPI Date",
         type: "date",
         required: true,
       },
-
       {
         name: "payment_term",
         label: "Payment Term",
         type: "date",
         required: true,
       },
-
       {
         name: "amount",
         label: "Amount",
@@ -125,42 +123,12 @@ export default function PpisAdd() {
         name: "cn_no",
         label: "CN No.",
         type: "select",
-        searchable: true,
+        searchable: true, // Keep this true for UI filtering
         required: true,
         options: creditNoteOptions,
         placeholder: "Select a credit note...",
-        onSearch: (query) => {
-          const loadCreditNotes = async () => {
-            try {
-              const res = await ppisAPI.allCreditnotes(query);
-              const list = res?.data ?? res ?? [];
-
-              const opts = Array.isArray(list)
-                ? list.map((c) => ({
-                    value: c.cn_no,
-                    label: c.cn_no ? String(c.cn_no) : `CN #${c.id}`,
-                  }))
-                : [];
-              setCreditNoteOptions(opts);
-
-              const map = {};
-              if (Array.isArray(list)) {
-                list.forEach((c) => {
-                  if (c.cn_no) {
-                    map[c.cn_no] = c;
-                  }
-                });
-              }
-              setCreditNoteMap(map);
-            } catch (err) {
-              setCreditNoteOptions([]);
-              setCreditNoteMap({});
-            }
-          };
-          loadCreditNotes();
-        },
+        // --- 3. Removed onSearch to prevent backend calls ---
         onChange: (selectedCnNo, setFormData) => {
-          // Look up by the string key (cn_no)
           const creditNote = creditNoteMap[selectedCnNo];
           setFormData((prev) => ({
             ...prev,
@@ -168,7 +136,6 @@ export default function PpisAdd() {
           }));
         },
       },
-
       {
         name: "ppi_percentage",
         label: "PPI Percentage (%)",
@@ -176,13 +143,11 @@ export default function PpisAdd() {
         min: 0,
         max: 100,
       },
-
       {
         name: "remarks",
         label: "Remarks",
         type: "textarea",
       },
-
       {
         name: "file",
         label: "PPI Document",
