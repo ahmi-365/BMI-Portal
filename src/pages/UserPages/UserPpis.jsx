@@ -4,96 +4,73 @@ import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
+import { render } from "@fullcalendar/core/preact.js";
 
 const COLUMNS = [
-  { header: "	PPI No.", accessor: "cn_no", filterKey: "cn_no" },
-  {
+  
+ {
     header: "Company",
-    accessor: "cn_doc",
-    render: (row) => (
-      <FileDownloadButton
-        file={row.cn_doc}
-        id={row.id}
-        endpoint="user/credit-notes"
-        path="download"
-        isUserAPI={true}
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
+    accessor: "user.company",
+    filterKey: "company",
+    render: (row) => row.user?.company || "-",
   },
   {
     header: "Customer No.",
-    accessor: "cn_date",
-    filterKey: "cn_date",
-    filterType: "date-range",
-    render: (row) => {
-      if (!row.cn_date) return "-";
-      return new Date(row.cn_date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+    accessor: "customer_no",
+    filterKey: "customer_no",
+    
   },
   {
     header: "PO No.",
-    accessor: "payment_term",
-    filterKey: "payment_term",
-    filterType: "date-range",
-    render: (row) => {
-      if (!row.payment_term) return "-";
-      return new Date(row.payment_term).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+    accessor: "po_no",
+    filterKey: "po_no",
+  
   },
   {
     header: "Ref No.",
-    accessor: "customer_no",
-    filterKey: "customer_no",
+    accessor: "ref_no",
+    filterKey: "ref_no",
   },
-  { header: "Amount", accessor: "po_no", filterKey: "po_no" },
-  { header: "PPI Date", accessor: "ref_no", filterKey: "ref_no" },
+  { header: "Amount", accessor: "amount", filterKey: "amount" },
+  { header: "PPI Date", accessor: "ppi_date", filterKey: "ppi_date" },
   {
     header: "Payment Term",
-    accessor: "amount",
-    filterKey: "amount",
+    accessor: "payment_term",
+    filterKey: "payment_term",
+     render: (row) => {
+      if (!row.payment_term) return "-";
+      return String(row.payment_term).split("T")[0];
+    },
+    
   },
   {
     header: "PPI %",
-    accessor: "remarks",
-    filterKey: "remarks",
+    accessor: "ppi_percentage",
+    filterKey: "ppi_percentage",
   },
   {
     header: "PPI Doc",
-    accessor: "created_at",
-    filterKey: "created_at",
-    filterType: "date-range",
-    render: (row) => {
-      if (!row.created_at) return "-";
-      return new Date(row.created_at).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+    accessor: "ppi_doc",
+    filterKey: "ppi_doc",
+     render: (row) => (
+          <FileDownloadButton
+            file={row.ppi_doc}
+            id={row.id}
+            endpoint="ppis"
+            path="download"
+          />
+        ),
+   
   },
    {
     header: "Uploaded By",
-    accessor: "remarks",
-    filterKey: "remarks",
+    accessor: "uploaded_by",
+    filterKey: "Uploaded_by",
   },
    {
     header: "Created At",
-    accessor: "remarks",
-    filterKey: "remarks",
-  },
-   {
-    header: "Actions",
-    accessor: "remarks",
-    filterKey: "remarks",
+    accessor: "uploaded",
+    filterKey: "uploaded",
   },
 ];
 
@@ -136,7 +113,7 @@ export default function UserPPIs() {
         description="View your credit notes, track status, and access associated documents."
       />
       <ListPage
-        resourceName="user/credit-notes"
+        resourceName="user/ppis"
         columns={COLUMNS}
         title="PPI"
         subtitle="View and track your PPIs"
