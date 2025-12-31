@@ -22,9 +22,9 @@ const COLUMNS = [
     ),
   },
   {
-    header: "DO Date",
-    accessor: "do_date",
-    filterKey: "do_date",
+    header: "INVOICE Date",
+    accessor: "date",
+    filterKey: "date",
     filterType: "date-range",
     render: (row) => {
       if (!row.do_date) return "-";

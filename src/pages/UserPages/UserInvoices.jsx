@@ -48,7 +48,7 @@ const COLUMNS = [
   {
     header: "Created At",
     accessor: "created_at",
-    filterKey: "uploaded_at",
+    filterKey: "uploaded",
     filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";
