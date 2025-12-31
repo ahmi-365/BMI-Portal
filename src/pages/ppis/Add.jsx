@@ -24,7 +24,7 @@ export default function PpisAdd() {
         // FIX: Use cn_no (string) as the value to match backend data
         const opts = Array.isArray(list)
           ? list.map((c) => ({
-              value: c.cn_no, 
+              value: c.cn_no,
               label: c.cn_no ? String(c.cn_no) : `CN #${c.id}`,
             }))
           : [];
@@ -202,17 +202,15 @@ export default function PpisAdd() {
     Object.keys(formData).forEach((key) => {
       if (!fieldNames.has(key)) return;
       const val = formData[key];
-      // Skip null/undefined/empty strings to avoid sending bad data
       if (val === undefined || val === null || val === "") return;
-      
-      if (val instanceof File) {
-        fd.append(key, val, val.name);
-      } else {
-        fd.append(key, String(val));
+      if (key === "file") {
+        if (val instanceof File) {
+          fd.append(key, val, val.name);
+        }
+        return;
       }
+      fd.append(key, String(val));
     });
-
-    // NOTE: resourceName is NOT appended here based on your request
 
     if (isEditMode) {
       return await ppisAPI.update(id, fd);
