@@ -4,6 +4,7 @@ import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
+import { render } from "@fullcalendar/core/preact.js";
 
 const COLUMNS = [
   { header: "DO No.", accessor: "do_no", filterKey: "do_no" },
@@ -22,23 +23,19 @@ const COLUMNS = [
     ),
   },
   {
-    header: "INVOICE Date",
-    accessor: "date",
+    header: "Invoice Date",
+    accessor: "invoice_date",
     filterKey: "date",
     filterType: "date-range",
     render: (row) => {
-      if (!row.do_date) return "-";
-      return new Date(row.do_date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
+      if (!row.invoice?.invoice_date) return "-";
+      return row.invoice.invoice_date.split("T")[0];
     },
   },
   {
-    header: "Date",
+    header: "Due Date",
     accessor: "date",
-    filterKey: "date",
+    filterKey: "due_date",
     filterType: "date-range",
     render: (row) => {
       if (!row.date) return "-";
@@ -49,10 +46,12 @@ const COLUMNS = [
       });
     },
   },
-  { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
+  // { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
   {
     header: "Created At",
     accessor: "created_at",
+    filterKey: "uploaded",
+    filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";
       return new Date(row.created_at).toLocaleDateString("en-US", {
