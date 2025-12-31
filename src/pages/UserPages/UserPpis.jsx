@@ -138,8 +138,8 @@ export default function UserPPIs() {
       <ListPage
         resourceName="user/credit-notes"
         columns={COLUMNS}
-        title="My Credit Notes"
-        subtitle="View and track your credit notes"
+        title="PPI"
+        subtitle="View and track your PPIs"
         showActions={false}
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}

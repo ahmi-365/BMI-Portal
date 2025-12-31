@@ -4,6 +4,7 @@ import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
+import { render } from "@fullcalendar/core/preact.js";
 
 const COLUMNS = [
   { header: "Credit Note No.", accessor: "cn_no", filterKey: "cn_no" },
@@ -53,6 +54,7 @@ const COLUMNS = [
     header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
+    render: (row) => (row.customer ? row.customer.customer_no : "-"),
   },
   { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
   { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no" },
@@ -61,15 +63,15 @@ const COLUMNS = [
     accessor: "amount",
     filterKey: "amount",
   },
-  {
-    header: "Remarks",
-    accessor: "remarks",
-    filterKey: "remarks",
-  },
+  // {
+  //   header: "Remarks",
+  //   accessor: "remarks",
+  //   filterKey: "remarks",
+  // },
   {
     header: "Created At",
     accessor: "created_at",
-    filterKey: "created_at",
+    filterKey: "uploaded",
     filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";

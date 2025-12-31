@@ -10,6 +10,7 @@ const COLUMNS = [
   {
     header: "DN Doc",
     accessor: "dn_doc",
+    filterKey: "dn_doc",
     render: (row) => (
       <FileDownloadButton
         file={row.dn_doc}
@@ -60,15 +61,15 @@ const COLUMNS = [
     accessor: "amount",
     filterKey: "amount",
   },
-  {
-    header: "Remarks",
-    accessor: "remarks",
-    filterKey: "remarks",
-  },
+  // {
+  //   header: "Remarks",
+  //   accessor: "remarks",
+  //   filterKey: "remarks",
+  // },
   {
     header: "Created At",
     accessor: "created_at",
-    filterKey: "created_at",
+    filterKey: "uploaded",
     filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";
