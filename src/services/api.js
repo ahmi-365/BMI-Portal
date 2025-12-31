@@ -687,6 +687,13 @@ export const debitNotesAPI = {
 
 // Credit Notes APIs
 export const creditNotesAPI = {
+  bulkUpload: (data) =>
+    apiCall("/creditnotes/bulk-upload", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  bulkParse: (formData) =>
+    apiCallFormData("/creditnotes/bulk-parse", formData, "POST"),
   list: (params) => listResource("creditnotes", params),
 
   show: (id) => apiCall(`/creditnotes/${id}`),

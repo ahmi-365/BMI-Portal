@@ -130,7 +130,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       resourceName === "creditnotes" ||
       resourceName === "debitnotes" ||
       resourceName === "statements" ||
-      resourceName === "invoices";
+      resourceName === "invoices" ||
+      resourceName === "ppis";
     if (!shouldLoadCompanies) return;
     const load = async () => {
       try {
@@ -159,12 +160,12 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const dataMap = {};
       const opts = Array.isArray(list)
         ? list.map((inv) => {
-          dataMap[inv.id] = inv;
-          return {
-            value: inv.id,
-            label: inv.do_no || `DO #${inv.id}`,
-          };
-        })
+            dataMap[inv.id] = inv;
+            return {
+              value: inv.id,
+              label: inv.do_no || `DO #${inv.id}`,
+            };
+          })
         : [];
       setInvoiceData(dataMap);
       setInvoiceOptions(opts);
@@ -224,6 +225,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const api = getAPI(resourceName);
       console.log("ResourceName:", resourceName, "API:", api);
       if (!api) throw new Error(`Invalid resource: ${resourceName}`);
+      if (typeof api.bulkParse !== "function") {
+        setIsLoading(false);
+        setError(`Bulk upload is not supported for resource: ${resourceName}`);
+        return;
+      }
 
       const fd = new FormData();
       uploadedFiles.forEach((fileObj) => {
@@ -256,8 +262,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         typeof parseData.files === "number"
           ? parseData.files
           : Array.isArray(parseData.files)
-            ? parseData.files.length
-            : uploadedFiles.length;
+          ? parseData.files.length
+          : uploadedFiles.length;
       console.log("File count:", fileCount, "ParseData:", parseData);
 
       const initialForms = Array(fileCount)
@@ -320,17 +326,27 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.cn_doc = form.cn_doc ?? "";
           }
           if (resourceName === "ppis") {
+            // Always allow company selection (user_id)
             form.user_id = form.user_id ?? "";
-            form.customer_no = form.customer_no ?? "";
-            form.amount = extractAmount(form.amount ?? "");
-            form.po_no = form.po_no ?? "";
-            form.ref_no = form.ref_no ?? "";
-            form.ppi_no = form.ppi_no ?? "";
-            form.ppi_date = toISODate(form.ppi_date) || form.ppi_date || "";
-            form.payment_term = form.payment_term ?? "";
-            form.ppi_percentage = form.ppi_percentage ?? "";
+            form.customer_no = parseData.customer_no?.[idx] ?? "";
+            form.amount = extractAmount(parseData.amount?.[idx] ?? "");
+            form.cn_no = parseData.cn_no?.[idx] ?? "";
+            // Map cn_date from backend to ppi_date for the form (as yyyy-mm-dd)
+            form.ppi_date = toISODate(
+              parseData.ppi_date?.[idx] ?? parseData.cn_date?.[idx] ?? ""
+            );
+            form.payment_term = parseData.payment_term?.[idx] ?? "";
+            // Show only the numeric part of ppi_percentage, remove percent sign and whitespace
+            let rawPpiPercentage = parseData.ppi_percentage?.[idx] ?? "";
+            rawPpiPercentage = String(rawPpiPercentage)
+              .replace(/\s*%\s*$/, "")
+              .trim();
+            const matchPpi = rawPpiPercentage.match(/([0-9]+(?:\.[0-9]+)?)/);
+            form.ppi_percentage = matchPpi ? matchPpi[1] : "";
             form.remarks = form.remarks ?? "";
-            form.ppi_doc = form.ppi_doc ?? "";
+            form.ppi_doc =
+              parseData.ppi_doc?.[idx] ?? parseData.data?.[idx] ?? "";
+            form.folder = parseData.folderNames?.[idx] ?? "";
           }
           if (resourceName === "debitnotes") {
             console.log(
@@ -467,11 +483,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       if (resourceName === "ppis") {
         const required = [
           "user_id",
-          "ppi_no",
+          "cn_no", // ADDED: Required by backend validator
           "ppi_date",
           "payment_term",
           "amount",
-          "ppi_doc",
+          "ppi_percentage", // ADDED: Required by backend validator
+          "ppi_doc", // ADDED: Required by backend validator
+          "folder", // ADDED: Required by backend validator
         ];
         missing = required.filter((f) => isFieldEmpty(form[f]));
       } else {
@@ -598,10 +616,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         const dupList = Array.isArray(duplicateInvoices)
           ? duplicateInvoices.map((d) => String(d))
           : Array.isArray(duplicateCN)
-            ? duplicateCN.map((d) => String(d))
-            : Array.isArray(duplicates)
-              ? duplicates.map((d) => String(d))
-              : [];
+          ? duplicateCN.map((d) => String(d))
+          : Array.isArray(duplicates)
+          ? duplicates.map((d) => String(d))
+          : [];
         const messageWithDup = dupList.length
           ? `${result?.message || "Upload failed."} (${dupList.join(", ")})`
           : result?.message || "Upload failed.";
@@ -664,10 +682,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         const dupList = Array.isArray(errorData?.duplicate_invoices)
           ? errorData.duplicate_invoices.map((d) => String(d))
           : Array.isArray(errorData?.duplicate_cn)
-            ? errorData.duplicate_cn.map((d) => String(d))
-            : Array.isArray(errorData?.duplicates)
-              ? errorData.duplicates.map((d) => String(d))
-              : [];
+          ? errorData.duplicate_cn.map((d) => String(d))
+          : Array.isArray(errorData?.duplicates)
+          ? errorData.duplicates.map((d) => String(d))
+          : [];
 
         const messageWithDup = dupList.length
           ? `${errorData?.message || "Upload failed."} (${dupList.join(", ")})`
@@ -712,19 +730,21 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             {/* Step 1 */}
             <div className="flex items-center flex-1">
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-300 ${step === 1
+                className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-300 ${
+                  step === 1
                     ? "bg-brand-500 text-white shadow-lg scale-110"
                     : "bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
-                  }`}
+                }`}
               >
                 {step > 1 ? "✓" : "1"}
               </div>
               <div className="ml-3 hidden sm:block">
                 <p
-                  className={`text-sm font-medium ${step === 1
+                  className={`text-sm font-medium ${
+                    step === 1
                       ? "text-brand-600 dark:text-brand-400"
                       : "text-gray-500 dark:text-gray-400"
-                    }`}
+                  }`}
                 >
                   Upload Files
                 </p>
@@ -733,26 +753,29 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
             {/* Connector */}
             <div
-              className={`h-1 flex-1 rounded transition-all duration-500 ${step === 2 ? "bg-brand-500" : "bg-gray-200 dark:bg-gray-700"
-                }`}
+              className={`h-1 flex-1 rounded transition-all duration-500 ${
+                step === 2 ? "bg-brand-500" : "bg-gray-200 dark:bg-gray-700"
+              }`}
             />
 
             {/* Step 2 */}
             <div className="flex items-center flex-1">
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-300 ${step === 2
+                className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-300 ${
+                  step === 2
                     ? "bg-brand-500 text-white shadow-lg scale-110"
                     : "bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
-                  }`}
+                }`}
               >
                 2
               </div>
               <div className="ml-3 hidden sm:block">
                 <p
-                  className={`text-sm font-medium ${step === 2
+                  className={`text-sm font-medium ${
+                    step === 2
                       ? "text-brand-600 dark:text-brand-400"
                       : "text-gray-500 dark:text-gray-400"
-                    }`}
+                  }`}
                 >
                   Review & Submit
                 </p>
@@ -928,8 +951,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                       resourceName === "creditnotes"
                         ? form.cn_no
                         : resourceName === "debitnotes"
-                          ? form.dn_no
-                          : null;
+                        ? form.dn_no
+                        : null;
 
                     // Check for duplicates by record number or document filename
                     const docName =
@@ -948,10 +971,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                     return (
                       <div
                         key={idx}
-                        className={`group rounded-xl border-2 p-6 hover:shadow-lg transition-all duration-300 animate-fadeIn ${isDuplicate
+                        className={`group rounded-xl border-2 p-6 hover:shadow-lg transition-all duration-300 animate-fadeIn ${
+                          isDuplicate
                             ? "border-red-400 bg-red-50/60 dark:border-red-700 dark:bg-red-900/20"
                             : "border-gray-200 hover:border-brand-300 dark:border-gray-700 dark:hover:border-brand-600"
-                          }`}
+                        }`}
                         style={{ animationDelay: `${idx * 50}ms` }}
                       >
                         <div className="flex items-center justify-between mb-5">
@@ -1009,29 +1033,29 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  PPI No.
+                                  CN No.
                                 </label>
                                 <input
                                   type="text"
-                                  value={form.ppi_no ?? ""}
+                                  value={form.cn_no ?? ""}
                                   onChange={(e) =>
                                     handleFormChange(
                                       idx,
-                                      "ppi_no",
+                                      "cn_no",
                                       e.target.value
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "ppi_no"
+                                    "cn_no"
                                   )}`}
                                 />
                               </div>
 
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  PPI Date
+                                  Cn Date
                                 </label>
                                 <input
                                   type="date"
@@ -1056,7 +1080,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   Payment Term
                                 </label>
                                 <input
-                                  type="text"
+                                  type="date"
                                   value={form.payment_term ?? ""}
                                   onChange={(e) =>
                                     handleFormChange(
@@ -1100,9 +1124,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   PPI Percentage (%)
                                 </label>
                                 <input
-                                  type="number"
-                                  min={0}
-                                  max={100}
+                                  type="text"
                                   value={form.ppi_percentage ?? ""}
                                   onChange={(e) =>
                                     handleFormChange(
@@ -1126,42 +1148,6 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "customer_no",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
-                                />
-                              </div>
-
-                              <div className="relative">
-                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  Customer PO No.
-                                </label>
-                                <input
-                                  type="text"
-                                  value={form.po_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "po_no",
-                                      e.target.value
-                                    )
-                                  }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
-                                />
-                              </div>
-
-                              <div className="relative">
-                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  Reference No.
-                                </label>
-                                <input
-                                  type="text"
-                                  value={form.ref_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "ref_no",
                                       e.target.value
                                     )
                                   }
