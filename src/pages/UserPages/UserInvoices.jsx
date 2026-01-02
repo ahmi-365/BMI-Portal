@@ -44,7 +44,7 @@ const COLUMNS = [
   { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
   { header: "DO No.", accessor: "do_no" },
   { header: "Amount", accessor: "amount", filterKey: "amount" },
-  { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
+  // { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
   {
     header: "Created At",
     accessor: "created_at",

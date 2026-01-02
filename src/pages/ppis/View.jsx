@@ -22,7 +22,7 @@ const COLUMNS = [
   {
     header: "PPI Date",
     accessor: "ppi_date",
-    filterKey: "date",
+    filterKey: "ppi_date",
     filterType: "date-range",
     render: (row) => (row.ppi_date ? String(row.ppi_date).split("T")[0] : "-"),
   },
@@ -30,6 +30,9 @@ const COLUMNS = [
     header: "Payment Term",
     accessor: "payment_term",
     filterKey: "payment_term",
+    filterType: "date-range",
+    render: (row) =>
+      row.payment_term ? String(row.payment_term).split("T")[0] : "-",
   },
   { header: "PPI %", accessor: "ppi_percentage", filterKey: "ppi_percentage" },
   {

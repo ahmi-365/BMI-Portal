@@ -36,25 +36,25 @@ const COLUMNS = [
       });
     },
   },
-  {
-    header: "Payment Term",
-    accessor: "payment_term",
-    filterKey: "payment_term",
-    filterType: "date-range",
-    render: (row) => {
-      if (!row.payment_term) return "-";
-      return new Date(row.payment_term).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
-  },
+  // {
+  //   header: "Payment Term",
+  //   accessor: "payment_term",
+  //   filterKey: "payment_term",
+  //   filterType: "date-range",
+  //   render: (row) => {
+  //     if (!row.payment_term) return "-";
+  //     return new Date(row.payment_term).toLocaleDateString("en-US", {
+  //       year: "numeric",
+  //       month: "short",
+  //       day: "numeric",
+  //     });
+  //   },
+  // },
   {
     header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
-    render: (row) => (row.customer ? row.customer.customer_no : "-"),
+    render: (row) => row.user?.customer_no || "-",
   },
   { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
   { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no" },

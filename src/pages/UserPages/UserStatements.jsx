@@ -35,10 +35,12 @@ const COLUMNS = [
     },
   },
   { header: "Customer No.", accessor: "customer_no" },
-  { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
+  // { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
   {
     header: "Created At",
     accessor: "created_at",
+    filterKey: "uploaded",
+    filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";
       return new Date(row.created_at).toLocaleDateString("en-US", {

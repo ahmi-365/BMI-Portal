@@ -29,11 +29,13 @@ const COLUMNS = [
     filterKey: "ref_no",
   },
   { header: "Amount", accessor: "amount", filterKey: "amount" },
-  { header: "PPI Date", accessor: "ppi_date", filterKey: "ppi_date" },
+  { header: "PPI Date", accessor: "ppi_date",  filterKey: "ppi_date",
+    filterType: "date-range",},
   {
     header: "Payment Term",
     accessor: "payment_term",
     filterKey: "payment_term",
+    filterType: "date-range",
     render: (row) => {
       if (!row.payment_term) return "-";
       return String(row.payment_term).split("T")[0];
@@ -57,15 +59,20 @@ const COLUMNS = [
       />
     ),
   },
-  {
-    header: "Uploaded By",
-    accessor: "uploaded_by",
-    filterKey: "Uploaded_by",
-  },
+  // {
+  //   header: "Uploaded By",
+  //   accessor: "uploaded_by",
+  //   filterKey: "Uploaded_by",
+  // },
   {
     header: "Created At",
-    accessor: "uploaded",
-    filterKey: "uploaded",
+    accessor: "created_at",
+     filterKey: "uploaded",
+    filterType: "date-range",
+    render: (row) => {
+      if (!row.created_at) return "-";
+      return String(row.created_at).split("T")[0];
+    } 
   },
 ];
 

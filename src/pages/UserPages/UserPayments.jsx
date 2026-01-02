@@ -43,6 +43,7 @@ const COLUMNS = [
   {
     header: "Status",
     accessor: "status",
+    disableFilter: true,
     render: (row) => {
       const label =
         row.status === 0
@@ -68,7 +69,7 @@ const COLUMNS = [
   {
     header: "Created At",
     accessor: "created_at",
-    filterKey: "uploaded_at",
+    filterKey: "uploaded",
     filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";
