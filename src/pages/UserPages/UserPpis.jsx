@@ -7,8 +7,7 @@ import { userDownloadBlob } from "../../services/api";
 import { render } from "@fullcalendar/core/preact.js";
 
 const COLUMNS = [
-  
- {
+  {
     header: "Company",
     accessor: "user.company",
     filterKey: "company",
@@ -18,13 +17,11 @@ const COLUMNS = [
     header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
-    
   },
   {
     header: "PO No.",
     accessor: "po_no",
     filterKey: "po_no",
-  
   },
   {
     header: "Ref No.",
@@ -37,11 +34,10 @@ const COLUMNS = [
     header: "Payment Term",
     accessor: "payment_term",
     filterKey: "payment_term",
-     render: (row) => {
+    render: (row) => {
       if (!row.payment_term) return "-";
       return String(row.payment_term).split("T")[0];
     },
-    
   },
   {
     header: "PPI %",
@@ -52,22 +48,21 @@ const COLUMNS = [
     header: "PPI Doc",
     accessor: "ppi_doc",
     filterKey: "ppi_doc",
-     render: (row) => (
-          <FileDownloadButton
-            file={row.ppi_doc}
-            id={row.id}
-            endpoint="ppis"
-            path="download"
-          />
-        ),
-   
+    render: (row) => (
+      <FileDownloadButton
+        file={row.ppi_doc}
+        id={row.id}
+        endpoint="user/ppis"
+        path="download"
+      />
+    ),
   },
-   {
+  {
     header: "Uploaded By",
     accessor: "uploaded_by",
     filterKey: "Uploaded_by",
   },
-   {
+  {
     header: "Created At",
     accessor: "uploaded",
     filterKey: "uploaded",
@@ -86,7 +81,7 @@ export default function UserPPIs() {
 
     setIsDownloading(true);
     try {
-      const blob = await userDownloadBlob(`/user/credit-notes/bulk-download`, {
+      const blob = await userDownloadBlob(`/user/ppis/bulk-download`, {
         ids: selectedIds,
       });
       const blobUrl = URL.createObjectURL(blob);

@@ -53,7 +53,7 @@ const apiCall = async (endpoint, options = {}) => {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) { }
+      } catch (e) {}
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -279,7 +279,7 @@ export const apiCallFormData = async (endpoint, formData, method = "POST") => {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) { }
+      } catch (e) {}
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -330,7 +330,7 @@ export const userApiCall = async (endpoint, options = {}) => {
       if (endpoint !== "/user/login") {
         try {
           userAuth.clear();
-        } catch (e) { }
+        } catch (e) {}
         if (typeof window !== "undefined") window.location.href = "/user/login";
         throw new Error("Unauthorized");
       }
@@ -371,7 +371,7 @@ export const userApiCallFormData = async (
     if (response.status === 401) {
       try {
         userAuth.clear();
-      } catch (e) { }
+      } catch (e) {}
       if (typeof window !== "undefined") window.location.href = "/user/login";
       throw new Error("Unauthorized");
     }
@@ -412,7 +412,7 @@ export const userDownloadBlob = async (endpoint, data = null) => {
     if (response.status === 401) {
       try {
         userAuth.clear();
-      } catch (e) { }
+      } catch (e) {}
       if (typeof window !== "undefined") window.location.href = "/user/login";
       throw new Error("Unauthorized");
     }
@@ -640,7 +640,6 @@ export const invoicesAPI = {
     downloadBlobPost("/invoices/export", {
       ids,
     }),
-
 };
 
 // Debit Notes APIs
@@ -668,12 +667,10 @@ export const debitNotesAPI = {
     }),
 
   // ZIP download
-  bulkDownload: (ids) =>
-    downloadBlobPost("/debitnotes/bulk-download", { ids }),
+  bulkDownload: (ids) => downloadBlobPost("/debitnotes/bulk-download", { ids }),
 
   // CSV download
-  exportCSV: (ids) =>
-    downloadBlobPost("/debitnotes/export", { ids }),
+  exportCSV: (ids) => downloadBlobPost("/debitnotes/export", { ids }),
 
   bulkParse: (formData) =>
     apiCallFormData("/debitnotes/bulk-parse", formData, "POST"),
@@ -704,8 +701,7 @@ export const creditNotesAPI = {
   update: (id, formData) =>
     apiCallFormData(`/creditnotes/update/${id}`, formData, "POST"),
 
-  delete: (id) =>
-    apiCall(`/creditnotes/delete/${id}`, { method: "DELETE" }),
+  delete: (id) => apiCall(`/creditnotes/delete/${id}`, { method: "DELETE" }),
 
   download: (id) => apiCall(`/creditnotes/download/${id}`),
 
@@ -719,15 +715,13 @@ export const creditNotesAPI = {
     downloadBlobPost("/creditnotes/bulk-download", { ids }),
 
   // ✅ ADD THIS
-  exportCSV: (ids) =>
-    downloadBlobPost("/creditnotes/export", { ids }),
+  exportCSV: (ids) => downloadBlobPost("/creditnotes/export", { ids }),
 };
-
 
 // CN PPI APIs
 export const ppisAPI = {
   list: (params) => listResource("ppis", params),
- allCreditnotes: () => {
+  allCreditnotes: () => {
     return apiCall(`/ppis/all-creditnotes`);
   },
   show: (id) => apiCall(`/ppis/${id}`),
@@ -799,7 +793,6 @@ export const statementsAPI = {
       body: JSON.stringify(data),
     }),
   exportCSV: (ids) => downloadBlobPost("/statements/export", { ids }),
-
 };
 
 // Reports / exports
@@ -826,7 +819,7 @@ export const reportsAPI = {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) { }
+      } catch (e) {}
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -879,7 +872,7 @@ export const reportsAPI = {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) { }
+      } catch (e) {}
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -909,7 +902,7 @@ export const downloadBlob = async (endpoint) => {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) { }
+      } catch (e) {}
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -943,7 +936,7 @@ export const downloadBlobPost = async (endpoint, data) => {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) { }
+      } catch (e) {}
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -988,10 +981,8 @@ export const deliveryOrdersAPI = {
     downloadBlobPost("/deliveryorders/bulk-download", { ids }),
 
   // 🔥 ADD THIS (CSV EXPORT)
-  exportCSV: (ids) =>
-    downloadBlobPost("/deliveryorders/export", { ids }),
+  exportCSV: (ids) => downloadBlobPost("/deliveryorders/export", { ids }),
 };
-
 
 // Payments APIs
 export const paymentsAPI = {
@@ -1182,6 +1173,21 @@ export const userStatementsAPI = {
 
   bulkDownload: (ids) =>
     userApiCall("/user/statements/bulk-download", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+};
+
+// User PPIs APIs
+export const userPpisAPI = {
+  list: (params) => userListResource("user/ppi", params),
+
+  show: (id) => userApiCall(`/user/ppis/show/${id}`),
+
+  download: (id) => userDownloadBlob(`/user/ppi/download/${id}`),
+
+  bulkDownload: (ids) =>
+    userApiCall("/user/ppi/bulk-download", {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
