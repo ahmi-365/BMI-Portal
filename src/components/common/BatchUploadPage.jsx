@@ -12,7 +12,7 @@ import {
 import { companiesAPI, invoicesAPI } from "../../services/api";
 import SearchableSelect from "./SearchableSelect";
 import Toast from "./Toast";
-
+import { extractDoNoFromPdf } from "../../services/ocrService";
 // Convert various date strings (e.g. 18.11.2025 or 18/11/2025) to yyyy-mm-dd for date inputs
 const toISODate = (raw) => {
   if (!raw) return "";
@@ -263,22 +263,86 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     setError(null);
 
     try {
-      // Delivery orders: skip parse, build forms manually
+    // ... inside handleParse ...
+
+      // Delivery orders: Run OCR and Search API for Invoice
       if (resourceName === "deliveryorders") {
-        const manualForms = uploadedFiles.map((fileObj, idx) => ({
-          index: idx,
-          invoice_id: "",
-          invoice_no: "",
-          do_no: "",
-          do_doc: fileObj.name,
-          remarks: "",
-        }));
+        setIsLoading(true);
+        console.log("Starting OCR & API Search...");
+
+        const manualForms = await Promise.all(
+          uploadedFiles.map(async (fileObj, idx) => {
+            const file = fileObj.file || fileObj;
+            let extractedDoNo = "";
+            let matchedInvoiceId = "";
+            let matchedInvoiceNo = "";
+            let remarkText = "";
+
+            // 1. Run OCR if PDF
+            if (file.type === "application/pdf") {
+              try {
+                console.log(`[File ${idx + 1}] Running OCR...`);
+                extractedDoNo = await extractDoNoFromPdf(file);
+              } catch (e) {
+                console.error("OCR Error:", e);
+              }
+            }
+
+            // 2. If OCR found a number, Ask the API to find the invoice
+            if (extractedDoNo) {
+              const cleanDoNo = String(extractedDoNo).trim();
+              console.log(`[File ${idx + 1}] Searching API for DO: ${cleanDoNo}`);
+
+              try {
+                // Call API explicitly for this DO number to bypass pagination issues
+                const res = await invoicesAPI.allInvoices(cleanDoNo);
+                const results = res?.data ?? res ?? [];
+
+                // Find exact match in results
+                const foundInvoice = results.find(inv => 
+                  String(inv.do_no || "").trim() === cleanDoNo
+                );
+
+                if (foundInvoice) {
+                  console.log(`[File ${idx + 1}] ✅ Match Found: Invoice #${foundInvoice.invoice_no}`);
+                  matchedInvoiceId = foundInvoice.id;
+                  matchedInvoiceNo = foundInvoice.invoiceId || foundInvoice.invoice_no;
+                  remarkText = "Auto-matched via OCR";
+
+                  // OPTIONAL: Add this invoice to your local list so the dropdown shows it correctly
+                  setInvoiceOptions(prev => {
+                    const exists = prev.some(opt => opt.value === foundInvoice.id);
+                    if (exists) return prev;
+                    return [...prev, { value: foundInvoice.id, label: foundInvoice.do_no || foundInvoice.invoice_no }];
+                  });
+                  setInvoiceData(prev => ({ ...prev, [foundInvoice.id]: foundInvoice }));
+
+                } else {
+                  remarkText = ``;
+                }
+              } catch (err) {
+                console.error("API Search Error:", err);
+                remarkText = `OCR found DO# ${cleanDoNo} (Search failed)`;
+              }
+            }
+
+            return {
+              index: idx,
+              invoice_id: matchedInvoiceId, 
+              invoice_no: matchedInvoiceNo, 
+              do_no: extractedDoNo || "", 
+              do_doc: file.name,
+              remarks: remarkText,
+              _file: file 
+            };
+          })
+        );
+
         setFormData(manualForms);
         setStep(2);
         setIsLoading(false);
         return;
       }
-
       const api = getAPI(resourceName);
       console.log("ResourceName:", resourceName, "API:", api);
       if (!api) throw new Error(`Invalid resource: ${resourceName}`);
@@ -523,6 +587,58 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     });
   };
 
+  // When user blurs the Extracted DO No input, try to find matching invoice
+  const handleDoNoBlur = async (index, value) => {
+    try {
+      const clean = String(value ?? "").trim();
+      if (!clean) {
+        // Clear invoice match if user cleared the DO No
+        handleFormChange(index, "invoice_id", "");
+        handleFormChange(index, "invoice_no", "");
+        handleFormChange(index, "remarks", "No invoice found for this DO No");
+        return;
+      }
+      // Try API search; be flexible matching on do_no, invoice_no or invoiceId
+      const res = await invoicesAPI.allInvoices(clean);
+      const list = res?.data ?? res ?? [];
+
+      const normalize = (v) => (v === undefined || v === null ? "" : String(v).trim());
+      const found = Array.isArray(list)
+        ? list.find((inv) => {
+            const d = normalize(inv.do_no);
+            const ino = normalize(inv.invoice_no || inv.invoiceId);
+            // exact match first
+            if (d === clean || ino === clean) return true;
+            // partial contains fallback
+            if (d.includes(clean) || ino.includes(clean) || clean.includes(d) || clean.includes(ino)) return true;
+            return false;
+          })
+        : null;
+
+      if (found) {
+        handleFormChange(index, "invoice_id", found.id);
+        handleFormChange(index, "invoice_no", found.invoiceId || found.invoice_no || "");
+        handleFormChange(index, "remarks", "");
+        // Ensure this invoice is present in local invoiceData/options
+        setInvoiceData((prev) => ({ ...prev, [found.id]: found }));
+        setInvoiceOptions((prev) => {
+          const exists = prev.some((p) => p.value === found.id);
+          if (exists) return prev;
+          return [...prev, { value: found.id, label: found.do_no || found.invoice_no || `#${found.id}` }];
+        });
+      } else {
+        handleFormChange(index, "invoice_id", "");
+        handleFormChange(index, "invoice_no", "");
+        handleFormChange(index, "remarks", "No invoice found for this DO No");
+      }
+    } catch (err) {
+      console.error("DO No blur search failed:", err);
+      handleFormChange(index, "invoice_id", "");
+      handleFormChange(index, "invoice_no", "");
+      handleFormChange(index, "remarks", "No invoice found for this DO No");
+    }
+  };
+
   const handleRemoveRecord = (index) => {
     setFormData((prev) => prev.filter((_, i) => i !== index));
   };
@@ -548,6 +664,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           "ppi_doc", // ADDED: Required by backend validator
           "folder", // ADDED: Required by backend validator
         ];
+        missing = required.filter((f) => isFieldEmpty(form[f]));
+      } else if (resourceName === "deliveryorders") {
+        // For delivery orders we only require the document itself; invoice_id may be empty
+        const required = ["do_doc"];
         missing = required.filter((f) => isFieldEmpty(form[f]));
       } else {
         missing = Object.entries(form).reduce((acc, [key, value]) => {
@@ -575,29 +695,48 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       // Delivery Orders: build multipart FormData with delivery_orders array of objects
       if (resourceName === "deliveryorders") {
         const fd = new FormData();
-        formData.forEach((form, idx) => {
-          // invoice_id
-          fd.append(
-            `delivery_orders[${idx}][invoice_id]`,
-            String(form.invoice_id || "")
-          );
-          // remarks
-          fd.append(
-            `delivery_orders[${idx}][remarks]`,
-            String(form.remarks || "")
-          );
-          // do_doc file: use original uploaded file if available
-          const fileObj = uploadedFiles[idx]?.file || uploadedFiles[idx];
-          if (fileObj instanceof File) {
-            fd.append(`delivery_orders[${idx}][do_doc]`, fileObj, fileObj.name);
-          } else {
-            // Fallback: send text if file object not found
+        // Include `do_no` in payload but do NOT send invoice_id or invoice_no to backend.
+        // Send delivery order document and remarks as before.
+        for (let idx = 0; idx < formData.length; idx++) {
+          const form = formData[idx];
+          try {
+            // do_no (send extracted/edited DO number)
             fd.append(
-              `delivery_orders[${idx}][do_doc]`,
-              String(form.do_doc || "")
+              `delivery_orders[${idx}][do_no]`,
+              String(form.do_no || "")
             );
+            // remarks
+            fd.append(
+              `delivery_orders[${idx}][remarks]`,
+              String(form.remarks || "")
+            );
+            // do_doc file: use original uploaded file if available
+            const fileObj = form._file || uploadedFiles[idx]?.file || uploadedFiles[idx];
+            if (fileObj instanceof File) {
+              fd.append(`delivery_orders[${idx}][do_doc]`, fileObj, fileObj.name);
+            } else {
+              fd.append(`delivery_orders[${idx}][do_doc]`, String(form.do_doc || ""));
+            }
+          } catch (err) {
+            console.error(`Error preparing delivery order row ${idx}:`, err);
           }
-        });
+        }
+        
+
+        // Log FormData contents for debugging before sending
+        try {
+          console.log("Sending deliveryorders FormData:");
+          for (const pair of fd.entries()) {
+            const [key, value] = pair;
+            if (value instanceof File) {
+              console.log(key, "= File", value.name, value.type, value.size);
+            } else {
+              console.log(key, "=", value);
+            }
+          }
+        } catch (e) {
+          console.log("Failed to enumerate FormData for logging:", e);
+        }
 
         const result = await api.bulkUpload(fd);
 
@@ -659,6 +798,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           return value === undefined || value === null ? "" : value;
         });
       });
+
+      // Log JSON payload before sending (non-deliveryorders)
+      try {
+        console.log("Sending payload for", resourceName, payload);
+      } catch (e) {
+        console.log("Failed to log payload:", e);
+      }
 
       const result = await api.bulkUpload(payload);
       console.log("API Result:", result); // ADD THIS LINE
@@ -1854,25 +2000,38 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                               </div>
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  Invoice No.
+                                  Invoice Number
                                 </label>
                                 <input
                                   type="text"
-                                  value={form.invoiceId ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "invoiceId",
-                                      e.target.value
-                                    )
-                                  }
+                                  value={form.invoice_no ?? ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    handleFormChange(idx, "invoice_no", val);
+                                    try {
+                                      const found = Object.values(invoiceData).find(
+                                        (inv) =>
+                                          String(inv?.invoiceId || inv?.invoice_no) ===
+                                          String(val)
+                                      );
+                                      if (found) {
+                                        handleFormChange(idx, "invoice_id", found.id);
+                                      } else {
+                                        handleFormChange(idx, "invoice_id", "");
+                                      }
+                                    } catch (err) {
+                                      // ignore
+                                    }
+                                  }}
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "invoiceId"
+                                    "invoice_no"
                                   )}`}
+                                  placeholder="Auto-filled from invoice (editable)"
                                 />
                               </div>
+                                   
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
                                   Invoice Date
@@ -1993,31 +2152,21 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                             </>
                           ) : resourceName === "deliveryorders" ? (
                             <>
-                              {/* Invoice (searchable) */}
+                              {/* Extracted DO Number (from OCR) - display/editable text field */}
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  DO No
+                                   DO No.
                                 </label>
-                                <SearchableSelect
-                                  id={`invoice-${idx}`}
-                                  options={invoiceOptions}
-                                  value={form.invoice_id || null}
-                                  onChange={(v) => {
-                                    const invoice = invoiceData[v];
-                                    const newFormData = [...formData];
-                                    newFormData[idx] = {
-                                      ...newFormData[idx],
-                                      invoice_id: v,
-                                      invoice_no: invoice?.invoiceId || "",
-                                      // Send primary key id as DO No in payload
-                                      do_no: invoice?.id ?? v,
-                                    };
-                                    setFormData(newFormData);
-                                  }}
-                                  onSearch={setInvoiceSearchQuery}
-                                  placeholder="Select an invoice..."
-                                  required
-                                  error={fieldHasError(idx, "invoice_id")}
+                                <input
+                                  type="text"
+                                  value={form.do_no ?? ""}
+                                  readOnly
+                                  disabled
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white ${errorClass(
+                                    idx,
+                                    "do_no"
+                                  )}`}
+                                  placeholder="Auto-extracted DO No."
                                 />
                               </div>
                               <div className="relative">
@@ -2028,12 +2177,12 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   type="text"
                                   value={form.invoice_no ?? ""}
                                   readOnly
-                                  required
-                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white read-only:cursor-not-allowed ${errorClass(
+                                  disabled
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white ${errorClass(
                                     idx,
                                     "invoice_no"
                                   )}`}
-                                  placeholder="Auto-filled from invoice"
+                                  placeholder="Invoice number (read-only)"
                                 />
                               </div>
                               {/* <div className="relative">

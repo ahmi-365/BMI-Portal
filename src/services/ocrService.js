@@ -1,26 +1,17 @@
-// src/services/ocrService.js
 import Tesseract from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Set up the worker source for pdf.js (Required for React/Vite)
+// Set up the worker source for pdf.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-/**
- * Extracts "DO No" from a PDF file using OCR
- * @param {File} file - The uploaded PDF file
- * @returns {Promise<string|null>} - The extracted DO Number or null
- */
 export const extractDoNoFromPdf = async (file) => {
   try {
-    // 1. Read the PDF file
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    
-    // 2. Get the first page (usually where DO No is located)
     const page = await pdf.getPage(1);
     
-    // 3. Render page to a canvas (Convert PDF -> Image)
-    const viewport = page.getViewport({ scale: 2.0 }); // Scale 2.0 improves OCR accuracy
+    // Render to canvas
+    const viewport = page.getViewport({ scale: 2.0 });
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     canvas.height = viewport.height;
@@ -28,26 +19,37 @@ export const extractDoNoFromPdf = async (file) => {
 
     await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-    // 4. Convert canvas to image blob
     const imageBlob = await new Promise(resolve => canvas.toBlob(resolve));
 
-    // 5. Run Tesseract OCR on the image
+    // Run Tesseract
     const { data: { text } } = await Tesseract.recognize(
       imageBlob,
       'eng',
-      { logger: m => console.log(m) } // Optional: logs progress
+      { 
+        // Log progress slightly less verbosely to avoid clutter
+        logger: m => { if(m.status === 'recognizing text') console.log(m.progress); } 
+      }
     );
 
-    // 6. Use Regex to find "DO No." specifically
-    // Matches "DO No.:", "DO No :", "DO No.", followed by the number
-    const doNoPattern = /DO\s*No\.?\s*[:.]?\s*([A-Z0-9]+)/i;
+    // --- LOGGING THE RESULT AS REQUESTED ---
+    console.log("%c OCR Full Text Result:", "background: #222; color: #bada55; padding: 4px;");
+    console.log(text); 
+    // ---------------------------------------
+
+    // Regex to find DO No specifically (Matches "DO No.: 5100612134")
+    // It looks for "DO No" followed by optional dots/colons, then captures the number
+    const doNoPattern = /DO\s*No\.?\s*[:.]?\s*(\d+)/i;
     const match = text.match(doNoPattern);
 
     if (match && match[1]) {
-      return match[1]; // Returns "5100612134"
+      const extractedNumber = match[1];
+      console.log("Extracted DO No:", extractedNumber);
+      return extractedNumber;
     }
 
-    return null; // Not found
+    console.warn("DO No. pattern not found in text.");
+    return null;
+
   } catch (error) {
     console.error("OCR Extraction Failed:", error);
     return null;

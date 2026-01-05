@@ -998,6 +998,9 @@ export const deliveryOrdersAPI = {
 
   // 🔥 ADD THIS (CSV EXPORT)
   exportCSV: (ids) => downloadBlobPost("/deliveryorders/export", { ids }),
+  // Support bulk-parse (if needed) and bulk-upload for batch delivery order uploads
+  bulkParse: (formData) => apiCallFormData("/deliveryorders/bulk-parse", formData, "POST"),
+  bulkUpload: (formData) => apiCallFormData("/deliveryorders/bulk-upload", formData, "POST"),
 };
 
 // Payments APIs
