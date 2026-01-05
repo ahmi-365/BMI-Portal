@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
-import { downloadBlob, statementsAPI } from "../../services/api";
+import { statementsAPI } from "../../services/api";
 import Toast from "../../components/common/Toast";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
 import { Trash2, Download } from "lucide-react";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 
@@ -19,34 +21,12 @@ const COLUMNS = [
     accessor: "statement_doc",
     render: (row) =>
       row.statement_doc ? (
-        <button
-          onClick={async () => {
-            try {
-              const blob = await downloadBlob(`/statements/download/${row.id}`);
-              const blobUrl = URL.createObjectURL(blob);
-              // Try to open in new tab; if blocked, fallback to triggering download
-              const newWin = window.open(blobUrl, "_blank");
-              if (!newWin) {
-                const a = document.createElement("a");
-                a.href = blobUrl;
-                a.download = row.statement_doc || "statement.pdf";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-              }
-              // Revoke object URL after a short delay to ensure it loaded
-              setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-            } catch (err) {
-              console.error("Download failed:", err);
-              alert(
-                "Failed to download statement. Please sign in or try again."
-              );
-            }
-          }}
-          className="text-brand-500 hover:underline"
-        >
-          {row.statement_doc}
-        </button>
+        <FileDownloadButton
+          file={row.statement_doc}
+          id={row.id}
+          endpoint="statements"
+          path="download"
+        />
       ) : (
         "-"
       ),
@@ -208,8 +188,14 @@ export default function AccountStatementsView() {
                       <button
                         className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors"
                         onClick={() => {
-                          handleBulkDownload("zip");
                           setIsDownloadMenuOpen(false);
+                          openBulkConfirm({
+                            type: "zip",
+                            title: "Download ZIP",
+                            message: `Are you sure you want to download ${selectedIds.length} statement(s)?`,
+                            confirmText: isDownloading ? "Downloading" : `Download (${selectedIds.length})`,
+                            onConfirm: async () => handleBulkDownload("zip"),
+                          });
                         }}
                       >
                         Download ZIP
@@ -219,8 +205,14 @@ export default function AccountStatementsView() {
                       <button
                         className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors"
                         onClick={() => {
-                          handleBulkDownload("csv");
                           setIsDownloadMenuOpen(false);
+                          openBulkConfirm({
+                            type: "csv",
+                            title: "Export CSV",
+                            message: `Are you sure you want to export ${selectedIds.length} statement(s) to CSV?`,
+                            confirmText: isDownloading ? "Exporting" : `Export CSV (${selectedIds.length})`,
+                            onConfirm: async () => handleBulkDownload("csv"),
+                          });
                         }}
                       >
                         Export CSV

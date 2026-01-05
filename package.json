@@ -23,7 +23,7 @@
     "flatpickr": "^4.6.13",
     "framer-motion": "^12.23.26",
     "lucide-react": "^0.555.0",
-    "pdfjs-dist": "^3.5.141",
+    "pdfjs-dist": "^3.11.174",
     "react": "^19.0.0",
     "react-apexcharts": "^1.7.0",
     "react-countup": "^6.5.3",

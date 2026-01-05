@@ -9,6 +9,7 @@ export default function CreditNotesAdd() {
   const isEditMode = !!id;
 
   const [companyOptions, setCompanyOptions] = useState([]);
+  const [companyMap, setCompanyMap] = useState({});
   const [invoiceOptions, setInvoiceOptions] = useState([]);
 
   useEffect(() => {
@@ -19,7 +20,10 @@ export default function CreditNotesAdd() {
         const opts = Array.isArray(list)
           ? list.map((c) => ({ value: c.id, label: c.company || c.name }))
           : [];
+        const map = {};
+        if (Array.isArray(list)) list.forEach((c) => (map[c.id] = c));
         setCompanyOptions(opts);
+        setCompanyMap(map);
       } catch (err) {
         console.error("Error loading companies:", err);
         setCompanyOptions([]);
@@ -54,6 +58,14 @@ export default function CreditNotesAdd() {
       required: true,
       options: companyOptions,
       placeholder: "Select a company...",
+        onChange: (value, setFormData) => {
+          const company = companyMap?.[value];
+          setFormData((prev) => ({
+            ...prev,
+            user_id: value,
+            customer_no: company?.customer_no || "",
+          }));
+        },
     },
     {
       name: "customer_no",

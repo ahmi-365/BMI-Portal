@@ -8,6 +8,7 @@ export default function AccountStatementsAdd() {
   const isEditMode = !!id;
 
   const [companyOptions, setCompanyOptions] = useState([]);
+  const [companyMap, setCompanyMap] = useState({});
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -17,7 +18,10 @@ export default function AccountStatementsAdd() {
         const opts = Array.isArray(list)
           ? list.map((c) => ({ value: c.id, label: c.company || c.name }))
           : [];
+        const map = {};
+        if (Array.isArray(list)) list.forEach((c) => (map[c.id] = c));
         setCompanyOptions(opts);
+        setCompanyMap(map);
       } catch (err) {
         console.error("Error loading companies:", err);
         setCompanyOptions([]);
@@ -36,6 +40,14 @@ export default function AccountStatementsAdd() {
       required: true,
       options: companyOptions,
       placeholder: "Select a company...",
+      onChange: (value, setFormData) => {
+        const company = companyMap?.[value];
+        setFormData((prev) => ({
+          ...prev,
+          user_id: value,
+          customer_no: company?.customer_no || "",
+        }));
+      },
     },
     {
       name: "statement_doc",

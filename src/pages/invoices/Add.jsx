@@ -9,6 +9,7 @@ export default function InvoicesAdd() {
   const isEditMode = !!id;
 
   const [companyOptions, setCompanyOptions] = useState([]);
+  const [companyMap, setCompanyMap] = useState({});
 
  
   useEffect(() => {
@@ -24,7 +25,15 @@ export default function InvoicesAdd() {
           }))
           : [];
 
+        const map = {};
+        if (Array.isArray(list)) {
+          list.forEach((c) => {
+            map[c.id] = c;
+          });
+        }
+
         setCompanyOptions(opts);
+        setCompanyMap(map);
       } catch (err) {
         console.error("Error loading companies:", err);
         setCompanyOptions([]);
@@ -46,6 +55,15 @@ export default function InvoicesAdd() {
       required: true,
       options: companyOptions,
       placeholder: "Select a company...",
+      onChange: (value, setFormData) => {
+        // value is company id
+        const company = companyMap?.[value];
+        setFormData((prev) => ({
+          ...prev,
+          user_id: value,
+          customer_no: company?.customer_no || "",
+        }));
+      },
     },
     {
       name: "customer_no",

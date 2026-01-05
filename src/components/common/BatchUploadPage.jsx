@@ -98,6 +98,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
   const [toastMessage, setToastMessage] = useState(null);
   const [toastType, setToastType] = useState("success");
   const [companyOptions, setCompanyOptions] = useState([]);
+  const [companyMapByCustomer, setCompanyMapByCustomer] = useState({});
   const [duplicateList, setDuplicateList] = useState([]);
   const [invoiceOptions, setInvoiceOptions] = useState([]);
   const [submitted, setSubmitted] = useState(false);
@@ -135,19 +136,75 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     if (!shouldLoadCompanies) return;
     const load = async () => {
       try {
+        console.debug("BatchUploadPage: attempting to load companies for", resourceName);
         const res = await companiesAPI.list();
+        console.debug("BatchUploadPage: companiesAPI.list() response:", res);
         const list = res?.data ?? res ?? [];
         const opts = Array.isArray(list)
           ? list.map((c) => ({ value: c.id, label: c.company || c.name }))
           : [];
         setCompanyOptions(opts);
+        // Build map from normalized customer_no -> company id for auto-selection
+        const map = {};
+        if (Array.isArray(list)) {
+          list.forEach((c) => {
+            const key = c?.customer_no;
+            if (key !== undefined && key !== null && String(key).trim() !== "") {
+              map[String(key).trim().toLowerCase()] = c.id;
+            }
+          });
+        }
+        setCompanyMapByCustomer(map);
       } catch (e) {
         console.error("Error loading companies:", e);
+        // Log responseData if available to help debugging network vs parse errors
+        try {
+          console.debug("Company load error responseData:", e?.responseData || e?.response || null);
+        } catch (_) {}
         setCompanyOptions([]);
       }
     };
     load();
   }, [resourceName]);
+
+  // When we have parsed formData and company map, auto-fill user_id for records
+  useEffect(() => {
+    try {
+      if (
+        !companyMapByCustomer ||
+        Object.keys(companyMapByCustomer).length === 0 ||
+        !Array.isArray(formData) ||
+        formData.length === 0
+      ) {
+        return;
+      }
+
+      let changed = false;
+      const next = formData.map((f) => {
+        const cust = f?.customer_no;
+        if (!cust) return f;
+        const key = String(cust ?? "").trim().toLowerCase();
+        const matched = companyMapByCustomer[key];
+        if (matched && (!f.user_id || f.user_id === "")) {
+          changed = true;
+          console.debug(
+            "BatchUploadPage: auto-matching customer_no",
+            cust,
+            "-> company id",
+            matched
+          );
+          return { ...f, user_id: matched };
+        }
+        return f;
+      });
+
+      if (changed) {
+        setFormData(next);
+      }
+    } catch (err) {
+      console.error("Auto-fill company by customer_no error:", err);
+    }
+  }, [companyMapByCustomer, formData]);
 
   // Load invoices for delivery orders dropdown
   const [invoiceData, setInvoiceData] = useState({});
@@ -1144,13 +1201,18 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                 <input
                                   type="text"
                                   value={form.customer_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "customer_no",
-                                      e.target.value
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    handleFormChange(idx, "customer_no", val);
+                                    const matched = companyMapByCustomer[String(
+                                      val ?? ""
                                     )
-                                  }
+                                      .trim()
+                                      .toLowerCase()];
+                                    if (matched) {
+                                      handleFormChange(idx, "user_id", matched);
+                                    }
+                                  }}
                                   className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
                                 />
                               </div>
@@ -1222,13 +1284,18 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                 <input
                                   type="text"
                                   value={form.customer_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "customer_no",
-                                      e.target.value
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    handleFormChange(idx, "customer_no", val);
+                                    const matched = companyMapByCustomer[String(
+                                      val ?? ""
                                     )
-                                  }
+                                      .trim()
+                                      .toLowerCase()];
+                                    if (matched) {
+                                      handleFormChange(idx, "user_id", matched);
+                                    }
+                                  }}
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
@@ -1428,13 +1495,18 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                 <input
                                   type="text"
                                   value={form.customer_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "customer_no",
-                                      e.target.value
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    handleFormChange(idx, "customer_no", val);
+                                    const matched = companyMapByCustomer[String(
+                                      val ?? ""
                                     )
-                                  }
+                                      .trim()
+                                      .toLowerCase()];
+                                    if (matched) {
+                                      handleFormChange(idx, "user_id", matched);
+                                    }
+                                  }}
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
@@ -1634,13 +1706,18 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                 <input
                                   type="text"
                                   value={form.customer_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "customer_no",
-                                      e.target.value
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    handleFormChange(idx, "customer_no", val);
+                                    const matched = companyMapByCustomer[String(
+                                      val ?? ""
                                     )
-                                  }
+                                      .trim()
+                                      .toLowerCase()];
+                                    if (matched) {
+                                      handleFormChange(idx, "user_id", matched);
+                                    }
+                                  }}
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
@@ -1735,13 +1812,18 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                 <input
                                   type="text"
                                   value={form.customer_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "customer_no",
-                                      e.target.value
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    handleFormChange(idx, "customer_no", val);
+                                    const matched = companyMapByCustomer[String(
+                                      val ?? ""
                                     )
-                                  }
+                                      .trim()
+                                      .toLowerCase()];
+                                    if (matched) {
+                                      handleFormChange(idx, "user_id", matched);
+                                    }
+                                  }}
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,

@@ -16,10 +16,13 @@ export const ShowPage = ({
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  
 
   useEffect(() => {
     loadData();
   }, [id]);
+
+  
 
   const loadData = async () => {
     try {
@@ -62,7 +65,6 @@ export const ShowPage = ({
       </div>
     );
   }
-
   return (
     <div className="max-w-6xl mx-auto p-6 animate-fadeIn">
       {/* Breadcrumb Navigation */}

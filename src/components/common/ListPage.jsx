@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
@@ -19,6 +19,8 @@ import {
 import Loader from "./Loader";
 import PageBreadcrumb from "./PageBreadCrumb";
 import Toast from "./Toast";
+import ConfirmationModal from "./ConfirmationModal";
+import { setBulkConfirmHandler, clearBulkConfirmHandler } from "./bulkConfirmManager";
 
 // --- Internal Delete Confirmation Modal Component ---
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
@@ -94,7 +96,6 @@ export const ListPage = ({
   // Data State
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
   // Pagination State
   const [perPageState, setPerPageState] = useState(perPage);
   const [currentPage, setCurrentPage] = useState(1);
@@ -121,6 +122,45 @@ export const ListPage = ({
   const [itemToDelete, setItemToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  // Bulk download confirmation state (shared via context to headerAction)
+  const [isBulkConfirmOpen, setIsBulkConfirmOpen] = useState(false);
+  const [bulkConfirmPayload, setBulkConfirmPayload] = useState(null);
+  const [isBulkConfirmLoading, setIsBulkConfirmLoading] = useState(false);
+  
+
+  const openHandler = ({
+    type = "zip",
+    message = "Are you sure you want to download the selected items?",
+    title = null,
+    confirmText = "Download",
+    onConfirm = null,
+  } = {}) => {
+    setBulkConfirmPayload({ type, message, title, confirmText, onConfirm });
+    setIsBulkConfirmOpen(true);
+  };
+
+  const handleBulkConfirm = async () => {
+    if (!bulkConfirmPayload) return;
+    try {
+      setIsBulkConfirmLoading(true);
+      if (typeof bulkConfirmPayload.onConfirm === "function") {
+        await bulkConfirmPayload.onConfirm();
+      }
+    } catch (err) {
+      console.error("Bulk confirm action failed:", err);
+    } finally {
+      setIsBulkConfirmLoading(false);
+      setIsBulkConfirmOpen(false);
+      setBulkConfirmPayload(null);
+    }
+  };
+ 
+
+  // Register global handler so pages can trigger this modal without hook ordering issues
+  useEffect(() => {
+    setBulkConfirmHandler(openHandler);
+    return () => clearBulkConfirmHandler();
+  }, [/* nothing */]);
 
   // Load Data Function
   const loadData = useCallback(async () => {
@@ -195,12 +235,7 @@ export const ListPage = ({
 
   const resolvedBase = basePath || `/${resourceName}`;
   const handleView = (row) => {
-    // Use the user-specific route if basePath indicates user resource
-    const route =
-      basePath ||
-      (resourceName.startsWith("user/")
-        ? `/${resourceName}`
-        : `/${resourceName}`);
+    const route = basePath || `/${resourceName}`;
     navigate(`${route}/show/${row.id}`);
   };
   const handleEdit = (row) => navigate(`${resolvedBase}/edit/${row.id}`);
@@ -284,7 +319,7 @@ export const ListPage = ({
   const endIndex = Math.min(currentPage * perPageState, total);
 
   return (
-    <div className="p-6 mt-12 animate-fade-in-up">
+      <div className="p-6 mt-12 animate-fade-in-up">
 
       {deleteError && (
         <Toast
@@ -299,13 +334,28 @@ export const ListPage = ({
       {subtitle && (
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {subtitle}
-            </p>
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>
           </div>
           <div className="flex gap-2">{headerAction}</div>
         </div>
       )}
+
+      {/* Shared bulk download confirmation modal (rendered once by ListPage) */}
+      <ConfirmationModal
+        isOpen={isBulkConfirmOpen}
+        onClose={() => setIsBulkConfirmOpen(false)}
+        onConfirm={handleBulkConfirm}
+        title={bulkConfirmPayload?.title || (bulkConfirmPayload?.type === "csv" ? "Export CSV" : "Download ZIP")}
+        message={bulkConfirmPayload?.message || "Are you sure?"}
+        confirmText={bulkConfirmPayload?.confirmText || "Download"}
+        cancelText="Cancel"
+        isLoading={isBulkConfirmLoading}
+        requireAcknowledgement={
+          resourceName && /invoices|ppis|ppi|payments|statements|deliveryorders|delivery-orders|debitnotes|debit-notes|creditnotes|credit-notes/.test(resourceName)
+        }
+      />
+      
       {/* Apply/Clear Filters Buttons + Search + Filter Toggle (Inline) */}
       <div className="mb-4 gap-3 flex justify-end flex-wrap">
         <div className="relative w-full max-w-md">

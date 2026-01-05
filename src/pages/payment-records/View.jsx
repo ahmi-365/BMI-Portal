@@ -1,47 +1,19 @@
 import { useState } from "react";
 import { ListPage } from "../../components/common/ListPage";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
 import PageMeta from "../../components/common/PageMeta";
-import { downloadBlob, paymentsAPI } from "../../services/api";
+import { paymentsAPI } from "../../services/api";
 import { Check, Trash2, Download } from "lucide-react";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 import Toast from "../../components/common/Toast";
 import { formatDateISO } from "../../lib/dateUtils";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 
-const openPdf = async (path, filename) => {
-  try {
-    const blob = await downloadBlob(path);
-    const blobUrl = URL.createObjectURL(blob);
-
-    const newWin = window.open(blobUrl, "_blank");
-
-    if (!newWin) {
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = filename || "file.pdf";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }
-
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-  } catch (err) {
-    console.error("Download failed:", err);
-    alert("Failed to download document. Please try again.");
-  }
-};
 
 // ---------- PDF RENDER BUTTON ----------
-const PdfButton = ({ label, file, id, endpoint }) =>
+const PdfButton = ({ label, file, id, endpoint, path = "download-proof" }) =>
   file ? (
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        openPdf(`/${endpoint}/download-proof/${id}`, file);
-      }}
-      className="text-brand-500 hover:underline"
-    >
-      {file}
-    </button>
+    <FileDownloadButton file={file} id={id} endpoint={endpoint} path={path} />
   ) : (
     "-"
   );
@@ -77,12 +49,7 @@ const PAID_COLUMNS = [
     header: "Proof of Payment",
     accessor: "proof",
     render: (row) => (
-      <PdfButton
-        label="Proof"
-        file={row.proof}
-        id={row.id}
-        endpoint="payments"
-      />
+      <PdfButton file={row.proof} id={row.id} endpoint="payments" path="download-proof" />
     ),
   },
 
@@ -96,7 +63,7 @@ const PAID_COLUMNS = [
     header: "Invoice Doc",
     accessor: "invoice_doc",
     render: (row) => (
-      <PdfButton file={row.invoice_doc} id={row.id} endpoint="payments" />
+      <PdfButton file={row.invoice_doc} id={row.id} endpoint="payments" path="download-invoice" />
     ),
   },
 
@@ -104,7 +71,7 @@ const PAID_COLUMNS = [
     header: "DO Doc",
     accessor: "do_doc",
     render: (row) => (
-      <PdfButton file={row.do_doc} id={row.id} endpoint="payments" />
+      <PdfButton file={row.do_doc} id={row.id} endpoint="payments" path="download-do" />
     ),
   },
 
@@ -112,7 +79,7 @@ const PAID_COLUMNS = [
     header: "DN Doc",
     accessor: "dn_doc",
     render: (row) => (
-      <PdfButton file={row.dn_doc} id={row.id} endpoint="payments" />
+      <PdfButton file={row.dn_doc} id={row.id} endpoint="payments" path="download-dn" />
     ),
   },
 
@@ -120,7 +87,7 @@ const PAID_COLUMNS = [
     header: "CN Doc",
     accessor: "cn_doc",
     render: (row) => (
-      <PdfButton file={row.cn_doc} id={row.id} endpoint="payments" />
+      <PdfButton file={row.cn_doc} id={row.id} endpoint="payments" path="download-cn" />
     ),
   },
 
@@ -182,7 +149,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
     header: "Proof Of Payment",
     accessor: "proof",
     render: (row) => (
-      <PdfButton file={row.proof} id={row.id} endpoint="payments" />
+      <PdfButton file={row.proof} id={row.id} endpoint="payments" path="download-proof" />
     ),
   },
 
@@ -196,7 +163,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
     header: "DO DOC",
     accessor: "doDoc",
     render: (row) => (
-      <PdfButton file={row.do_doc} id={row.id} endpoint="payments" />
+      <PdfButton file={row.do_doc} id={row.id} endpoint="payments" path="download-do" />
     ),
   },
 
@@ -204,7 +171,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
     header: "DN DOC",
     accessor: "dnDoc",
     render: (row) => (
-      <PdfButton file={row.dn_doc} id={row.id} endpoint="payments" />
+      <PdfButton file={row.dn_doc} id={row.id} endpoint="payments" path="download-dn" />
     ),
   },
 
@@ -212,7 +179,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
     header: "CN DOC",
     accessor: "cnDoc",
     render: (row) => (
-      <PdfButton file={row.cn_doc} id={row.id} endpoint="payments" />
+      <PdfButton file={row.cn_doc} id={row.id} endpoint="payments" path="download-cn" />
     ),
   },
 
@@ -239,7 +206,15 @@ const createNotAcknowledgedColumns = (onApprove) => [
 
     render: (row) => (
       <button
-        onClick={() => onApprove(row)}
+        onClick={() =>
+          openBulkConfirm({
+            type: "confirm",
+            title: "Approve Payment",
+            message: `Are you sure you want to approve payment for ${row.user?.company || row.user?.name || row.id}?`,
+            confirmText: "Approve",
+            onConfirm: async () => onApprove(row),
+          })
+        }
         className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium transition-all duration-200 text-sm"
       >
         <Check className="w-4 h-4" />
@@ -258,6 +233,7 @@ export default function PaymentRecordsView() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
 
   const handleBulkDeleteClick = () => {
     if (selectedIds.length === 0) {
@@ -385,16 +361,24 @@ export default function PaymentRecordsView() {
           headerAction={
             selectedIds.length > 0 && (
               <div className="flex items-center gap-3">
-                {/* <button
-                  onClick={handleBulkDownload}
-                  disabled={isDownloading}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  {isDownloading
-                    ? "Downloading..."
-                    : `Download (${selectedIds.length})`}
-                </button> */}
+                  <button
+                    onClick={() =>
+                      openBulkConfirm({
+                        type: "zip",
+                        onConfirm: handleBulkDownload,
+                        title: "Download ZIP",
+                        message: `Are you sure you want to download ${selectedIds.length} payment record(s)?`,
+                        confirmText: isDownloading ? "Downloading" : `Download (${selectedIds.length})`,
+                      })
+                    }
+                    disabled={isDownloading}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    {isDownloading
+                      ? "Downloading..."
+                      : `Download (${selectedIds.length})`}
+                  </button>
                 <button
                   onClick={handleBulkDeleteClick}
                   disabled={isDeleting}

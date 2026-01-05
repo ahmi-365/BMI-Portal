@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ListPage } from "../../components/common/ListPage";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
 import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { deliveryOrdersAPI } from "../../services/api";
@@ -95,6 +96,7 @@ export default function DeliveryOrdersView() {
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
 
   const handleBulkDeleteClick = () => {
     if (selectedIds.length === 0) {
@@ -211,14 +213,30 @@ export default function DeliveryOrdersView() {
                 {isDownloadOpen && (
                   <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
                     <button
-                      onClick={handleBulkDownload}
+                      onClick={() =>
+                        openBulkConfirm({
+                          type: "zip",
+                          onConfirm: handleBulkDownload,
+                          title: "Download ZIP",
+                          message: `Are you sure you want to download ${selectedIds.length} delivery order(s)?`,
+                          confirmText: isDownloading ? "Downloading" : "Yes, Download",
+                        })
+                      }
                       className="w-full px-4 py-2 text-left hover:bg-gray-100"
                     >
                       Download ZIP
                     </button>
 
                     <button
-                      onClick={handleCSVDownload}
+                      onClick={() =>
+                        openBulkConfirm({
+                          type: "csv",
+                          onConfirm: handleCSVDownload,
+                          title: "Export CSV",
+                          message: `Are you sure you want to export ${selectedIds.length} delivery order(s) as CSV?`,
+                          confirmText: isDownloading ? "Downloading" : "Yes, Export",
+                        })
+                      }
                       className="w-full px-4 py-2 text-left hover:bg-gray-100"
                     >
                       Export CSV

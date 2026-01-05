@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { downloadBlob, userDownloadBlob } from "../../services/api";
+import ConfirmationModal from "./ConfirmationModal";
 
 export default function FileDownloadButton({
   file,
@@ -12,12 +13,18 @@ export default function FileDownloadButton({
 }) {
   if (!file) return "-";
 
-  const handleClick = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const performDownload = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (onClick) onClick(e);
 
     try {
+      setIsDownloading(true);
       const downloadFn = isUserAPI ? userDownloadBlob : downloadBlob;
       const blob = await downloadFn(`/${endpoint}/${path}/${id}`);
       const blobUrl = URL.createObjectURL(blob);
@@ -36,16 +43,43 @@ export default function FileDownloadButton({
     } catch (err) {
       console.error("Download failed:", err);
       alert("Failed to download document. Please try again.");
+    } finally {
+      setIsDownloading(false);
+      setIsConfirmOpen(false);
     }
   };
 
+  const handleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsConfirmOpen(true);
+  };
+
+  const needAcknowledgement = endpoint
+    ? /invoices|ppis|ppi|payments|statements|deliveryorders|delivery-orders|debitnotes|debit-notes|creditnotes|credit-notes/.test(endpoint)
+    : false;
+
   return (
-    <button
-      onClick={handleClick}
-      className="text-brand-500 hover:underline focus:outline-none"
-      title={`Download ${file}`}
-    >
-      {children || file}
-    </button>
+    <>
+      <button
+        onClick={handleClick}
+        className="text-brand-500 hover:underline focus:outline-none"
+        title={`Download ${file}`}
+      >
+        {children || file}
+      </button>
+
+      <ConfirmationModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={performDownload}
+        title="Download file"
+        message={`Do you want to download ${file}?`}
+        requireAcknowledgement={needAcknowledgement}
+        confirmText={isDownloading ? "Downloading" : "Download"}
+        cancelText="Cancel"
+        isLoading={isDownloading}
+      />
+    </>
   );
 }

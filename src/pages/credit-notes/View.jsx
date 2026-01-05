@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
 import { creditNotesAPI } from "../../services/api";
 import Toast from "../../components/common/Toast";
 import { Trash2, Download } from "lucide-react";
@@ -251,14 +252,32 @@ export default function CreditNotesView() {
                 {isDownloadOpen && (
                   <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
                     <button
-                      onClick={handleZipDownload}
+                      onClick={() => {
+                        setIsDownloadOpen(false);
+                        openBulkConfirm({
+                          type: "zip",
+                          title: "Download ZIP",
+                          message: `Are you sure you want to download ${selectedIds.length} credit note(s)?`,
+                          confirmText: isDownloading ? "Downloading" : `Download (${selectedIds.length})`,
+                          onConfirm: handleZipDownload,
+                        });
+                      }}
                       className="w-full px-4 py-2 text-left hover:bg-gray-100"
                     >
                       Download ZIP
                     </button>
 
                     <button
-                      onClick={handleCSVDownload}
+                      onClick={() => {
+                        setIsDownloadOpen(false);
+                        openBulkConfirm({
+                          type: "csv",
+                          title: "Export CSV",
+                          message: `Are you sure you want to export ${selectedIds.length} credit note(s) to CSV?`,
+                          confirmText: isDownloading ? "Exporting" : `Export CSV (${selectedIds.length})`,
+                          onConfirm: handleCSVDownload,
+                        });
+                      }}
                       className="w-full px-4 py-2 text-left hover:bg-gray-100"
                     >
                       Export CSV

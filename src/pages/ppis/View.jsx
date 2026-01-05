@@ -6,6 +6,7 @@ import Toast from "../../components/common/Toast";
 import { ppisAPI } from "../../services/api";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 import { Trash2, Download } from "lucide-react";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
 
 const COLUMNS = [
   {
@@ -181,8 +182,14 @@ export default function PpisView() {
                       <button
                         className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
                         onClick={() => {
-                          handleBulkDownload("zip");
                           setIsDownloadMenuOpen(false);
+                          openBulkConfirm({
+                            type: "zip",
+                            title: "Download ZIP",
+                            message: `Are you sure you want to download ${selectedIds.length} PPI record(s)?`,
+                            confirmText: isDownloading ? "Downloading" : `Download (${selectedIds.length})`,
+                            onConfirm: async () => handleBulkDownload("zip"),
+                          });
                         }}
                       >
                         Download ZIP
@@ -192,8 +199,14 @@ export default function PpisView() {
                       <button
                         className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
                         onClick={() => {
-                          handleBulkDownload("csv");
                           setIsDownloadMenuOpen(false);
+                          openBulkConfirm({
+                            type: "csv",
+                            title: "Export CSV",
+                            message: `Are you sure you want to export ${selectedIds.length} PPI record(s) to CSV?`,
+                            confirmText: isDownloading ? "Exporting" : `Export CSV (${selectedIds.length})`,
+                            onConfirm: async () => handleBulkDownload("csv"),
+                          });
                         }}
                       >
                         Export CSV

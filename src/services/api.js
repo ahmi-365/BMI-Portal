@@ -429,11 +429,27 @@ export const userDownloadBlob = async (endpoint, data = null) => {
 export const getResourceById = async (resourceName, id) => {
   const { resource } = parseResourceName(resourceName);
   // Many backend endpoints expose a show route at /<resource>/show/:id
-  // But invoices use /invoices/:id
-  const endpoint =
-    resource === "invoices" ? `/${resource}/${id}` : `/${resource}/show/${id}`;
-  const res = await apiCall(endpoint);
-  return res?.data ?? res;
+  // Some endpoints (notably invoices) also expose /<resource>/:id
+  // Try the most likely endpoint first, then fall back if it fails.
+  if (resource === "invoices" || resource === "ppis") {
+    try {
+      const res = await apiCall(`/${resource}/${id}`);
+      return res?.data ?? res;
+    } catch (err) {
+      // fallback to /invoices/show/:id
+      const res = await apiCall(`/${resource}/show/${id}`);
+      return res?.data ?? res;
+    }
+  }
+
+  try {
+    const res = await apiCall(`/${resource}/show/${id}`);
+    return res?.data ?? res;
+  } catch (err) {
+    // fallback to /<resource>/:id
+    const res = await apiCall(`/${resource}/${id}`);
+    return res?.data ?? res;
+  }
 };
 
 export const createResource = async (resourceName, data) => {
@@ -724,7 +740,7 @@ export const ppisAPI = {
   allCreditnotes: () => {
     return apiCall(`/ppis/all-creditnotes`);
   },
-  show: (id) => apiCall(`/ppis/${id}`),
+  show: (id) => apiCall(`/ppis/show/${id}`),
 
   create: (formData) => apiCallFormData("/ppis/create", formData, "POST"),
 
