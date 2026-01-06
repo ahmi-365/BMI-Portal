@@ -3,6 +3,11 @@ import { Plus } from "lucide-react";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { useState } from "react";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import { userDownloadBlob } from "../../services/api"; // make sure this is imported
+import { Download, Loader2 } from "lucide-react"; // For the download icon
+
 
 const COLUMNS = [
   {
@@ -49,14 +54,14 @@ const COLUMNS = [
         row.status === 0
           ? "Pending"
           : row.status === 1
-          ? "Approved"
-          : "Rejected";
+            ? "Approved"
+            : "Rejected";
       const cls =
         row.status === 0
           ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
           : row.status === 1
-          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-          : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
       return (
         <span
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cls}`}
@@ -84,6 +89,46 @@ const COLUMNS = [
 
 export default function UserPayments() {
   const navigate = useNavigate();
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleBulkDownloadWithConfirm = () => {
+    if (selectedIds.length === 0) {
+      alert("Please select at least one payment");
+      return;
+    }
+
+    openBulkConfirm({
+      type: "zip",
+      title: "Download ZIP",
+      message: `Are you sure you want to download ${selectedIds.length} payment(s)?`,
+      confirmText: "Yes, Download",
+      onConfirm: async () => {
+        setIsDownloading(true);
+        try {
+          const blob = await userDownloadBlob(`/user/payments/bulk-download`, {
+            ids: selectedIds,
+          });
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = `payments-${Date.now()}.zip`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+          setSelectedIds([]);
+        } catch (err) {
+          console.error("Bulk download failed:", err);
+          alert("Failed to download files. Please try again.");
+        } finally {
+          setIsDownloading(false);
+        }
+      },
+    });
+  };
+
+
 
   return (
     <div>
@@ -97,15 +142,38 @@ export default function UserPayments() {
         title="My Payments"
         subtitle="View and manage your payment records"
         showActions={false}
-        headerAction={
-          <button
-            onClick={() => navigate("/user/payments/add")}
-            className="inline-flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-600 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add Payment
-          </button>
-        }
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+
+       headerAction={
+  <>
+    {selectedIds.length > 0 && (
+      <button
+        onClick={handleBulkDownloadWithConfirm}
+        disabled={isDownloading}
+        className="inline-flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isDownloading ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Download className="w-4 h-4" />
+        )}
+        {isDownloading
+          ? "Downloading..."
+          : `Download (${selectedIds.length})`}
+      </button>
+    )}
+
+    <button
+      onClick={() => navigate("/user/payments/add")}
+      className="inline-flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-600 transition-colors"
+    >
+      <Plus className="w-4 h-4" />
+      Add Payment
+    </button>
+  </>
+}
+
       />
     </div>
   );

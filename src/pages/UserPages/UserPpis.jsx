@@ -5,6 +5,8 @@ import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
 import { render } from "@fullcalendar/core/preact.js";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+
 
 const COLUMNS = [
   {
@@ -29,8 +31,10 @@ const COLUMNS = [
     filterKey: "ref_no",
   },
   { header: "Amount", accessor: "amount", filterKey: "amount" },
-  { header: "PPI Date", accessor: "ppi_date",  filterKey: "ppi_date",
-    filterType: "date-range",},
+  {
+    header: "PPI Date", accessor: "ppi_date", filterKey: "ppi_date",
+    filterType: "date-range",
+  },
   {
     header: "Payment Term",
     accessor: "payment_term",
@@ -67,12 +71,12 @@ const COLUMNS = [
   {
     header: "Created At",
     accessor: "created_at",
-     filterKey: "uploaded",
+    filterKey: "uploaded",
     filterType: "date-range",
     render: (row) => {
       if (!row.created_at) return "-";
       return String(row.created_at).split("T")[0];
-    } 
+    }
   },
 ];
 
@@ -107,6 +111,42 @@ export default function UserPPIs() {
       setIsDownloading(false);
     }
   };
+  const handleBulkDownloadWithConfirm = () => {
+    if (selectedIds.length === 0) {
+      alert("Please select at least one PPI");
+      return;
+    }
+
+    openBulkConfirm({
+      type: "zip",
+      title: "Download ZIP",
+      message: `Are you sure you want to download ${selectedIds.length} PPI(s)?`,
+      confirmText: "Yes, Download",
+      onConfirm: async () => {
+        setIsDownloading(true);
+        try {
+          const blob = await userDownloadBlob(`/user/ppis/bulk-download`, {
+            ids: selectedIds,
+          });
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = "ppis.zip"; // Use a proper name
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+          setSelectedIds([]);
+        } catch (err) {
+          console.error("Bulk download failed:", err);
+          alert("Failed to download files. Please try again.");
+        } finally {
+          setIsDownloading(false);
+        }
+      },
+    });
+  };
+
 
   return (
     <div>
@@ -125,7 +165,7 @@ export default function UserPPIs() {
         headerAction={
           selectedIds.length > 0 ? (
             <button
-              onClick={handleBulkDownload}
+              onClick={handleBulkDownloadWithConfirm}
               disabled={isDownloading}
               className="inline-flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
