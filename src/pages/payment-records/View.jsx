@@ -98,8 +98,8 @@ const PAID_COLUMNS = [
     render: (row) => (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 0
-            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
           }`}
       >
         {row.status === 0 ? "Pending" : "Approved"}
@@ -189,8 +189,8 @@ const createNotAcknowledgedColumns = (onApprove) => [
     render: (row) => (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 0
-            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
           }`}
       >
         {row.status === 0 ? "Pending" : "Approved"}
@@ -266,36 +266,49 @@ export default function PaymentRecordsView() {
       setIsDownloading(false);
     }
   };
-  const handleExportCSV = async () => {
-    try {
-      setIsDownloading(true);
-
-      let blob;
-
-      // 🔥 Decide endpoint based on active tab
-      if (activeTab === "paid") {
-        blob = await paymentsAPI.exportApprovedCSV(selectedIds);
-      } else {
-        blob = await paymentsAPI.exportPendingCSV(selectedIds);
-      }
-
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `payments-${activeTab}-${Date.now()}.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-
-      setToastType("success");
-      setToastMessage("CSV exported successfully");
-    } catch (error) {
+  const handleExportCSV = () => {
+    if (selectedIds.length === 0) {
       setToastType("error");
-      setToastMessage(error.message || "CSV export failed");
-    } finally {
-      setIsDownloading(false);
-      setIsDownloadMenuOpen(false);
+      setToastMessage("Please select items to export");
+      return;
     }
+
+    openBulkConfirm({
+      type: "csv",
+      title: "Export CSV",
+      message: `Are you sure you want to export ${selectedIds.length} payment record(s) as CSV?`,
+      confirmText: "Yes, Export",
+      onConfirm: async () => {
+        try {
+          setIsDownloading(true);
+          let blob;
+
+          if (activeTab === "paid") {
+            blob = await paymentsAPI.exportApprovedCSV(selectedIds);
+          } else {
+            blob = await paymentsAPI.exportPendingCSV(selectedIds);
+          }
+
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `payments-${activeTab}-${Date.now()}.csv`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+
+          setToastType("success");
+          setToastMessage("CSV exported successfully");
+        } catch (error) {
+          setToastType("error");
+          setToastMessage(error.message || "CSV export failed");
+        } finally {
+          setIsDownloading(false);
+          setIsDownloadMenuOpen(false);
+        }
+      },
+    });
   };
+
 
 
 
@@ -358,8 +371,8 @@ export default function PaymentRecordsView() {
           <button
             onClick={() => setActiveTab("paid")}
             className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "paid"
-                ? "border-brand-500 text-brand-500"
-                : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
+              ? "border-brand-500 text-brand-500"
+              : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
               }`}
           >
             Paid Invoices
@@ -368,8 +381,8 @@ export default function PaymentRecordsView() {
           <button
             onClick={() => setActiveTab("not-acknowledged")}
             className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "not-acknowledged"
-                ? "border-brand-500 text-brand-500"
-                : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
+              ? "border-brand-500 text-brand-500"
+              : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
               }`}
           >
             Not Acknowledged
@@ -423,6 +436,7 @@ export default function PaymentRecordsView() {
                       >
                         Export CSV
                       </button>
+
                     </div>
                   )}
                 </div>
@@ -488,6 +502,7 @@ export default function PaymentRecordsView() {
                       >
                         Export CSV
                       </button>
+
                     </div>
                   )}
                 </div>
