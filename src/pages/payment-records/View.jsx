@@ -97,11 +97,10 @@ const PAID_COLUMNS = [
     disableFilter: true,
     render: (row) => (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          row.status === 0
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 0
             ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
             : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-        }`}
+          }`}
       >
         {row.status === 0 ? "Pending" : "Approved"}
       </span>
@@ -189,11 +188,10 @@ const createNotAcknowledgedColumns = (onApprove) => [
     disableFilter: true,
     render: (row) => (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          row.status === 0
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 0
             ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
             : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-        }`}
+          }`}
       >
         {row.status === 0 ? "Pending" : "Approved"}
       </span>
@@ -233,7 +231,9 @@ export default function PaymentRecordsView() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
+
+
 
   const handleBulkDeleteClick = () => {
     if (selectedIds.length === 0) {
@@ -266,6 +266,38 @@ export default function PaymentRecordsView() {
       setIsDownloading(false);
     }
   };
+  const handleExportCSV = async () => {
+    try {
+      setIsDownloading(true);
+
+      let blob;
+
+      // 🔥 Decide endpoint based on active tab
+      if (activeTab === "paid") {
+        blob = await paymentsAPI.exportApprovedCSV(selectedIds);
+      } else {
+        blob = await paymentsAPI.exportPendingCSV(selectedIds);
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `payments-${activeTab}-${Date.now()}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      setToastType("success");
+      setToastMessage("CSV exported successfully");
+    } catch (error) {
+      setToastType("error");
+      setToastMessage(error.message || "CSV export failed");
+    } finally {
+      setIsDownloading(false);
+      setIsDownloadMenuOpen(false);
+    }
+  };
+
+
 
   const handleBulkDelete = async () => {
     try {
@@ -325,22 +357,20 @@ export default function PaymentRecordsView() {
         <div className="flex gap-4">
           <button
             onClick={() => setActiveTab("paid")}
-            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "paid"
+            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "paid"
                 ? "border-brand-500 text-brand-500"
                 : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
-            }`}
+              }`}
           >
             Paid Invoices
           </button>
 
           <button
             onClick={() => setActiveTab("not-acknowledged")}
-            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "not-acknowledged"
+            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "not-acknowledged"
                 ? "border-brand-500 text-brand-500"
                 : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
-            }`}
+              }`}
           >
             Not Acknowledged
           </button>
@@ -361,24 +391,42 @@ export default function PaymentRecordsView() {
           headerAction={
             selectedIds.length > 0 && (
               <div className="flex items-center gap-3">
+                <div className="relative">
                   <button
-                    onClick={() =>
-                      openBulkConfirm({
-                        type: "zip",
-                        onConfirm: handleBulkDownload,
-                        title: "Download ZIP",
-                        message: `Are you sure you want to download ${selectedIds.length} payment record(s)?`,
-                        confirmText: isDownloading ? "Downloading" : `Download (${selectedIds.length})`,
-                      })
-                    }
-                    disabled={isDownloading}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     <Download className="w-4 h-4" />
-                    {isDownloading
-                      ? "Downloading..."
-                      : `Download (${selectedIds.length})`}
+                    Download ({selectedIds.length})
                   </button>
+
+                  {isDownloadMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20">
+                      {/* <button
+                        onClick={() =>
+                          openBulkConfirm({
+                            type: "zip",
+                            title: "Download ZIP",
+                            message: `Download ${selectedIds.length} payment record(s) as ZIP?`,
+                            confirmText: "Download ZIP",
+                            onConfirm: handleBulkDownload,
+                          })
+                        }
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                      >
+                        Download ZIP
+                      </button> */}
+
+                      <button
+                        onClick={handleExportCSV}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                      >
+                        Export CSV
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <button
                   onClick={handleBulkDeleteClick}
                   disabled={isDeleting}
@@ -408,16 +456,42 @@ export default function PaymentRecordsView() {
           headerAction={
             selectedIds.length > 0 && (
               <div className="flex items-center gap-3">
-                {/* <button
-                  onClick={handleBulkDownload}
-                  disabled={isDownloading}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  {isDownloading
-                    ? "Downloading..."
-                    : `Download (${selectedIds.length})`}
-                </button> */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download ({selectedIds.length})
+                  </button>
+
+                  {isDownloadMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20">
+                      {/* <button
+                        onClick={() =>
+                          openBulkConfirm({
+                            type: "zip",
+                            title: "Download ZIP",
+                            message: `Download ${selectedIds.length} payment record(s) as ZIP?`,
+                            confirmText: "Download ZIP",
+                            onConfirm: handleBulkDownload,
+                          })
+                        }
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                      >
+                        Download ZIP
+                      </button> */}
+
+                      <button
+                        onClick={handleExportCSV}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                      >
+                        Export CSV
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <button
                   onClick={handleBulkDeleteClick} // ✅ OPEN MODAL
                   disabled={isDeleting}

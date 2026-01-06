@@ -1020,6 +1020,13 @@ export const paymentsAPI = {
   bulkDownload: (ids) =>
     downloadBlobPost("/payment-records/bulk-download", { ids }),
 
+  exportApprovedCSV: (ids) =>
+    downloadBlobPost("/payments/export/approved", { ids }),
+
+  exportPendingCSV: (ids) =>
+    downloadBlobPost("/payments/export/pending", { ids }),
+
+
   uploadProof: (formData) =>
     apiCallFormData("/payments/upload-proof", formData, "POST"),
   delete: (id) =>
