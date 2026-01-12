@@ -465,6 +465,7 @@ export default function PaymentRecordsView() {
           subtitle="View pending payment acknowledgments"
           showEdit={false}
           selectedIds={selectedIds}
+          
           onSelectionChange={setSelectedIds}
           refreshKey={refreshKey}
           headerAction={

@@ -1,25 +1,28 @@
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ShowPage } from "../../components/common/ShowPage";
+import { formatDate } from "../../lib/dateUtils";
+
 
 const FIELDS = [
   // { name: "id", label: "ID" },
   { name: "customer_no", label: "Customer No" },
   {
     name: "user",
-    label: "Company Name",
+    label: "Company Name", 
     render: (user) => user?.company || "-",
   },
-  { name: "statement_doc", label: "Statement Document", type: "file",
-    render: (_v,row) => (
-              <FileDownloadButton
-                file={row.statement_doc}
-                id={row.id}
-                endpoint="statements"
-                path="download"
-              />
-            ),
-   },
-{
+  {
+    name: "statement_doc", label: "Statement Document", type: "file",
+    render: (_v, row) => (
+      <FileDownloadButton
+        file={row.statement_doc}
+        id={row.id}
+        endpoint="statements"
+        path="download"
+      />
+    ),
+  },
+  {
     name: "statement_date",
     label: "Statement Date",
     // CHANGE: Use formatDate for consistent DMY format

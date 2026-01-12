@@ -1,6 +1,8 @@
 import { ShowPage } from "../../components/common/ShowPage";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { render } from "@fullcalendar/core/preact.js";
+import { formatDate } from "../../lib/dateUtils";
+
 
 const FIELDS = [
   // { name: "id", label: "ID" },
@@ -42,10 +44,11 @@ const FIELDS = [
 
   ,
   {
-    name: "payment_date",
-    label: "Payment Date",
-    render: (value) => (value ? String(value).split("T")[0] : "-"),
-  },
+  name: "payment_date",
+  label: "Payment Date",
+  render: (value) => formatDate(value),
+}
+,
 
   {
     name: "proof",

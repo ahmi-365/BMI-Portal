@@ -1,5 +1,7 @@
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ShowPage } from "../../components/common/ShowPage";
+import { formatDate } from "../../lib/dateUtils";
+
 
 const FIELDS = [
   { name: "id", label: "Invoice No" },
@@ -34,7 +36,7 @@ const FIELDS = [
   {
     name: "invoice_date",
     label: "Invoice Date",
-    render: (value) => (value ? String(value).split("T")[0] : "-"),
+    render: (value) => formatDate(value),
   },
 
   { name: "po_no", label: "PO No." },
@@ -43,10 +45,11 @@ const FIELDS = [
   // { name: "outstanding", label: "Outstanding" },
 
   {
-    name: "date",
-    label: "Due Date",
-    render: (value) => (value ? String(value).split("T")[0] : "-"),
-  },
+  name: "date",
+  label: "Due Date",
+  render: (value) => formatDate(value),
+}
+
 
 ];
 
