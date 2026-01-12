@@ -1,6 +1,6 @@
-import { render } from "@fullcalendar/core/preact.js";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
+import { formatDate } from "../../lib/dateUtils";
 
 const COLUMNS = [
   {
@@ -26,18 +26,13 @@ const COLUMNS = [
     render: (row) => (row.is_mailable ? "True" : "False"),
   },
 
-  {
+ {
     header: "Created At",
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) =>
-      row.created_at
-        ? row.created_at.split("T")[0]
-        : "-",
-    // render: (row) => new Date(row.created_at).toLocaleDateString(),
-    // responsive: { lg: true },
-    
+    // CHANGE: Use formatDate for consistent DMY format
+    render: (row) => formatDate(row.created_at),
   },
 ];
 

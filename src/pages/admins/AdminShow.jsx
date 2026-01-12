@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Loader from "../../components/common/Loader";
 import { adminUsersAPI } from "../../services/api";
+// CHANGE: Import formatDateTime for standardized date+time display
+import { formatDateTime } from "../../lib/dateUtils";
 
 const AdminShow = () => {
   const { id } = useParams();
@@ -117,8 +119,6 @@ const AdminShow = () => {
             </label>
             <p className="text-black dark:text-white">{admin.email || "—"}</p>
           </div>
-
-         
         </div>
 
         {/* Bio Section */}
@@ -160,9 +160,8 @@ const AdminShow = () => {
               Created At
             </label>
             <p className="text-black dark:text-white">
-              {admin.created_at
-                ? new Date(admin.created_at).toLocaleString()
-                : "—"}
+              {/* CHANGE: Use formatDateTime (shows date & time) */}
+              {formatDateTime(admin.created_at)}
             </p>
           </div>
 
@@ -171,9 +170,8 @@ const AdminShow = () => {
               Last Updated
             </label>
             <p className="text-black dark:text-white">
-              {admin.updated_at
-                ? new Date(admin.updated_at).toLocaleString()
-                : "—"}
+              {/* CHANGE: Use formatDateTime (shows date & time) */}
+              {formatDateTime(admin.updated_at)}
             </p>
           </div>
         </div>

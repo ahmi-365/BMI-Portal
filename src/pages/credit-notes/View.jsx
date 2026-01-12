@@ -1,12 +1,13 @@
+import { Download, Trash2 } from "lucide-react";
 import { useState } from "react";
+import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
-import FileDownloadButton from "../../components/common/FileDownloadButton";
-import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
-import { creditNotesAPI } from "../../services/api";
 import Toast from "../../components/common/Toast";
-import { Trash2, Download } from "lucide-react";
-import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import { formatDate } from "../../lib/dateUtils";
+import { creditNotesAPI } from "../../services/api";
 import { render } from "@fullcalendar/core/preact.js";
 
 const COLUMNS = [
@@ -65,10 +66,8 @@ const COLUMNS = [
     accessor: "cn_date",
     filterKey: "cn_date",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.cn_date) return "-";
-      return String(row.cn_date).split("T")[0];
-    },
+   
+    render: (row) => formatDate(row.cn_date),
   },
   {
     header: "PO No.",
@@ -93,10 +92,7 @@ const COLUMNS = [
     accessor: "uploaded_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.created_at) return "-";
-      return String(row.created_at).split("T")[0];
-    },
+    render: (row) => formatDate(row.created_at),
   },
   {
     header: "Uploaded By",

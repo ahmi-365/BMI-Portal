@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ListPage } from "../../components/common/ListPage";
-import PageMeta from "../../components/common/PageMeta";
-import { customersAPI } from "../../services/api";
+// CHANGE: Import formatDate utility
 import { toast } from "react-toastify";
+import { formatDate } from "../../lib/dateUtils";
+import { customersAPI } from "../../services/api";
 
 const APPROVED_COLUMNS = [
   {
@@ -47,19 +48,17 @@ const APPROVED_COLUMNS = [
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) =>
-      row.created_at || row.createdAt
-        ? (row.created_at || row.createdAt).split("T")[0]
-        : "-",
+    // CHANGE: Use formatDate for consistent DMY format
+    render: (row) => formatDate(row.created_at || row.createdAt),
   },
   {
-    header: "Added By", 
+    header: "Added By",
     accessor: "uploaded_by",
-    filterKey: "uploaded_by",   
-    render: (row) => row.admin?.name || "-", 
+    filterKey: "uploaded_by",
+    render: (row) => row.admin?.name || "-",
   },
 ];
-  
+
 const PENDING_COLUMNS = [
   {
     header: "Business Contact Name",
@@ -68,7 +67,7 @@ const PENDING_COLUMNS = [
     render: (row) => row.name || "-",
   },
   {
-    header: "Customer No.", 
+    header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
     render: (row) => row.customer_no || "-",
@@ -96,10 +95,8 @@ const PENDING_COLUMNS = [
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) =>
-      row.created_at || row.createdAt
-        ? (row.created_at || row.createdAt).split("T")[0]
-        : "-",
+    // CHANGE: Use formatDate for consistent DMY format
+    render: (row) => formatDate(row.created_at || row.createdAt),
   },
   {
     header: "Approve",
@@ -152,21 +149,19 @@ export default function CustomersView() {
         <nav className="flex -mb-px space-x-6" aria-label="Tabs">
           <button
             onClick={() => setActiveTab("approved")}
-            className={`pb-3 text-sm font-medium ${
-              activeTab === "approved"
+            className={`pb-3 text-sm font-medium ${activeTab === "approved"
                 ? "border-b-2 border-brand-500 text-brand-600"
                 : "text-gray-600 hover:text-gray-900"
-            }`}
+              }`}
           >
             Approved
           </button>
           <button
             onClick={() => setActiveTab("pending")}
-            className={`pb-3 text-sm font-medium ${
-              activeTab === "pending"
+            className={`pb-3 text-sm font-medium ${activeTab === "pending"
                 ? "border-b-2 border-brand-500 text-brand-600"
                 : "text-gray-600 hover:text-gray-900"
-            }`}
+              }`}
           >
             Pending
           </button>

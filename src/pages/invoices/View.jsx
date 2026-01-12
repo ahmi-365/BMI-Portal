@@ -1,12 +1,13 @@
+import { Download, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { ListPage } from "../../components/common/ListPage";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
-import PageMeta from "../../components/common/PageMeta";
-import FileDownloadButton from "../../components/common/FileDownloadButton";
-import { invoicesAPI } from "../../services/api";
-import Toast from "../../components/common/Toast";
-import { Trash2, Download } from "lucide-react";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { ListPage } from "../../components/common/ListPage";
+import PageMeta from "../../components/common/PageMeta";
+import Toast from "../../components/common/Toast";
+import { formatDate } from "../../lib/dateUtils";
+import { invoicesAPI } from "../../services/api";
 
 const COLUMNS = [
   {
@@ -31,17 +32,13 @@ const COLUMNS = [
       />
     ),
   },
-  {
+{
     header: "Invoice Date",
     accessor: "invoice_date",
     filterKey: "invoice_date",
     filterType: "date-range",
-    render: (row) => {
-      const invoiceDateValue = row.invoice_date
-        ? String(row.invoice_date).split("T")[0]
-        : "-";
-      return invoiceDateValue;
-    },
+    // Use formatDate to ensure DMY format (12 Dec 2025)
+    render: (row) => formatDate(row.invoice_date),
   },
   {
     header: "PO No.",
@@ -80,25 +77,21 @@ const COLUMNS = [
       return outstandingValue;
     },
   },
-  {
+{
     header: "Due Date",
     accessor: "date",
     filterKey: "due_date",
     filterType: "date-range",
-    render: (row) => {
-      const dateValue = row.date ? String(row.date).split("T")[0] : "-";
-      return dateValue;
-    },
+    // Use formatDate for consistent DMY format
+    render: (row) => formatDate(row.date),
   },
-  {
+{
     header: "Uploaded At",
     accessor: "created_at",
     filterKey: "uploaded_at",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.created_at) return "-";
-      return row.created_at.split("T")[0]; // Only date part
-    },
+    // Use formatDate for consistent DMY format
+    render: (row) => formatDate(row.created_at),
   },
   {
     header: "Uploaded By",

@@ -1,12 +1,14 @@
+import { Download, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
-import FileDownloadButton from "../../components/common/FileDownloadButton";
 import Toast from "../../components/common/Toast";
 import { ppisAPI } from "../../services/api";
-import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
-import { Trash2, Download } from "lucide-react";
-import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+// CHANGE: Import formatDate utility
+import { formatDate } from "../../lib/dateUtils";
 
 const COLUMNS = [
   {
@@ -25,15 +27,16 @@ const COLUMNS = [
     accessor: "ppi_date",
     filterKey: "ppi_date",
     filterType: "date-range",
-    render: (row) => (row.ppi_date ? String(row.ppi_date).split("T")[0] : "-"),
+    // CHANGE: Use formatDate for DMY format
+    render: (row) => formatDate(row.ppi_date),
   },
   {
     header: "Payment Term",
     accessor: "payment_term",
     filterKey: "payment_term",
     filterType: "date-range",
-    render: (row) =>
-      row.payment_term ? String(row.payment_term).split("T")[0] : "-",
+    // CHANGE: Use formatDate for DMY format
+    render: (row) => formatDate(row.payment_term),
   },
   { header: "PPI %", accessor: "ppi_percentage", filterKey: "ppi_percentage" },
   {
@@ -60,8 +63,8 @@ const COLUMNS = [
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) =>
-      row.created_at ? String(row.created_at).split("T")[0] : "-",
+    // CHANGE: Use formatDate for DMY format
+    render: (row) => formatDate(row.created_at),
   },
 ];
 
@@ -94,13 +97,17 @@ export default function PpisView() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `ppis-${new Date().getTime()}.${type === "zip" ? "zip" : "csv"}`;
+      link.download = `ppis-${new Date().getTime()}.${type === "zip" ? "zip" : "csv"
+        }`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      setToast({ message: `${type.toUpperCase()} download started`, type: "success" });
+      setToast({
+        message: `${type.toUpperCase()} download started`,
+        type: "success",
+      });
     } catch (error) {
       console.error("Download failed:", error);
       setToast({ message: "Download failed", type: "error" });
@@ -108,7 +115,6 @@ export default function PpisView() {
       setIsDownloading(false);
     }
   };
-
 
   const handleBulkDelete = async () => {
     try {
@@ -162,16 +168,24 @@ export default function PpisView() {
                   className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 >
                   <Download className="w-4 h-4" />
-                  {isDownloading ? "Downloading..." : `Download (${selectedIds.length})`}
+                  {isDownloading
+                    ? "Downloading..."
+                    : `Download (${selectedIds.length})`}
                   {/* Arrow Icon */}
                   <svg
-                    className={`w-4 h-4 ml-2 transition-transform ${isDownloadMenuOpen ? "rotate-180" : ""}`}
+                    className={`w-4 h-4 ml-2 transition-transform ${isDownloadMenuOpen ? "rotate-180" : ""
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
                   </svg>
                 </button>
 
@@ -187,7 +201,9 @@ export default function PpisView() {
                             type: "zip",
                             title: "Download ZIP",
                             message: `Are you sure you want to download ${selectedIds.length} PPI record(s)?`,
-                            confirmText: isDownloading ? "Downloading" : `Download (${selectedIds.length})`,
+                            confirmText: isDownloading
+                              ? "Downloading"
+                              : `Download (${selectedIds.length})`,
                             onConfirm: async () => handleBulkDownload("zip"),
                           });
                         }}
@@ -204,7 +220,9 @@ export default function PpisView() {
                             type: "csv",
                             title: "Export CSV",
                             message: `Are you sure you want to export ${selectedIds.length} PPI record(s) to CSV?`,
-                            confirmText: isDownloading ? "Exporting" : `Export CSV (${selectedIds.length})`,
+                            confirmText: isDownloading
+                              ? "Exporting"
+                              : `Export CSV (${selectedIds.length})`,
                             onConfirm: async () => handleBulkDownload("csv"),
                           });
                         }}

@@ -1,6 +1,8 @@
-import { ShowPage } from "../../components/common/ShowPage";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { ShowPage } from "../../components/common/ShowPage";
 import { ppisAPI } from "../../services/api";
+// CHANGE: Import formatDate utility
+import { formatDate } from "../../lib/dateUtils";
 
 const FIELDS = [
   { name: "id", label: "ID" },
@@ -12,9 +14,15 @@ const FIELDS = [
   {
     name: "ppi_date",
     label: "PPI Date",
-    render: (value) => (value ? String(value).split("T")[0] : "-"),
+    // CHANGE: Use formatDate for DMY format
+    render: (value) => formatDate(value),
   },
-  { name: "payment_term", label: "Payment Term" },
+  {
+    name: "payment_term",
+    label: "Payment Term",
+    // CHANGE: Use formatDate for DMY format
+    render: (value) => formatDate(value),
+  },
   { name: "amount", label: "Amount" },
   { name: "ppi_percentage", label: "PPI %" },
   { name: "customer_no", label: "Customer No." },
@@ -36,7 +44,8 @@ const FIELDS = [
   {
     name: "created_at",
     label: "Uploaded At",
-    render: (value) => (value ? String(value).split("T")[0] : "-"),
+    // CHANGE: Use formatDate for DMY format
+    render: (value) => formatDate(value),
   },
   {
     name: "admin_id",

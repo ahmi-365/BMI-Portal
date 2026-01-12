@@ -1,6 +1,6 @@
-import { render } from "@fullcalendar/core/preact.js";
-import { ShowPage } from "../../components/common/ShowPage";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { ShowPage } from "../../components/common/ShowPage";
+import { formatDate } from "../../lib/dateUtils";
 
 const FIELDS = [
   {
@@ -22,9 +22,11 @@ const FIELDS = [
     ),
   }
   ,
-  {
-    name: "dn_date", label: "DN Date",
-    render: (value) => value ? String(value).split("T")[0] : "-"
+{
+    name: "dn_date",
+    label: "DN Date",
+    // Use formatDate for consistent DMY format (e.g., 12 Dec 2025)
+    render: (value) => formatDate(value),
   },
   { name: "po_no", label: "PO No." },
   { name: "ref_no", label: "Ref No." },

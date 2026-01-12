@@ -1,12 +1,13 @@
+import { Download, Trash2 } from "lucide-react";
 import { useState } from "react";
+import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
-import { statementsAPI } from "../../services/api";
 import Toast from "../../components/common/Toast";
-import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
-import { Trash2, Download } from "lucide-react";
-import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
+import { statementsAPI } from "../../services/api";
+import { formatDate } from "../../lib/dateUtils";
 
 const COLUMNS = [
   { header: "Customer No", accessor: "customer_no", filterKey: "customer_no" },
@@ -37,8 +38,8 @@ const COLUMNS = [
     accessor: "statement_date",
     filterKey: "statement_date",
     filterType: "date-range",
-    render: (row) =>
-      row.statement_date ? row.statement_date.split("T")[0] : "-",
+    // CHANGE: Use formatDate for consistent DMY format
+    render: (row) => formatDate(row.statement_date),
   },
   // {
   //   header: "Updated At",

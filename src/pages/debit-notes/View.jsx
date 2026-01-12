@@ -1,13 +1,13 @@
+import { Download, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { render } from "@fullcalendar/core/preact.js";
-import { ListPage } from "../../components/common/ListPage";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
-import PageMeta from "../../components/common/PageMeta";
-import FileDownloadButton from "../../components/common/FileDownloadButton";
-import { debitNotesAPI } from "../../services/api";
-import Toast from "../../components/common/Toast";
-import { Trash2, Download } from "lucide-react";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { ListPage } from "../../components/common/ListPage";
+import PageMeta from "../../components/common/PageMeta";
+import Toast from "../../components/common/Toast";
+import { formatDate } from "../../lib/dateUtils";
+import { debitNotesAPI } from "../../services/api";
 
 const COLUMNS = [
   {
@@ -48,7 +48,7 @@ const COLUMNS = [
     accessor: "dn_date",
     filterKey: "dn_date",
     filterType: "date-range",
-    render: (row) => (row.dn_date ? String(row.dn_date).split("T")[0] : "-"),
+           render: (row) => formatDate(row.dn_date),
   },
 
   {
@@ -88,8 +88,7 @@ const COLUMNS = [
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) =>
-      row.created_at ? String(row.created_at).split("T")[0] : "-",
+    render: (row) => formatDate(row.created_at),
   },
   {
     header: "Uploaded By",

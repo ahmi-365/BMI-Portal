@@ -1,5 +1,5 @@
 /**
- * Format date string to readable format
+ * Format date string to readable format (DMY)
  * @param {string|Date} date - Date string or Date object
  * @param {object} options - Formatting options
  * @returns {string} Formatted date string
@@ -15,32 +15,32 @@ export const formatDate = (date, options = {}) => {
 
     const {
       format = "short", // 'short', 'long', 'full', 'time', 'datetime'
-      locale = "en-US",
+      locale = "en-GB", // Changed to en-GB to enforce DMY order
     } = options;
 
     switch (format) {
       case "short":
-        // Dec 12, 2025
+        // 12 Dec 2025
         return dateObj.toLocaleDateString(locale, {
-          month: "short",
           day: "numeric",
+          month: "short",
           year: "numeric",
         });
 
       case "long":
-        // December 12, 2025
+        // 12 December 2025
         return dateObj.toLocaleDateString(locale, {
-          month: "long",
           day: "numeric",
+          month: "long",
           year: "numeric",
         });
 
       case "full":
-        // Monday, December 12, 2025
+        // Monday, 12 December 2025
         return dateObj.toLocaleDateString(locale, {
           weekday: "long",
-          month: "long",
           day: "numeric",
+          month: "long",
           year: "numeric",
         });
 
@@ -49,20 +49,22 @@ export const formatDate = (date, options = {}) => {
         return dateObj.toLocaleTimeString(locale, {
           hour: "2-digit",
           minute: "2-digit",
+          hour12: true, // Explicitly set to 12-hour format
         });
 
       case "datetime":
-        // Dec 12, 2025, 12:00 AM
+        // 12 Dec 2025, 12:00 AM
         return dateObj.toLocaleString(locale, {
-          month: "short",
           day: "numeric",
+          month: "short",
           year: "numeric",
           hour: "2-digit",
           minute: "2-digit",
+          hour12: true, // Explicitly set to 12-hour format
         });
 
       case "iso":
-        // 2025-12-12
+        // 2025-12-12 (Kept as standard ISO 8601)
         return dateObj.toISOString().split("T")[0];
 
       default:

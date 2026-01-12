@@ -1,6 +1,7 @@
 import { render } from "@fullcalendar/core/preact.js";
 import { ShowPage } from "../../components/common/ShowPage";
 import { downloadBlob } from "../../services/api";
+import { formatDate } from "../../lib/dateUtils";
 
 const fileRender = (filename, data) =>
   filename ? (
@@ -67,9 +68,12 @@ const FIELDS = [
   //     </span>
   //   ),
   // },
-  { name: "created_at", label: "Created At",
-    render : (value) => (value ? String(value).split("T")[0] : "-"),
-   },
+ {
+    name: "created_at",
+    label: "Created At",
+    // CHANGE: Use formatDate for consistent DMY format
+    render: (value) => formatDate(value),
+  },
   { name: "cc1", label: "Credit App (CC1)", render: fileRender },
   { name: "form_24", label: "Form 24", render: fileRender },
   { name: "form_9", label: "Form 9", render: fileRender },

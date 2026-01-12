@@ -1,5 +1,6 @@
-import { ShowPage } from "../../components/common/ShowPage";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { ShowPage } from "../../components/common/ShowPage";
+import { formatDate } from "../../lib/dateUtils";
 
 const FIELDS = [
   { name: "id", label: "ID" },
@@ -20,21 +21,27 @@ const FIELDS = [
       />
     ),
   },
-  {
-    name: "cn_date", label: "CN Date",
-    render: (value) => value ? String(value).split("T")[0] : "-"
+{
+    name: "cn_date",
+    label: "CN Date",
+    // Use formatDate for consistent DMY format (e.g., 12 Dec 2025)
+    render: (value) => formatDate(value),
   },
   { name: "po_no", label: "PO No." },
   { name: "ref_no", label: "Ref No." },
   { name: "amount", label: "Amount" },
   { name: "remarks", label: "Remarks" },
-  {
-    name: "payment_term", label: "Payment Term",
-    render: (value) => value ? value.split("T")[0] : "-"
+ {
+    name: "payment_term",
+    label: "Payment Term",
+    // Use formatDate for consistent DMY format
+    render: (value) => formatDate(value),
   },
   {
-    name: "created_at", label: "Uploaded At",
-    render: (value) => value ? String(value).split("T")[0] : "-"
+    name: "created_at",
+    label: "Uploaded At",
+    // Use formatDate for consistent DMY format
+    render: (value) => formatDate(value),
   },
   {
     name: "admin_id", label: "Uploaded By",

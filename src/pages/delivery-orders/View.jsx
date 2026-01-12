@@ -1,12 +1,13 @@
+import { Download, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { ListPage } from "../../components/common/ListPage";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
-import PageMeta from "../../components/common/PageMeta";
-import FileDownloadButton from "../../components/common/FileDownloadButton";
-import { deliveryOrdersAPI } from "../../services/api";
-import Toast from "../../components/common/Toast";
-import { Trash2, Download } from "lucide-react";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { ListPage } from "../../components/common/ListPage";
+import PageMeta from "../../components/common/PageMeta";
+import Toast from "../../components/common/Toast";
+import { formatDate } from "../../lib/dateUtils";
+import { deliveryOrdersAPI } from "../../services/api";
 
 const COLUMNS = [
   {
@@ -57,28 +58,23 @@ const COLUMNS = [
     accessor: "invoice_date",
     filterKey: "date",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.invoice?.invoice_date) return "-";
-      return row.invoice.invoice_date.split("T")[0];
-    },
+        render: (row) => formatDate(row.invoice.invoice_date),
+    
   },
   {
     header: "Due Date",
     accessor: "date",
     filterKey: "due_date",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.date) return "-";
-      return String(row.date).split("T")[0];
-    },
+           render: (row) => formatDate(row.date),
+
   },
   {
     header: "Uploaded At",
     accessor: "uploaded_at",
     filterKey: "uploaded_at",
     filterType: "date-range",
-    render: (row) =>
-      row.created_at ? String(row.created_at).split("T")[0] : "-",
+    render: (row) => formatDate(row.created_at),
   },
   {
     header: "Uploaded By",

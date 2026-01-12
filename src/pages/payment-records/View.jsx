@@ -1,13 +1,13 @@
+import { Check, Download, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { ListPage } from "../../components/common/ListPage";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
-import PageMeta from "../../components/common/PageMeta";
-import { paymentsAPI } from "../../services/api";
-import { Check, Trash2, Download } from "lucide-react";
-import FileDownloadButton from "../../components/common/FileDownloadButton";
-import Toast from "../../components/common/Toast";
-import { formatDateISO } from "../../lib/dateUtils";
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { ListPage } from "../../components/common/ListPage";
+import PageMeta from "../../components/common/PageMeta";
+import Toast from "../../components/common/Toast";
+import { formatDate } from "../../lib/dateUtils";
+import { paymentsAPI } from "../../services/api";
 
 
 // ---------- PDF RENDER BUTTON ----------
@@ -43,7 +43,7 @@ const PAID_COLUMNS = [
     accessor: "payment_date",
     filterKey: "payment_date",
     filterType: "date-range",
-    render: (row) => formatDateISO(row.payment_date),
+    render: (row) => formatDate(row.payment_date),
   },
   {
     header: "Proof of Payment",
@@ -141,7 +141,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
     accessor: "payment_date",
     filterKey: "payment_date",
     filterType: "date-range",
-    render: (row) => formatDateISO(row.payment_date),
+    render: (row) => formatDate(row.payment_date),
   },
 
   {

@@ -1,5 +1,5 @@
-import { ShowPage } from "../../components/common/ShowPage";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { ShowPage } from "../../components/common/ShowPage";
 
 const FIELDS = [
   // { name: "id", label: "ID" },
@@ -19,9 +19,12 @@ const FIELDS = [
               />
             ),
    },
-  { name: "statement_date", label: "Statement Date",
-    render: (value) => (value ? String(value).split("T")[0] : "-"),
-   },
+{
+    name: "statement_date",
+    label: "Statement Date",
+    // CHANGE: Use formatDate for consistent DMY format
+    render: (value) => formatDate(value),
+  },
   // { name: "updated_at", label: "Updated At",
   //   render: (value) => (value ? String(value).split("T")[0] : "-"),
   //  },
