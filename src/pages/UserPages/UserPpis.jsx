@@ -6,6 +6,8 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
 import { render } from "@fullcalendar/core/preact.js";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import { formatDate } from "../../lib/dateUtils";
+
 
 
 const COLUMNS = [
@@ -34,16 +36,14 @@ const COLUMNS = [
   {
     header: "PPI Date", accessor: "ppi_date", filterKey: "ppi_date",
     filterType: "date-range",
+    render: (row) => formatDate(row.ppi_date),
   },
   {
     header: "Payment Term",
     accessor: "payment_term",
     filterKey: "payment_term",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.payment_term) return "-";
-      return String(row.payment_term).split("T")[0];
-    },
+    render: (row) => formatDate(row.payment_term),
   },
   {
     header: "PPI %",
@@ -73,10 +73,7 @@ const COLUMNS = [
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.created_at) return "-";
-      return String(row.created_at).split("T")[0];
-    }
+    render: (row) => formatDate(row.created_at),
   },
 ];
 

@@ -5,6 +5,9 @@ import Loader from "../../components/common/Loader";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userInvoicesAPI } from "../../services/api";
+import { formatDate } from "../../lib/dateUtils";
+import { render } from "@fullcalendar/core/preact.js";
+
 
 export default function UserInvoiceShow() {
   const { id } = useParams();
@@ -59,13 +62,15 @@ export default function UserInvoiceShow() {
     { label: "Invoice No.", value: data.invoiceId || data.invoice_no || "-" },
     { label: "Customer No.", value: data.customer_no || "-" },
     {
-      label: "Invoice Date",
-      value: data.invoice_date ? String(data.invoice_date).split("T")[0] : "-",
-    },
+  label: "Invoice Date",
+  value: formatDate(data.invoice_date),
+}
+,
     {
-      label: "Due Date",
-      value: data.date ? String(data.date).split("T")[0] : "-",
-    },
+  label: "Due Date",
+  value: formatDate(data.date),
+}
+,
     { label: "PO No.", value: data.po_no || "-" },
     { label: "DO No.", value: data.do_no || "-" },
     { label: "Amount (MYR)", value: data.amount || "-" },
@@ -82,11 +87,13 @@ export default function UserInvoiceShow() {
     { label: "Remarks", value: data.remarks || "-" },
     {
       label: "Created At",
-      value: data.created_at ? String(data.created_at).split("T")[0] : "-",
+      // value: data.created_at ? String(data.created_at).split("T")[0] : "-",
+      value: formatDate(data.created_at),
     },
     {
       label: "Updated At",
-      value: data.updated_at ? String(data.updated_at).split("T")[0] : "-",
+      // value: data.updated_at ? String(data.updated_at).split("T")[0] : "-",
+      value: formatDate(data.updated_at),
     },
     // { label: "Admin ID", value: data.admin_id || "-" },
   ];

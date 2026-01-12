@@ -1,6 +1,8 @@
 import { ShowPage } from "../../components/common/ShowPage";
 import { userPpisAPI } from "../../services/api";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { formatDate } from "../../lib/dateUtils";
+
 
 const FIELDS = [
   { name: "id", label: "ID" },
@@ -12,26 +14,12 @@ const FIELDS = [
   {
     name: "ppi_date",
     label: "PPI Date",
-    render: (value) => {
-      if (!value) return "-";
-      return new Date(value).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+    render: (value) => formatDate(value),
   },
   {
     name: "payment_term",
     label: "Payment Term",
-    render: (value) => {
-      if (!value) return "-";
-      return new Date(value).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+    render: (value) => formatDate(value),
   },
   {
     name: "customer_no",
@@ -79,16 +67,7 @@ const FIELDS = [
   {
     name: "created_at",
     label: "Uploaded At",
-    render: (value) => {
-      if (!value) return "-";
-      return new Date(value).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    },
+    render: (value) => formatDate(value),
   },
   {
     name: "admin_id",

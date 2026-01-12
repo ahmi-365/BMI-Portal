@@ -6,6 +6,8 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
 import { render } from "@fullcalendar/core/preact.js";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import { formatDate } from "../../lib/dateUtils";
+
 
 
 const COLUMNS = [
@@ -29,14 +31,8 @@ const COLUMNS = [
     accessor: "cn_date",
     filterKey: "cn_date",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.cn_date) return "-";
-      return new Date(row.cn_date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+      render: (row) => formatDate(row.cn_date),
+    
   },
   // {
   //   header: "Payment Term",
@@ -75,14 +71,7 @@ const COLUMNS = [
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.created_at) return "-";
-      return new Date(row.created_at).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+    render: (row) => formatDate(row.created_at),
   },
 ];
 

@@ -5,6 +5,8 @@ import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import { formatDate } from "../../lib/dateUtils";
+
 
 
 const COLUMNS = [
@@ -33,14 +35,7 @@ const COLUMNS = [
     accessor: "invoice_date",
     filterKey: "invoice_date",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.invoice_date) return "-";
-      return new Date(row.invoice_date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+   render: (row) => formatDate(row.invoice_date),
   },
   { header: "Customer No.", accessor: "customer_no", filterKey: "customer_no" },
   { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
@@ -52,14 +47,8 @@ const COLUMNS = [
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.created_at) return "-";
-      return new Date(row.created_at).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+      render: (row) => formatDate(row.created_at),
+
   },
 ];
 

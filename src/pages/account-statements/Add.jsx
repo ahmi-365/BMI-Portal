@@ -31,7 +31,6 @@ export default function AccountStatementsAdd() {
   }, []);
 
   const FIELDS = [
-    { name: "customer_no", label: "Customer No", type: "text", required: true },
     {
       name: "user_id",
       label: "Company",
@@ -49,6 +48,8 @@ export default function AccountStatementsAdd() {
         }));
       },
     },
+    { name: "customer_no", label: "Customer No", type: "text", required: true },
+
     {
       name: "statement_doc",
       label: "Statement Document",

@@ -1,6 +1,8 @@
 import { ShowPage } from "../../components/common/ShowPage";
 import { userStatementsAPI } from "../../services/api";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { formatDate } from "../../lib/dateUtils";
+
 
 const FIELDS = [
   { name: "id", label: "ID" },
@@ -25,14 +27,7 @@ const FIELDS = [
   {
     name: "statement_date",
     label: "Statement Date",
-    render: (value) => {
-      if (!value) return "-";
-      return new Date(value).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+    render: (value) => formatDate(value),
   },
   {
     name: "remarks",
@@ -42,30 +37,12 @@ const FIELDS = [
   {
     name: "created_at",
     label: "Created At",
-    render: (value) => {
-      if (!value) return "-";
-      return new Date(value).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    },
+    render: (value) => formatDate(value),
   },
   {
     name: "updated_at",
     label: "Updated At",
-    render: (value) => {
-      if (!value) return "-";
-      return new Date(value).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    },
+    render: (value) => formatDate(value),
   },
 ];
 

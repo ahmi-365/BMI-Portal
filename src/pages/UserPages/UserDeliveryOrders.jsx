@@ -6,6 +6,8 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
 import { render } from "@fullcalendar/core/preact.js";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import { formatDate } from "../../lib/dateUtils";
+
 
 
 const COLUMNS = [
@@ -29,24 +31,16 @@ const COLUMNS = [
     accessor: "invoice_date",
     filterKey: "date",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.invoice?.invoice_date) return "-";
-      return row.invoice.invoice_date.split("T")[0];
-    },
+      render: (row) => formatDate(row.invoice.invoice_date),
+    
   },
   {
     header: "Due Date",
     accessor: "date",
     filterKey: "due_date",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.date) return "-";
-      return new Date(row.date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+         render: (row) => formatDate(row.invoice.date),
+
   },
   // { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
   {
@@ -54,14 +48,7 @@ const COLUMNS = [
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.created_at) return "-";
-      return new Date(row.created_at).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+    render: (row) => formatDate(row.created_at),
   },
 ];
 
@@ -100,41 +87,41 @@ export default function UserDeliveryOrders() {
     }
   };
   const handleBulkDownloadWithConfirm = () => {
-  if (selectedIds.length === 0) {
-    alert("Please select at least one delivery order");
-    return;
-  }
+    if (selectedIds.length === 0) {
+      alert("Please select at least one delivery order");
+      return;
+    }
 
-  openBulkConfirm({
-    type: "zip",
-    title: "Download ZIP",
-    message: `Are you sure you want to download ${selectedIds.length} delivery order(s)?`,
-    confirmText: "Yes, Download",
-    onConfirm: async () => {
-      setIsDownloading(true);
-      try {
-        const blob = await userDownloadBlob(
-          `/user/delivery-orders/bulk-download`,
-          { ids: selectedIds }
-        );
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = "delivery-orders.zip";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-        setSelectedIds([]);
-      } catch (err) {
-        console.error("Bulk download failed:", err);
-        alert("Failed to download files. Please try again.");
-      } finally {
-        setIsDownloading(false);
-      }
-    },
-  });
-};
+    openBulkConfirm({
+      type: "zip",
+      title: "Download ZIP",
+      message: `Are you sure you want to download ${selectedIds.length} delivery order(s)?`,
+      confirmText: "Yes, Download",
+      onConfirm: async () => {
+        setIsDownloading(true);
+        try {
+          const blob = await userDownloadBlob(
+            `/user/delivery-orders/bulk-download`,
+            { ids: selectedIds }
+          );
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = "delivery-orders.zip";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+          setSelectedIds([]);
+        } catch (err) {
+          console.error("Bulk download failed:", err);
+          alert("Failed to download files. Please try again.");
+        } finally {
+          setIsDownloading(false);
+        }
+      },
+    });
+  };
 
 
   return (
@@ -155,19 +142,19 @@ export default function UserDeliveryOrders() {
         headerAction={
           selectedIds.length > 0 ? (
             <button
-  onClick={handleBulkDownloadWithConfirm} // ✅ use new function
-  disabled={isDownloading}
-  className="inline-flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
->
-  {isDownloading ? (
-    <Loader2 className="w-4 h-4 animate-spin" />
-  ) : (
-    <Download className="w-4 h-4" />
-  )}
-  {isDownloading
-    ? "Downloading..."
-    : `Download (${selectedIds.length})`}
-</button>
+              onClick={handleBulkDownloadWithConfirm} // ✅ use new function
+              disabled={isDownloading}
+              className="inline-flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDownloading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              {isDownloading
+                ? "Downloading..."
+                : `Download (${selectedIds.length})`}
+            </button>
 
           ) : null
         }

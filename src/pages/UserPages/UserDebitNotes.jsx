@@ -5,6 +5,8 @@ import PageMeta from "../../components/common/PageMeta";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { userDownloadBlob } from "../../services/api";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import { formatDate } from "../../lib/dateUtils";
+
 
 const COLUMNS = [
   { header: "Debit Note No.", accessor: "dn_no", filterKey: "dn_no" },
@@ -27,28 +29,15 @@ const COLUMNS = [
     accessor: "dn_date",
     filterKey: "dn_date",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.dn_date) return "-";
-      return new Date(row.dn_date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+      render: (row) => formatDate(row.dn_date),
+    
   },
   {
     header: "Payment Term",
     accessor: "payment_term",
     filterKey: "payment_term",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.payment_term) return "-";
-      return new Date(row.payment_term).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+      render: (row) => formatDate(row.payment_term),
   },
   {
     header: "Customer No.",
@@ -72,14 +61,7 @@ const COLUMNS = [
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.created_at) return "-";
-      return new Date(row.created_at).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+    render: (row) => formatDate(row.created_at),
   },
 ];
 

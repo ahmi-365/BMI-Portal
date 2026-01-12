@@ -7,6 +7,8 @@ import { useState } from "react";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
 import { userDownloadBlob } from "../../services/api"; // make sure this is imported
 import { Download, Loader2 } from "lucide-react"; // For the download icon
+import { formatDate } from "../../lib/dateUtils";
+
 
 
 const COLUMNS = [
@@ -34,14 +36,7 @@ const COLUMNS = [
     accessor: "payment_date",
     filterKey: "payment_date",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.payment_date) return "-";
-      return new Date(row.payment_date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+    render: (row) => formatDate(row.payment_date),
   },
   { header: "Amount", accessor: "amount", filterKey: "amount" },
   { header: "Outstanding", accessor: "outstanding", filterKey: "outstanding" },
@@ -76,14 +71,7 @@ const COLUMNS = [
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    render: (row) => {
-      if (!row.created_at) return "-";
-      return new Date(row.created_at).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
+    render: (row) => formatDate(row.created_at),
   },
 ];
 
