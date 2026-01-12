@@ -1,17 +1,17 @@
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
-import Label from "../form/Label";
-import Input from "../form/input/InputField";
-import Checkbox from "../form/input/Checkbox";
-import Button from "../ui/button/Button";
 import { userAuthAPI } from "../../services/api";
 import { userAuth } from "../../services/auth";
+import Label from "../form/Label";
+import Checkbox from "../form/input/Checkbox";
+import Input from "../form/input/InputField";
+import Button from "../ui/button/Button";
 
 export default function UserLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
-  const [email, setEmail] = useState("");
+  const [customerNo, setCustomerNo] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -22,7 +22,7 @@ export default function UserLoginForm() {
     setError("");
     setLoading(true);
     try {
-      const res = await userAuthAPI.login(email, password);
+      const res = await userAuthAPI.login(customerNo, password);
       const token = res?.token || res?.data?.token;
       if (token) {
         userAuth.setToken(token);
@@ -77,13 +77,13 @@ export default function UserLoginForm() {
               <div className="space-y-6">
                 <div>
                   <Label>
-                    Email <span className="text-error-500">*</span>
+                    Customer Number <span className="text-error-500">*</span>
                   </Label>
                   <Input
-                    type="email"
-                    placeholder="user@gmail.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    placeholder="Enter your customer number"
+                    value={customerNo}
+                    onChange={(e) => setCustomerNo(e.target.value)}
                     required
                   />
                 </div>
