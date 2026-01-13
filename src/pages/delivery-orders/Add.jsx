@@ -1,5 +1,5 @@
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useEffect, useState, useCallback } from "react";
 import { ResourceForm } from "../../components/common/ResourceForm";
 import { deliveryOrdersAPI, invoicesAPI } from "../../services/api";
 
@@ -9,6 +9,7 @@ export default function DeliveryOrdersAdd() {
   const [invoiceOptions, setInvoiceOptions] = useState([]);
   const [invoiceData, setInvoiceData] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   // Load invoices with optional search query
   const loadInvoices = useCallback(async (search = "") => {
@@ -20,9 +21,9 @@ export default function DeliveryOrdersAdd() {
       const dataMap = {};
       const opts = Array.isArray(list)
         ? list.map((inv) => {
-            dataMap[inv.id] = inv;
+            dataMap[inv.do_no] = inv; // Key by do_no instead of id
             return {
-              value: inv.id, // This corresponds to the Primary Key
+              value: inv.do_no, // Send do_no to backend
               label: inv.do_no || `DO #${inv.id}`,
             };
           })
@@ -54,7 +55,6 @@ export default function DeliveryOrdersAdd() {
       name: "do_no",
       label: "DO No.",
       required: true,
-       // Label remains the same (UI unchanged)
       type: "select",
       searchable: true,
       options: invoiceOptions,
@@ -62,22 +62,20 @@ export default function DeliveryOrdersAdd() {
       onChange: (value, setFormData) => {
         const invoice = invoiceData[value];
         if (invoice && setFormData) {
+          setSelectedInvoice(invoice);
           setFormData((prev) => ({
             ...prev,
-            // 1. The ID (PK) goes to do_no
-            do_no: value,
-            // 2. The String goes to invoice_id
-            invoice_id: invoice.invoiceId || "",
-            invoice_no: invoice.invoiceId || "",
+            do_no: value, // Send do_no to backend
+            invoice_id: invoice.invoice_no || invoice.invoiceId || "", // Store complete invoice number for display
           }));
         }
       },
     },
     {
       name: "invoice_id",
-      label: "Invoice Id", // Label remains the same (UI unchanged)
+      label: "Invoice Number",
       type: "text",
-      disabled: isEditMode,
+      disabled: true, // Read-only display field
     },
     {
       name: "remarks",
@@ -85,26 +83,24 @@ export default function DeliveryOrdersAdd() {
       type: "textarea",
     },
     {
-      name: "file",
+      name: "do_doc",
       label: "DO Document",
       type: "file",
-      required: true,
     },
   ];
 
   const handleSubmit = async (formData) => {
     const fd = new FormData();
-    Object.keys(formData).forEach((key) => {
-      const val = formData[key];
-      if (val instanceof File) {
-        fd.append(key, val, val.name);
-      } else if (key === "file") {
-        // For file field, only append if it's a new file (File instance)
-        // Don't send the existing file name string
-      } else if (val !== undefined && val !== null && val !== "") {
-        fd.append(key, String(val));
-      }
-    });
+    
+    // Only send do_no, remarks, and file to backend
+    if (formData.do_no) fd.append("do_no", formData.do_no);
+    if (formData.remarks) fd.append("remarks", formData.remarks);
+    
+    // Handle file upload
+    if (formData.do_doc instanceof File) {
+      fd.append("file", formData.do_doc, formData.do_doc.name);
+    }
+    
     if (isEditMode) {
       return await deliveryOrdersAPI.update(id, fd);
     }

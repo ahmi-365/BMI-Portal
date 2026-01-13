@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ResourceForm } from "../../components/common/ResourceForm";
-import { apiCallFormData, invoicesAPI, companiesAPI } from "../../services/api";
+import { apiCallFormData, companiesAPI } from "../../services/api";
 
 export default function InvoicesAdd() {
   const { id } = useParams();
@@ -157,7 +157,6 @@ export default function InvoicesAdd() {
       fields={FORM_FIELDS}
       title={isEditMode ? "Edit Invoice" : "New Invoice"}
       onSubmit={handleSubmit}
-      onSubmitSuccess={() => navigate('/invoices/view')}
     />
   );
 }

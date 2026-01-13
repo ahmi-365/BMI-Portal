@@ -4,9 +4,10 @@ import Tesseract from 'tesseract.js';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 /**
- * Image Processor handles two modes:
- * Mode 'STANDARD': High contrast B&W (Best for normal files like 122.pdf)
- * Mode 'STAMP_FILTER': Erases blue/red ink (Best for stamped files like 130914.pdf)
+ * Image Processor with 3 Modes:
+ * 1. 'BALANCED': Threshold 180. Best for normal/bold text. (Fixes 5->8 and 6->5 errors).
+ * 2. 'HIGH_CONTRAST': Threshold 230. Best for very faint text. (Fixes missing digits).
+ * 3. 'STAMP_FILTER': Blue channel only. Best for documents with stamps over text.
  */
 const processCanvas = (canvas, mode) => {
   const ctx = canvas.getContext('2d');
@@ -21,14 +22,16 @@ const processCanvas = (canvas, mode) => {
     let val;
 
     if (mode === 'STAMP_FILTER') {
-      // BLUE FILTER: Only look at Blue channel. 
-      // High Blue = White (Paper/Blue Stamp), Low Blue = Black (Text)
-      val = b > 160 ? 255 : 0;
-    } else {
-      // STANDARD: Simple Grayscale + Threshold
-      // Average brightness
+      // Blue Filter: High Blue = White, Low Blue = Black
+      val = b > 200 ? 255 : 0;
+    } else if (mode === 'HIGH_CONTRAST') {
+      // Aggressive: Turns almost everything black. Good for faint text, bad for bold text.
       const avg = (r + g + b) / 3;
-      val = avg > 140 ? 255 : 0;
+      val = avg > 230 ? 255 : 0;
+    } else { // BALANCED
+      // Moderate: Standard binarization. Keeps distinct shapes of 5, 6, 8.
+      const avg = (r + g + b) / 3;
+      val = avg > 180 ? 255 : 0;
     }
 
     data[i] = val;     // R
@@ -48,32 +51,29 @@ const cleanOCRText = (str) => {
     .replace(/[OQ]/g, '0')
     .replace(/[S]/g, '5')
     .replace(/[Z]/g, '2')
-    .replace(/[B]/g, '8');
+    .replace(/[B]/g, '8')
+    .replace(/[yYgGq]/g, '9');
 };
 
 const extractBestNumber = (rawString) => {
   if (!rawString) return null;
   
-  // Split by common separators to isolate the number
   const parts = rawString.trim().split(/[\s/.,:-]+/);
   
   for (const part of parts) {
     const cleaned = cleanOCRText(part);
     
-    // Look for sequence of digits
     if (/\d{8,}/.test(cleaned)) {
-      
-      // PATTERN: Starts with "51" (Standard for your client)
+      // Pattern: Starts with 51
       const startIdx = cleaned.indexOf('51');
       if (startIdx !== -1) {
         const potentialDO = cleaned.substring(startIdx);
-        // Valid length check (10-12 digits)
-        if (potentialDO.length >= 10 && potentialDO.length <= 12) {
+        // Valid length: 9-12 digits
+        if (potentialDO.length >= 9 && potentialDO.length <= 12) {
           return potentialDO;
         }
       }
-      
-      // Fallback: Just a clean 10-digit number
+      // Fallback: Clean 10-digit number
       if (/^\d{10}$/.test(cleaned)) {
         return cleaned;
       }
@@ -82,9 +82,6 @@ const extractBestNumber = (rawString) => {
   return null;
 };
 
-/**
- * Helper to run OCR on a prepared canvas
- */
 const runOCR = async (canvas, attemptName) => {
   const imageBlob = await new Promise(resolve => canvas.toBlob(resolve));
   
@@ -107,64 +104,51 @@ export const extractDoNoFromPdf = async (file) => {
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const page = await pdf.getPage(1);
     
-    const viewport = page.getViewport({ scale: 3.5 }); // High scale for accuracy
+    // Increased Scale to 4.0: More pixels = better curve distinction (6 vs 5)
+    const viewport = page.getViewport({ scale: 4.0 });
     
-    // Define Strategies
+    // Regex Strategies
     const regexStrategies = [
       { name: "Standard Label", regex: /D[O0][^:0-9\n]{0,10}[:.]?\s*([A-Za-z0-9\s/.-]{8,30})/i },
-      { name: "Direct 51 Pattern", regex: /(?:\b|\D)(51\d{8,10})(?:\b|\D)/ },
+      { name: "Direct 51 Pattern", regex: /(?:\b|\D)(51\d{7,10})(?:\b|\D)/ },
       { name: "Sold-To Context", regex: /Sold-To[:\s]+\d+\s+.*?((?:[A-Za-z0-9]\s*){8,30})/i }
     ];
 
-    // --- ATTEMPT 1: STANDARD PROCESSING (Best for clean files) ---
-    const canvas1 = document.createElement('canvas');
-    const ctx1 = canvas1.getContext('2d');
-    canvas1.height = viewport.height;
-    canvas1.width = viewport.width;
-    await page.render({ canvasContext: ctx1, viewport: viewport }).promise;
-    
-    // Apply Standard B&W Filter
-    processCanvas(canvas1, 'STANDARD');
-    
-    const text1 = await runOCR(canvas1, 'Attempt 1 (Standard)');
-    
-    for (const strat of regexStrategies) {
-      const match = text1.match(strat.regex);
-      if (match && match[1]) {
-        const result = extractBestNumber(match[1]);
-        if (result) {
-          console.log(`✅ Success via Attempt 1 [${strat.name}]:`, result);
-          return result;
+    // Define the 3 Passes
+    const passes = [
+      { name: "Attempt 1 (Balanced)", mode: "BALANCED" },       // Best for your current file
+      { name: "Attempt 2 (High Contrast)", mode: "HIGH_CONTRAST" }, // Best for faint files
+      { name: "Attempt 3 (Stamp Filter)", mode: "STAMP_FILTER" }    // Best for stamped files
+    ];
+
+    for (const pass of passes) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      
+      await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+      
+      // Apply the specific image filter for this pass
+      processCanvas(canvas, pass.mode);
+      
+      const text = await runOCR(canvas, pass.name);
+      
+      for (const strat of regexStrategies) {
+        const match = text.match(strat.regex);
+        if (match && match[1]) {
+          const result = extractBestNumber(match[1]);
+          if (result) {
+            console.log(`✅ Success via ${pass.name} [${strat.name}]:`, result);
+            return result;
+          }
         }
       }
+      
+      console.warn(`⚠️ ${pass.name} yielded no valid DO No. Moving to next strategy...`);
     }
 
-    console.warn("⚠️ Attempt 1 failed. Retrying with Stamp Filter...");
-
-    // --- ATTEMPT 2: STAMP REMOVAL (Best for stamped/noisy files) ---
-    const canvas2 = document.createElement('canvas');
-    const ctx2 = canvas2.getContext('2d');
-    canvas2.height = viewport.height;
-    canvas2.width = viewport.width;
-    await page.render({ canvasContext: ctx2, viewport: viewport }).promise;
-    
-    // Apply Blue Filter
-    processCanvas(canvas2, 'STAMP_FILTER');
-    
-    const text2 = await runOCR(canvas2, 'Attempt 2 (Filter)');
-    
-    for (const strat of regexStrategies) {
-      const match = text2.match(strat.regex);
-      if (match && match[1]) {
-        const result = extractBestNumber(match[1]);
-        if (result) {
-          console.log(`✅ Success via Attempt 2 [${strat.name}]:`, result);
-          return result;
-        }
-      }
-    }
-
-    console.warn("❌ DO No. not found after both attempts.");
+    console.warn("❌ DO No. not found after all attempts.");
     return null;
 
   } catch (error) {
