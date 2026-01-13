@@ -1,18 +1,19 @@
-import { useEffect, useState, useCallback } from "react";
+import { AlertCircle, ChevronRight, Upload } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BatchUpload } from "../../components/common/BatchUpload";
-import { Upload, AlertCircle, ChevronRight } from "lucide-react";
 import {
-  debitNotesAPI,
+  companiesAPI,
   creditNotesAPI,
+  debitNotesAPI,
   deliveryOrdersAPI,
-  statementsAPI,
+  invoicesAPI,
   ppisAPI,
+  statementsAPI,
 } from "../../services/api";
-import { companiesAPI, invoicesAPI } from "../../services/api";
+import { extractDoNoFromPdf } from "../../services/ocrService";
 import SearchableSelect from "./SearchableSelect";
 import Toast from "./Toast";
-import { extractDoNoFromPdf } from "../../services/ocrService";
 // Convert various date strings (e.g. 18.11.2025 or 18/11/2025) to yyyy-mm-dd for date inputs
 const toISODate = (raw) => {
   if (!raw) return "";
@@ -666,8 +667,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         ];
         missing = required.filter((f) => isFieldEmpty(form[f]));
       } else if (resourceName === "deliveryorders") {
-        // For delivery orders we only require the document itself; invoice_id may be empty
-        const required = ["do_doc"];
+        // Delivery orders must have a DO number and document; invoice match is handled server-side
+        const required = ["do_no", "do_doc"];
         missing = required.filter((f) => isFieldEmpty(form[f]));
       } else {
         missing = Object.entries(form).reduce((acc, [key, value]) => {
@@ -2160,8 +2161,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                 <input
                                   type="text"
                                   value={form.do_no ?? ""}
-                                  readOnly
-                                  disabled
+                                  onChange={(e) =>
+                                    handleFormChange(idx, "do_no", e.target.value)
+                                  }
+                                  required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white ${errorClass(
                                     idx,
                                     "do_no"
