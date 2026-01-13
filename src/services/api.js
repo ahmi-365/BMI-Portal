@@ -259,7 +259,6 @@ export const userListResource = async (
   return normalizePagination(res, page, perPage);
 };
 
-// Helper to send FormData (for file uploads)
 export const apiCallFormData = async (endpoint, formData, method = "POST") => {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = auth?.getToken?.();
@@ -269,6 +268,7 @@ export const apiCallFormData = async (endpoint, formData, method = "POST") => {
     mode: "cors",
     credentials: "include",
     headers: {
+      "Accept": "application/json", 
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: formData,
