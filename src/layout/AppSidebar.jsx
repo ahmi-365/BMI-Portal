@@ -340,7 +340,7 @@ const AppSidebar = () => {
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
             <div>
-              <h2
+              {/* <h2
                 className={`mb-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered ? "justify-center" : "justify-start"
                 }`}
@@ -350,11 +350,11 @@ const AppSidebar = () => {
                 ) : (
                   <MoreHorizontal className="w-6 h-6" />
                 )}
-              </h2>
+              </h2> */}
               {renderMenuItems(navItems, "main")}
             </div>
             <div className="">
-              <h2
+              {/* <h2
                 className={`mb-4 text-xs font-semibold uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered ? "justify-center" : "justify-start"
                 }`}
@@ -364,7 +364,7 @@ const AppSidebar = () => {
                 ) : (
                   <MoreHorizontal className="w-6 h-6" />
                 )}
-              </h2>
+              </h2> */}
               {renderMenuItems(othersItems, "others")}
             </div>
           </div>
