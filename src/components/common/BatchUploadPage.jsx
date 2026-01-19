@@ -1259,7 +1259,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  Cn Date
+                                  PPI Date
                                 </label>
                                 <input
                                   type="date"

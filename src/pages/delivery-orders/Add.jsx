@@ -86,6 +86,7 @@ export default function DeliveryOrdersAdd() {
       name: "do_doc",
       label: "DO Document",
       type: "file",
+      required: true,
     },
   ];
 

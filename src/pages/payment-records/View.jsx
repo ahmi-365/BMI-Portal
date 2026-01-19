@@ -27,7 +27,7 @@ const PAID_COLUMNS = [
   {
     header: "Customer No.",
     accessor: "invoice",
-    filterKey: "user_invoices",
+    filterKey: "customer_no",
     render: (row) => row.user?.customer_no ?? "-",
   },
 
