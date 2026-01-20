@@ -81,7 +81,7 @@ export default function CreditNotesAdd() {
       label: "Reference No.",
       type: "select",
       searchable: true,
-      required: false,
+      required: true,
       options: invoiceOptions,
       placeholder: "Select an invoice...",
     },
