@@ -241,7 +241,7 @@ export default function PaymentRecordsView() {
       setToastMessage("No payments selected");
       return;
     }
-    setIsDeleteModalOpen(true); // ✅ opens modal
+    setIsDeleteModalOpen(true); //   opens modal
   };
 
   const handleBulkDownload = async () => {
@@ -509,7 +509,7 @@ export default function PaymentRecordsView() {
                 </div>
 
                 <button
-                  onClick={handleBulkDeleteClick} // ✅ OPEN MODAL
+                  onClick={handleBulkDeleteClick} //   OPEN MODAL
                   disabled={isDeleting}
                   className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
                 >

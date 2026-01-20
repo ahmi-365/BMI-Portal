@@ -730,7 +730,7 @@ export const creditNotesAPI = {
   bulkDownload: (ids) =>
     downloadBlobPost("/creditnotes/bulk-download", { ids }),
 
-  // ✅ ADD THIS
+  //   ADD THIS
   exportCSV: (ids) => downloadBlobPost("/creditnotes/export", { ids }),
 };
 

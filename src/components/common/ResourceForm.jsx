@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import {
-  createResource,
-  updateResource,
-  getResourceById,
-  apiCallFormData,
-} from "../../services/api";
-import SearchableSelect from "./SearchableSelect";
-import PageBreadcrumb from "./PageBreadCrumb";
 import { Eye, EyeOff, UploadCloud, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2"; // Import SweetAlert2
+import {
+  apiCallFormData,
+  createResource,
+  getResourceById,
+  updateResource,
+} from "../../services/api";
+import PageBreadcrumb from "./PageBreadCrumb";
+import SearchableSelect from "./SearchableSelect";
 
 export const ResourceForm = ({
   resourceName,
@@ -72,7 +73,6 @@ export const ResourceForm = ({
             flat.file = flat.do_doc;
           }
           // For the do_no select field, we need the invoice_id (not the do_no string)
-          // The select dropdown will use this ID to find and display the matching invoice
           if (flat.invoice_id) {
             flat.do_no = flat.invoice_id;
           }
@@ -160,22 +160,32 @@ export const ResourceForm = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Validation Error",
+        text: "Please fill in all required fields.",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+      });
       return;
     }
+
     const payload = pickFieldValues(formData);
-    console.log("Submitting form data:", payload);
     setSubmitLoading(true);
+    setErrors({}); // Clear previous errors
+
     try {
       let result;
       if (onSubmit) {
-        // Allow callers to override submit behavior (useful for FormData/file uploads)
         result = await onSubmit(payload);
       } else if (isEditMode) {
-        // If any File objects are present, submit as multipart/form-data
+        // ... (Your existing Edit Logic)
         const hasFile = Object.values(payload).some((v) => v instanceof File);
         if (hasFile) {
           const fd = new FormData();
@@ -185,15 +195,12 @@ export const ResourceForm = ({
             else if (val !== undefined && val !== null)
               fd.append(key, String(val));
           });
-          result = await apiCallFormData(
-            `/${resourceName}/update/${id}`,
-            fd,
-            "POST"
-          );
+          result = await apiCallFormData(`/${resourceName}/update/${id}`, fd, "POST");
         } else {
           result = await updateResource(resourceName, id, payload);
         }
       } else {
+        // ... (Your existing Create Logic)
         const hasFile = Object.values(payload).some((v) => v instanceof File);
         if (hasFile) {
           const fd = new FormData();
@@ -209,39 +216,71 @@ export const ResourceForm = ({
         }
       }
 
+      // Success Popup
+      Swal.fire({
+        icon: "success",
+        title: "Success",
+        text: result?.message || "Operation successful!",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
       if (onSubmitSuccess) {
         onSubmitSuccess(result);
-        // Delay navigation to allow toast to show
-        setTimeout(() => {
-          navigate(`/${resourceName}/view`);
-        }, 2000);
       } else {
-        // Reset form state before navigation
         setFormData({});
         setErrors({});
-        navigate(`/${resourceName}/view`);
-        // window.location.reload();
+        setTimeout(() => {
+          navigate(`/${resourceName}/view`);
+        }, 1500);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      // Handle validation errors from backend
-      if (error?.response?.data?.errors) {
-        const validationErrors = error.response.data.errors;
-        // Flatten array errors to strings
-        const flattened = {};
-        Object.keys(validationErrors).forEach((key) => {
-          const err = validationErrors[key];
-          flattened[key] = Array.isArray(err) ? err.join(", ") : String(err);
+
+      const validationErrors = {};
+      let alertMessage = "";
+
+      // --- ERROR HANDLING LOGIC ---
+      const responseData = error?.response?.data;
+      
+      // 1. Check if the 'errors' object exists in the response
+      if (responseData?.errors) {
+        const errorList = [];
+        
+        // Loop through keys like "email", "password"
+        Object.keys(responseData.errors).forEach((key) => {
+          // API returns an array like ["The email has already been taken."]
+          const messageArray = responseData.errors[key];
+          const message = Array.isArray(messageArray) ? messageArray[0] : messageArray;
+          
+          // Add to the list for the Popup
+          errorList.push(message);
+          
+          // Add to the list for Red Text under fields
+          validationErrors[key] = message;
         });
-        setErrors(flattened);
-      } else {
-        // Extract backend error message or use default
-        const errorMessage =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Error submitting form. Please try again.";
-        setErrors({ submit: errorMessage });
+
+        // Join messages with a line break
+        alertMessage = errorList.join("\n");
+      } 
+      
+      // 2. Fallback: If no specific errors, use the generic message
+      if (!alertMessage) {
+        alertMessage = responseData?.message || error.message || "An unexpected error occurred.";
+        validationErrors.submit = alertMessage;
       }
+
+      // 3. Show the Popup with the specific messages
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        // HTML <pre> ensures the new lines (\n) are respected and not squashed
+        html: `<pre style="font-family: inherit; white-space: pre-wrap; color: #d33; font-size: 0.9rem;">${alertMessage}</pre>`,
+        confirmButtonColor: "#d33",
+      });
+
+      // 4. Update the form to show red text under fields
+      setErrors(validationErrors);
     } finally {
       setSubmitLoading(false);
     }
@@ -297,11 +336,19 @@ export const ResourceForm = ({
                       onChange={handleChange}
                       placeholder={field.placeholder}
                       rows={4}
-                      className="w-full rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
+                      className={`w-full rounded-xl border-2 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600 ${
+                        errors[field.name]
+                          ? "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30"
+                          : "border-gray-200 dark:border-gray-700"
+                      }`}
                     />
                   ) : field.type === "file" ? (
                     <div className="w-full">
-                      <label className="group relative flex items-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-gradient-to-r from-white/85 via-white to-white/70 px-4 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-100 dark:border-gray-700 dark:from-gray-800/80 dark:via-gray-800 dark:to-gray-800/60 dark:hover:border-brand-500/70 dark:focus-within:border-brand-500 dark:focus-within:ring-brand-900/30 cursor-pointer">
+                      <label className={`group relative flex items-center gap-3 rounded-2xl border-2 border-dashed bg-gradient-to-r from-white/85 via-white to-white/70 px-4 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-100 dark:from-gray-800/80 dark:via-gray-800 dark:to-gray-800/60 dark:focus-within:border-brand-500 dark:focus-within:ring-brand-900/30 cursor-pointer ${
+                        errors[field.name]
+                          ? "border-red-500 hover:border-red-400"
+                          : "border-gray-300 hover:border-brand-300 dark:border-gray-700 dark:hover:border-brand-500/70"
+                      }`}>
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600 shadow-inner transition-all duration-200 group-hover:scale-105 dark:bg-brand-900/30 dark:text-brand-200">
                           <UploadCloud className="h-6 w-6" />
                         </div>
@@ -349,7 +396,11 @@ export const ResourceForm = ({
                       name={field.name}
                       value={formData[field.name] || ""}
                       onChange={handleChange}
-                      className="w-full rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
+                      className={`w-full rounded-xl border-2 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600 ${
+                        errors[field.name]
+                          ? "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30"
+                          : "border-gray-200 dark:border-gray-700"
+                      }`}
                     />
                   ) : field.type === "select" ? (
                     field.searchable ? (
@@ -366,18 +417,28 @@ export const ResourceForm = ({
                               [field.name]: v,
                             }));
                           }
+                          // Manually clear error since SearchableSelect might not trigger standard onChange
+                          if (errors[field.name]) {
+                            setErrors((prev) => ({ ...prev, [field.name]: "" }));
+                          }
                         }}
                         onSearch={field.onSearch}
                         placeholder={
                           field.placeholder || `Select ${field.label}`
                         }
+                        // You might need to pass an error class to SearchableSelect if it supports it
+                        className={errors[field.name] ? "border-red-500" : ""}
                       />
                     ) : (
                       <select
                         name={field.name}
                         value={formData[field.name] || ""}
                         onChange={handleChange}
-                        className="relative z-20 w-full appearance-none rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
+                        className={`relative z-20 w-full appearance-none rounded-xl border-2 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600 ${
+                          errors[field.name]
+                            ? "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30"
+                            : "border-gray-200 dark:border-gray-700"
+                        }`}
                       >
                         <option value="">Select {field.label}</option>
                         {field.options?.map((option) => (
@@ -411,7 +472,11 @@ export const ResourceForm = ({
                         value={formData[field.name] || ""}
                         onChange={handleChange}
                         placeholder={field.placeholder}
-                        className="w-full rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-2.5 pr-12 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
+                        className={`w-full rounded-xl border-2 bg-white/70 px-4 py-2.5 pr-12 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600 ${
+                          errors[field.name]
+                            ? "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30"
+                            : "border-gray-200 dark:border-gray-700"
+                        }`}
                       />
                       <button
                         type="button"
@@ -435,12 +500,17 @@ export const ResourceForm = ({
                       placeholder={field.placeholder}
                       readOnly={field.readOnly}
                       disabled={field.disabled}
-                      className="w-full rounded-xl border-2 border-gray-200 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 disabled:cursor-default disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600 read-only:bg-gray-50 read-only:cursor-not-allowed dark:read-only:bg-gray-900/50"
+                      className={`w-full rounded-xl border-2 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 disabled:cursor-default disabled:bg-gray-100 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600 read-only:bg-gray-50 read-only:cursor-not-allowed dark:read-only:bg-gray-900/50 ${
+                        errors[field.name]
+                          ? "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30"
+                          : "border-gray-200 dark:border-gray-700"
+                      }`}
                     />
                   )}
 
+                  {/* Field Specific Error Message */}
                   {errors[field.name] && (
-                    <p className="mt-1 text-xs text-red-500">
+                    <p className="mt-1 text-xs font-medium text-red-500 animate-pulse">
                       {errors[field.name]}
                     </p>
                   )}
@@ -448,6 +518,7 @@ export const ResourceForm = ({
               ))}
             </div>
 
+            {/* General Submit Error */}
             {errors.submit && (
               <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400">
                 {errors.submit}

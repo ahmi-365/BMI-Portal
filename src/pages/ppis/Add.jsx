@@ -1,7 +1,7 @@
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { ResourceForm } from "../../components/common/ResourceForm";
 import { companiesAPI, ppisAPI } from "../../services/api";
-import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
 
 export default function PpisAdd() {
   const { id } = useParams();
@@ -151,6 +151,7 @@ export default function PpisAdd() {
       {
         name: "file",
         label: "PPI Document",
+        required: true,
         type: "file",
       },
     ],
@@ -198,7 +199,7 @@ export default function PpisAdd() {
       fields={FIELDS}
       title={isEditMode ? "Edit PPI" : "New PPI"}
       onSubmit={handleSubmit}
-      onSubmitSuccess={handleSuccess}
+      // onSubmitSuccess={handleSuccess}
       fetchInitial={isEditMode ? () => ppisAPI.show(id) : undefined}
     />
   );

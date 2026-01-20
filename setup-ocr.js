@@ -132,7 +132,7 @@ VITE_API_BASE=${apiBase}
     }
 
     // Final steps
-    log.header("✅ Setup Complete!");
+    log.header("  Setup Complete!");
     console.log("\nNext steps:");
     console.log("1. Restart your development server: npm run dev");
     console.log("2. Visit the OCR documentation: ./OCR_QUICK_REFERENCE.md");

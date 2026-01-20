@@ -57,7 +57,7 @@ const queryOCRSpace = async (imageBlob, retry = 1) => {
     }
 
     const text = result.ParsedResults?.[0]?.ParsedText || "";
-    console.log("✅ OCR.space Success");
+    console.log("  OCR.space Success");
     return text;
 
   } catch (error) {
@@ -99,7 +99,7 @@ export const extractDoNoFromPdf = async (file) => {
     console.log("⚠️ Text layer empty. Switching to OCR...");
 
     // ---------- ATTEMPT 2: OCR ----------
-    const viewport = page.getViewport({ scale: 1.2 }); // ✅ reduced scale
+    const viewport = page.getViewport({ scale: 1.2 }); //   reduced scale
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
 
@@ -127,7 +127,7 @@ export const extractDoNoFromPdf = async (file) => {
       const ocrMatch = ocrText.match(doPattern);
 
       if (ocrMatch) {
-        console.log(`✅ Found via OCR: ${ocrMatch[1]}`);
+        console.log(`  Found via OCR: ${ocrMatch[1]}`);
         return ocrMatch[1];
       }
     }

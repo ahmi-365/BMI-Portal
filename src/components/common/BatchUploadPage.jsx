@@ -1,6 +1,7 @@
 import { AlertCircle, ChevronRight, Upload } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import { BatchUpload } from "../../components/common/BatchUpload";
 import {
   companiesAPI,
@@ -305,7 +306,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                 );
 
                 if (foundInvoice) {
-                  console.log(`[File ${idx + 1}] ✅ Match Found: Invoice #${foundInvoice.invoice_no}`);
+                  console.log(`[File ${idx + 1}]   Match Found: Invoice #${foundInvoice.invoice_no}`);
                   matchedInvoiceId = foundInvoice.id;
                   matchedInvoiceNo = foundInvoice.invoiceId || foundInvoice.invoice_no;
                   remarkText = "Auto-matched via OCR";
@@ -749,17 +750,21 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         }
 
         if (result) {
-          setToastType("success");
-          setToastMessage(`Successfully uploaded ${formData.length} record(s)`);
+          setDuplicateList([]);
           setUploadedFiles([]);
           setParsedData(null);
           setFormData([]);
-          setDuplicateList([]);
           setError(null);
           setStep(1);
-          setTimeout(() => {
+          Swal.fire({
+            icon: "success",
+            title: "Success!",
+            text: `Successfully uploaded ${formData.length} record(s)`,
+            timer: 2000,
+            showConfirmButton: false,
+          }).then(() => {
             navigate(`/${resourceName}`);
-          }, 2000);
+          });
         }
         return;
       }
@@ -816,7 +821,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const duplicateInvoices = result?.duplicate_invoices;
       const duplicateCN = result?.duplicate_cn;
       const duplicates = result?.duplicates;
-      if (status === "error" || status === "fail") {
+      if (status === "error" || status === "fail" || status === "false") {
         const dupList = Array.isArray(duplicateInvoices)
           ? duplicateInvoices.map((d) => String(d))
           : Array.isArray(duplicateCN)
@@ -824,12 +829,51 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           : Array.isArray(duplicates)
           ? duplicates.map((d) => String(d))
           : [];
+
+        // Parse validation errors from the errors object and extract index
+        let detailedErrors = "";
+        let errorIndex = null;
+        const errorFields = [];
+        
+        // Extract index from message like "Validation failed at index 0"
+        const indexMatch = result?.message?.match(/index\s*(\d+)/i);
+        if (indexMatch) {
+          errorIndex = parseInt(indexMatch[1], 10);
+        }
+        
+        if (result?.errors && typeof result.errors === "object") {
+          const errorMessages = [];
+          Object.entries(result.errors).forEach(([field, messages]) => {
+            // Extract base field name (remove array index like "cn_no.0" -> "cn_no")
+            const baseField = field.split(".")[0];
+            errorFields.push(baseField);
+            if (Array.isArray(messages)) {
+              messages.forEach((msg) => errorMessages.push(msg));
+            } else if (typeof messages === "string") {
+              errorMessages.push(messages);
+            }
+          });
+          if (errorMessages.length > 0) {
+            detailedErrors = errorMessages.join("\n");
+          }
+        }
+
+        // Set validation errors to highlight the field with red border
+        if (errorIndex !== null && errorFields.length > 0) {
+          setValidationErrors({ [errorIndex]: errorFields });
+          setSubmitted(true);
+        }
+
+        // Only show the detailed error messages, not the generic "Validation failed" message
+        const fullErrorMessage = detailedErrors || result?.message || "Upload failed.";
         const messageWithDup = dupList.length
-          ? `${result?.message || "Upload failed."} (${dupList.join(", ")})`
-          : result?.message || "Upload failed.";
+          ? `${fullErrorMessage} (${dupList.join(", ")})`
+          : fullErrorMessage;
 
         console.log("Duplicate List:", dupList);
         console.log("Error Message:", messageWithDup);
+        console.log("Error Index:", errorIndex);
+        console.log("Error Fields:", errorFields);
 
         setDuplicateList(dupList);
         setError(messageWithDup);
@@ -840,23 +884,24 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
       if (result) {
         setDuplicateList([]);
-        setToastType("success");
-        setToastMessage(`Successfully uploaded ${formData.length} record(s)`);
-        // Clear form state before navigating
         setUploadedFiles([]);
         setParsedData(null);
         setFormData([]);
-        setDuplicateList([]);
         setError(null);
         setStep(1);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        setTimeout(() => {
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: `Successfully uploaded ${formData.length} record(s)`,
+          timer: 2000,
+          showConfirmButton: false,
+        }).then(() => {
           navigate(`/${resourceName}`);
-        }, 2000);
+        });
       }
     } catch (err) {
       console.error("Error submitting forms:", err);
-      console.log("Error Response Data:", err?.responseData); // Use responseData instead
+      console.log("Error Response Data:", err?.responseData);
 
       // Try to extract error from the attached responseData
       let errorData = err?.responseData || err?.response?.data;
@@ -891,12 +936,50 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           ? errorData.duplicates.map((d) => String(d))
           : [];
 
+        // Parse validation errors from the errors object and extract index
+        let detailedErrors = "";
+        let errorIndex = null;
+        const errorFields = [];
+        
+        // Extract index from message like "Validation failed at index 0"
+        const indexMatch = errorData?.message?.match(/index\s*(\d+)/i);
+        if (indexMatch) {
+          errorIndex = parseInt(indexMatch[1], 10);
+        }
+        
+        if (errorData?.errors && typeof errorData.errors === "object") {
+          const errorMessages = [];
+          Object.entries(errorData.errors).forEach(([field, messages]) => {
+            // Extract base field name (remove array index like "cn_no.0" -> "cn_no")
+            const baseField = field.split(".")[0];
+            errorFields.push(baseField);
+            if (Array.isArray(messages)) {
+              messages.forEach((msg) => errorMessages.push(msg));
+            } else if (typeof messages === "string") {
+              errorMessages.push(messages);
+            }
+          });
+          if (errorMessages.length > 0) {
+            detailedErrors = errorMessages.join("\n");
+          }
+        }
+
+        // Set validation errors to highlight the field with red border
+        if (errorIndex !== null && errorFields.length > 0) {
+          setValidationErrors({ [errorIndex]: errorFields });
+          setSubmitted(true);
+        }
+
+        // Only show the detailed error messages, not the generic "Validation failed" message
+        const fullErrorMessage = detailedErrors || errorData?.message || "Upload failed.";
         const messageWithDup = dupList.length
-          ? `${errorData?.message || "Upload failed."} (${dupList.join(", ")})`
-          : errorData?.message || "Upload failed.";
+          ? `${fullErrorMessage} (${dupList.join(", ")})`
+          : fullErrorMessage;
 
         console.log("Final Duplicate List:", dupList);
-        console.log("Final Error Message:", messageWithDup);
+        console.log("Final Error Message:", fullErrorMessage);
+        console.log("Error Index:", errorIndex);
+        console.log("Error Fields:", errorFields);
 
         setDuplicateList(dupList);
         setError(messageWithDup);
@@ -1027,7 +1110,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                   <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 animate-pulse" />
                   <div className="flex-1">
                     <p className="font-semibold text-sm">Error</p>
-                    <p className="text-sm mt-1">{error}</p>
+                    <p className="text-sm mt-1 whitespace-pre-wrap">{error}</p>
                     {duplicateList.length > 0 && (
                       <div className="mt-3 p-3 rounded-lg bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800">
                         <p className="text-xs font-semibold text-red-900 dark:text-red-200 mb-2">
@@ -1137,7 +1220,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 animate-pulse" />
                 <div>
                   <p className="font-semibold text-sm">Error</p>
-                  <p className="text-sm mt-1">{error}</p>
+                  <p className="text-sm mt-1 whitespace-pre-wrap">{error}</p>
                   {duplicateList.length > 0 && (
                     <div className="mt-2 text-xs text-red-700 dark:text-red-300">
                       Duplicates: {duplicateList.join(", ")}
