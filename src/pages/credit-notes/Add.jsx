@@ -124,7 +124,7 @@ export default function CreditNotesAdd() {
       fields={FIELDS}
       title={isEditMode ? "Edit Credit Note" : "New Credit Note"}
       onSubmit={handleSubmit}
-      onSubmitSuccess={() => navigate('/creditnotes')}
+      // onSubmitSuccess={() => navigate('/creditnotes')}
     />
   );
 }

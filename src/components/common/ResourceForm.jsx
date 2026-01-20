@@ -211,6 +211,10 @@ export const ResourceForm = ({
 
       if (onSubmitSuccess) {
         onSubmitSuccess(result);
+        // Delay navigation to allow toast to show
+        setTimeout(() => {
+          navigate(`/${resourceName}/view`);
+        }, 2000);
       } else {
         // Reset form state before navigation
         setFormData({});
@@ -220,12 +224,24 @@ export const ResourceForm = ({
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      // Extract backend error message or use default
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Error submitting form. Please try again.";
-      setErrors({ submit: errorMessage });
+      // Handle validation errors from backend
+      if (error?.response?.data?.errors) {
+        const validationErrors = error.response.data.errors;
+        // Flatten array errors to strings
+        const flattened = {};
+        Object.keys(validationErrors).forEach((key) => {
+          const err = validationErrors[key];
+          flattened[key] = Array.isArray(err) ? err.join(", ") : String(err);
+        });
+        setErrors(flattened);
+      } else {
+        // Extract backend error message or use default
+        const errorMessage =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Error submitting form. Please try again.";
+        setErrors({ submit: errorMessage });
+      }
     } finally {
       setSubmitLoading(false);
     }

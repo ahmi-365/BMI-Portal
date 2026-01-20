@@ -111,7 +111,9 @@ const PENDING_COLUMNS = [
             try {
               await customersAPI.approve(row.id);
               toast.success("Customer approved successfully");
-              window.location.reload();
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
             } catch (error) {
               toast.error("Failed to approve customer");
               console.error(error);

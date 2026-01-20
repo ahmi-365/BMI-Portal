@@ -531,7 +531,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.customer_no = form.customer_no ?? "";
             form.po_no = form.po_no ?? "";
             form.do_no = form.do_no ?? "";
-            form.date = toISODate(form.date) || form.date || "";
+            form.date = dueDateFromTerm(form.payment_terms, new Date());
             form.invoice_date =
               toISODate(form.invoice_date) || form.invoice_date || "";
             form.amount = extractAmount(String(form.amount ?? ""));
@@ -1926,7 +1926,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       idx,
                                       "remarks",
                                       e.target.value
-                                    )
+                                    )   
                                   }
                                   rows={3}
                                   className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
@@ -1957,6 +1957,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   Customer No.
                                 </label>
                                 <input
+                                
                                   type="text"
                                   value={form.customer_no ?? ""}
                                   onChange={(e) => {
@@ -2077,7 +2078,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                               </div>
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  Date
+                                   Date
                                 </label>
                                 <input
                                   type="date"

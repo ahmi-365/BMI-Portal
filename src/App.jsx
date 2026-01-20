@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import SignIn from "./pages/AuthPages/SignIn";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import UserProtectedRoute from "./components/common/UserProtectedRoute";
@@ -263,6 +265,18 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </>
   );
 }

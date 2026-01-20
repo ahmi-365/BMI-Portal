@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { ResourceForm } from "../../components/common/ResourceForm";
 import { customersAPI } from "../../services/api";
+import { toast } from "react-toastify";
 
 export default function CustomersAdd() {
   const { id } = useParams();
@@ -96,6 +97,9 @@ export default function CustomersAdd() {
       fields={FIELDS}
       title={isEditMode ? "Edit Customer" : "New Customer"}
       onSubmit={handleSubmit}
+      // onSubmitSuccess={() => {
+      //   toast.success(isEditMode ? "Customer updated successfully" : "Customer added successfully");
+      // }}
     />
   );
 }
