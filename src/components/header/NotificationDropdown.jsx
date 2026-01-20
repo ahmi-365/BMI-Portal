@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
+import { adminNotificationsAPI } from "../../services/api";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { Link } from "react-router-dom";
-import { adminNotificationsAPI } from "../../services/api";
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -149,11 +148,11 @@ export default function NotificationDropdown() {
           </div>
         </div>
         <ul className="flex flex-col h-auto overflow-y-auto custom-scrollbar">
-          {loading && (
+          {/* {loading && (
             <li className="px-4 py-6 text-sm text-gray-500 dark:text-gray-400 text-center">
               Loading notifications...
             </li>
-          )}
+          )} */}
           {!loading && error && (
             <li className="px-4 py-6 text-sm text-red-600 dark:text-red-400 text-center">
               {error}
@@ -171,16 +170,31 @@ export default function NotificationDropdown() {
                 <DropdownItem
                   onItemClick={() => handleMarkAsRead(notification.id)}
                   className={`flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5 ${
-                    notification.read ? "" : "bg-blue-50/40 dark:bg-blue-900/10"
+                    notification.read
+                      ? "opacity-60"
+                      : "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-brand-500"
                   }`}
                 >
                   <span className="block flex-1">
-                    <span className="mb-1 block text-theme-sm text-gray-800 dark:text-white/90">
-                      {notification.title || "Notification"}
+                    <span
+                      className={`mb-1 block text-theme-sm ${
+                        notification.read
+                          ? "text-gray-600 dark:text-gray-400 font-normal"
+                          : "text-gray-900 dark:text-white font-semibold"
+                      }`}
+                    >
+                      {notification.data?.message || notification.title || "Notification"}
                     </span>
-                    <span className="block text-sm text-gray-500 dark:text-gray-400">
-                      {notification.message || notification.body || ""}
-                    </span>
+                    <span
+                      className={`block text-sm ${
+                        notification.read
+                          ? "text-gray-400 dark:text-gray-500"
+                          : "text-gray-600 dark:text-gray-300"
+                      }`}
+                      dangerouslySetInnerHTML={{
+                        __html: notification.data?.description || notification.message || notification.body || "",
+                      }}
+                    />
                     {notification.created_at && (
                       <span className="block text-xs text-gray-400 dark:text-gray-500 mt-1">
                         {new Date(notification.created_at).toLocaleString()}
@@ -188,7 +202,7 @@ export default function NotificationDropdown() {
                     )}
                   </span>
                   {!notification.read && (
-                    <span className="w-2 h-2 mt-1 rounded-full bg-brand-500"></span>
+                    <span className="w-2.5 h-2.5 mt-1 rounded-full bg-brand-500 flex-shrink-0 animate-pulse"></span>
                   )}
                 </DropdownItem>
               </li>
