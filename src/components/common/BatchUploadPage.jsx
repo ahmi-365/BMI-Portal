@@ -1259,7 +1259,9 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                       <div
                         key={idx}
                         className={`group rounded-xl border-2 p-6 hover:shadow-lg transition-all duration-300 animate-fadeIn ${
-                          isDuplicate
+                          validationErrors[idx]
+                            ? "border-red-500 bg-red-50/60 dark:border-red-600 dark:bg-red-900/20"
+                            : isDuplicate
                             ? "border-red-400 bg-red-50/60 dark:border-red-700 dark:bg-red-900/20"
                             : "border-gray-200 hover:border-brand-300 dark:border-gray-700 dark:hover:border-brand-600"
                         }`}
