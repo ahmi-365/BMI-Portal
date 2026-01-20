@@ -13,6 +13,7 @@ export default function CreditNotesIndex() {
 
   return (
     <>
+
       <PageMeta
         title="Credit Notes - BMI Invoice Management System"
         description="View and manage credit notes."
