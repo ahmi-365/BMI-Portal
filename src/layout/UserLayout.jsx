@@ -1,7 +1,7 @@
+import { Outlet } from "react-router-dom";
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
-import { Outlet } from "react-router";
-import UserHeader from "./UserHeader";
 import Backdrop from "./Backdrop";
+import UserHeader from "./UserHeader";
 import UserSidebar from "./UserSidebar";
 
 const LayoutContent = () => {

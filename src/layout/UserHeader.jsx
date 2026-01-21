@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { Bell, ChartBar, LogOut, User } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
-import { ChartBar, LogOut, User, Bell } from "lucide-react";
-import { userAuth } from "../services/auth";
+import { useSidebar } from "../context/SidebarContext";
 import { userNotificationsAPI } from "../services/api";
+import { userAuth } from "../services/auth";
 
 const UserHeader = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -28,6 +28,7 @@ const UserHeader = () => {
     () => [
       { name: "Dashboard", path: "/user/dashboard", category: "Dashboard" },
       { name: "Profile", path: "/user/profile", category: "User" },
+      { name: "Edit Profile", path: "/user/profile/edit", category: "User" },
       { name: "Invoices", path: "/user/invoices", category: "Documents" },
       {
         name: "Delivery Orders",
@@ -42,7 +43,22 @@ const UserHeader = () => {
       },
       {
         name: "Account Statements",
-        path: "/user/account-statements",
+        path: "/user/statements",
+        category: "Documents",
+      },
+      {
+        name: "Payments",
+        path: "/user/payments",
+        category: "Documents",
+      },
+      {
+        name: "Add Payment",
+        path: "/user/payments/add",
+        category: "Documents",
+      },
+      {
+        name: "PPI",
+        path: "/user/ppi",
         category: "Documents",
       },
     ],
@@ -160,14 +176,48 @@ const UserHeader = () => {
     }
   };
 
+  // Refs for search
+  const searchContainerRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Keyboard shortcut (Cmd+K / Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+        event.preventDefault();
+        inputRef.current?.focus();
+        setShowSearchResults(true);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Click Outside Logic for search
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target)
+      ) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    /* CHANGED: Replaced 'sticky' with 'fixed', added 'left-0' */
-    <header className="fixed top-0 mb-16 left-0 flex w-full bg-white border-gray-200 z-50 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
-      <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
-        <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
+    <header className="sticky top-0 flex w-full bg-white/80 backdrop-blur-xl border-b border-gray-200 z-50 dark:border-gray-800 dark:bg-gray-900/80 shadow-sm">
+      <div className="flex items-center justify-between w-full px-4 lg:px-6 py-3">
+        {/* Left Section: Toggle + Search */}
+        <div className="flex items-center gap-4 flex-1">
           {/* Sidebar Toggle Button */}
           <button
-            className="items-center justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border"
+            className="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-gray-900 rounded-xl hover:bg-gray-100 transition-all duration-200 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800"
             onClick={handleToggle}
             aria-label="Toggle Sidebar"
           >
@@ -188,8 +238,8 @@ const UserHeader = () => {
               </svg>
             ) : (
               <svg
-                width="16"
-                height="12"
+                width="20"
+                height="20"
                 viewBox="0 0 16 12"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -205,242 +255,187 @@ const UserHeader = () => {
           </button>
 
           {/* Mobile Logo */}
-          <Link
-            to="/user/dashboard"
-            className="flex items-center space-x-2 lg:hidden"
-          >
-            <ChartBar className="h-8 w-8 p-1 bg-blue-600 text-white dark:text-black rounded" />
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
-              BMI{" "}
-              <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
-                – My Account
-              </span>
+          <Link to="/user/dashboard" className="flex items-center gap-2 lg:hidden">
+            <ChartBar className="h-8 w-8 p-1 bg-gradient-to-br from-brand-600 to-brand-500 text-white rounded-lg shadow-md" />
+            <span className="text-lg font-bold text-gray-900 dark:text-white">
+              BMI
             </span>
           </Link>
 
-          {/* Mobile Menu Toggle */}
-          <button
-            onClick={toggleApplicationMenu}
-            className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M5.99902 10.4951C6.82745 10.4951 7.49902 11.1667 7.49902 11.9951V12.0051C7.49902 12.8335 6.82745 13.5051 5.99902 13.5051C5.1706 13.5051 4.49902 12.8335 4.49902 12.0051V11.9951C4.49902 11.1667 5.1706 10.4951 5.99902 10.4951ZM17.999 10.4951C18.8275 10.4951 19.499 11.1667 19.499 11.9951V12.0051C19.499 12.8335 18.8275 13.5051 17.999 13.5051C17.1706 13.5051 16.499 12.8335 16.499 12.0051V11.9951C16.499 11.1667 17.1706 10.4951 17.999 10.4951ZM13.499 11.9951C13.499 11.1667 12.8275 10.4951 11.999 10.4951C11.1706 10.4951 10.499 11.1667 10.499 11.9951V12.0051C10.499 12.8335 11.1706 13.5051 11.999 13.5051C12.8275 13.5051 13.499 12.8335 13.499 12.0051V11.9951Z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
-
           {/* Search Bar - Desktop */}
-          <div className="hidden lg:block">
-            <div className="relative">
-              <button className="absolute -translate-y-1/2 left-4 top-1/2">
-                <svg
-                  className="fill-gray-500 dark:fill-gray-400"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
-                    fill=""
-                  />
-                </svg>
-              </button>
-              <input
-                type="text"
-                placeholder="Search pages..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                onFocus={() => searchQuery && setShowSearchResults(true)}
-                onBlur={() =>
-                  setTimeout(() => setShowSearchResults(false), 200)
-                }
-                className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
-              />
+          <div className="hidden lg:block flex-1 max-w-xl">
+            <form onSubmit={(e) => e.preventDefault()}>
+              <div className="relative" ref={searchContainerRef}>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg
+                    className="fill-gray-400 dark:fill-gray-500"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
+                      fill=""
+                    />
+                  </svg>
+                </span>
 
-              <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
-                <span> ⌘ </span>
-                <span> K </span>
-              </button>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Search pages..."
+                  className="h-10 w-full rounded-xl border-2 border-gray-200 bg-white/70 py-2 pl-10 pr-20 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:border-gray-700 dark:bg-gray-800/70 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onFocus={() => setShowSearchResults(true)}
+                />
 
-              {/* Search Results Dropdown */}
-              {showSearchResults && filteredPages.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
-                  {filteredPages.map((page, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handlePageClick(page.path)}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-800 last:border-b-0 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {page.name}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {page.category}
-                          </p>
-                        </div>
-                        <svg
-                          className="w-4 h-4 text-gray-400 dark:text-gray-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* No Results Message */}
-              {showSearchResults &&
-                filteredPages.length === 0 &&
-                searchQuery && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50 p-4 text-center">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No pages found for "{searchQuery}"
-                    </p>
+                {showSearchResults && filteredPages.length > 0 && (
+                  <div className="absolute z-50 top-full left-0 w-full bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl mt-2 shadow-xl max-h-96 overflow-y-auto animate-slideIn">
+                    <ul className="py-2">
+                      {filteredPages.map((page) => (
+                        <li key={page.path}>
+                          <Link
+                            to={page.path}
+                            className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-brand-50 hover:text-brand-700 dark:text-gray-200 dark:hover:bg-brand-900/20 dark:hover:text-brand-200 transition-all duration-150"
+                            onClick={() => {
+                              setShowSearchResults(false);
+                              setSearchQuery("");
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="h-1.5 w-1.5 rounded-full bg-brand-500"></div>
+                              {page.name}
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
-            </div>
+
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-lg border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-medium text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                  <span>⌘</span>
+                  <span>K</span>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
 
-        <div
-          className={`${
-            isApplicationMenuOpen ? "flex" : "hidden"
-          } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
-        >
-          <div className="flex items-center gap-2 2xsm:gap-3">
-            <ThemeToggleButton />
+        {/* Right Section: Actions */}
+        <div className="flex items-center gap-3">
+          <ThemeToggleButton />
 
-            {/* Notifications Dropdown */}
-            <div className="relative" ref={notificationDropdownRef}>
-              <button
-                onClick={() =>
-                  setIsNotificationDropdownOpen(!isNotificationDropdownOpen)
-                }
-                className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-700 shadow-theme-xs duration-300 ease-in-out hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-              >
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-semibold text-white">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </button>
+          {/* Notifications Dropdown */}
+          <div className="relative" ref={notificationDropdownRef}>
+            <button
+              onClick={() =>
+                setIsNotificationDropdownOpen(!isNotificationDropdownOpen)
+              }
+              className="relative inline-flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-600 hover:text-gray-900 transition-all duration-200 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-semibold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
 
-              {/* Notifications Dropdown Menu */}
-              {isNotificationDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50">
-                  <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                      Notifications
-                    </h3>
-                    {unreadCount > 0 && (
-                      <button
-                        onClick={handleMarkAllAsRead}
-                        className="text-xs text-brand-600 dark:text-brand-400 hover:underline"
+            {/* Notifications Dropdown Menu */}
+            {isNotificationDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50">
+                <div className="sticky top-0 bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                    Notifications
+                  </h3>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllAsRead}
+                      className="text-xs text-brand-600 dark:text-brand-400 hover:underline"
+                    >
+                      Mark all as read
+                    </button>
+                  )}
+                </div>
+                <div className="py-1">
+                  {notifications.length === 0 ? (
+                    <div className="px-4 py-8 text-center">
+                      <Bell className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        No notifications
+                      </p>
+                    </div>
+                  ) : (
+                    notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        onClick={() => {
+                          if (!notification.read_at) {
+                            handleMarkAsRead(notification.id);
+                          }
+                          // Navigate if action_url exists
+                          if (notification.data?.action_url) {
+                            const url = new URL(notification.data.action_url);
+                            navigate(url.pathname);
+                            setIsNotificationDropdownOpen(false);
+                          }
+                        }}
+                        className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${
+                          !notification.read_at
+                            ? "bg-blue-50/50 dark:bg-blue-900/10"
+                            : ""
+                        }`}
                       >
-                        Mark all as read
-                      </button>
-                    )}
-                  </div>
-                  <div className="py-1">
-                    {notifications.length === 0 ? (
-                      <div className="px-4 py-8 text-center">
-                        <Bell className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          No notifications
-                        </p>
-                      </div>
-                    ) : (
-                      notifications.map((notification) => (
-                        <div
-                          key={notification.id}
-                          onClick={() => {
-                            if (!notification.read_at) {
-                              handleMarkAsRead(notification.id);
-                            }
-                            // Navigate if action_url exists
-                            if (notification.data?.action_url) {
-                              const url = new URL(notification.data.action_url);
-                              navigate(url.pathname);
-                              setIsNotificationDropdownOpen(false);
-                            }
-                          }}
-                          className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
-                            !notification.read_at
-                              ? "bg-blue-50/50 dark:bg-blue-900/10"
-                              : ""
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            {!notification.read_at && (
-                              <div className="w-2 h-2 rounded-full bg-brand-500 mt-1.5 flex-shrink-0"></div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {notification.data?.message || "Notification"}
+                        <div className="flex items-start gap-3">
+                          {!notification.read_at && (
+                            <div className="w-2 h-2 rounded-full bg-brand-500 mt-1.5 flex-shrink-0"></div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {notification.data?.message || "Notification"}
+                            </p>
+                            <div
+                              className="text-xs text-gray-500 dark:text-gray-400 mt-1"
+                              dangerouslySetInnerHTML={{
+                                __html:
+                                  notification.data?.description ||
+                                  notification.data?.message ||
+                                  "",
+                              }}
+                            />
+                            {notification.created_at && (
+                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                {new Date(
+                                  notification.created_at
+                                ).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
                               </p>
-                              <div
-                                className="text-xs text-gray-500 dark:text-gray-400 mt-1"
-                                dangerouslySetInnerHTML={{
-                                  __html:
-                                    notification.data?.description ||
-                                    notification.data?.message ||
-                                    "",
-                                }}
-                              />
-                              {notification.created_at && (
-                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                                  {new Date(
-                                    notification.created_at
-                                  ).toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </p>
-                              )}
-                            </div>
+                            )}
                           </div>
                         </div>
-                      ))
-                    )}
-                  </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* User Profile Dropdown */}
           <div className="relative" ref={profileDropdownRef}>
             <button
               onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-              className="inline-flex items-center gap-2.5 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs duration-300 ease-in-out hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+              className="inline-flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-all duration-200 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
             >
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">My Account</span>
@@ -463,25 +458,25 @@ const UserHeader = () => {
 
             {/* Dropdown Menu */}
             {isProfileDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50">
                 <div className="py-1">
                   <button
                     onClick={() => {
                       navigate("/user/profile");
                       setIsProfileDropdownOpen(false);
                     }}
-                    className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2"
+                    className="w-full px-4 py-2.5 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
                   >
                     <User className="w-4 h-4" />
                     Profile
                   </button>
-                  <div className="border-t border-gray-200 dark:border-gray-800"></div>
+                  <div className="border-t border-gray-200 dark:border-gray-700"></div>
                   <button
                     onClick={() => {
                       handleLogout();
                       setIsProfileDropdownOpen(false);
                     }}
-                    className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2"
+                    className="w-full px-4 py-2.5 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout
