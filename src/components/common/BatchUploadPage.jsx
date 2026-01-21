@@ -641,6 +641,52 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     }
   };
 
+  // Normalize backend validation messages for delivery orders
+  const normalizeDoErrorMessage = (msg) => {
+    if (!msg) return "";
+    const cleaned = String(msg).replace(/delivery_orders\.\d+\.do_no/gi, "DO number");
+    if (/The given data was invalid\.?/i.test(cleaned)) {
+      return "The selected DO number is invalid.";
+    }
+    return cleaned;
+  };
+
+  // Parse validation errors into per-row field map so we can highlight the record card
+  const parseValidationErrors = (errorsObj) => {
+    const validationMap = {};
+    const messages = [];
+
+    if (!errorsObj || typeof errorsObj !== "object") {
+      return { validationMap, messages };
+    }
+
+    Object.entries(errorsObj).forEach(([field, msgs]) => {
+      const match = field.match(/delivery_orders\.(\d+)\.(.+)/);
+      if (match) {
+        const idx = parseInt(match[1], 10);
+        const fieldName = match[2];
+        if (!Number.isNaN(idx)) {
+          validationMap[idx] = validationMap[idx] || [];
+          validationMap[idx].push(fieldName);
+        }
+      } else {
+        const baseField = field.split(".")[0];
+        if (baseField) {
+          validationMap[0] = validationMap[0] || [];
+          validationMap[0].push(baseField);
+        }
+      }
+
+      if (Array.isArray(msgs)) {
+        msgs.forEach((m) => messages.push(normalizeDoErrorMessage(m)));
+      } else if (typeof msgs === "string") {
+        messages.push(normalizeDoErrorMessage(msgs));
+      }
+    });
+
+    return { validationMap, messages };
+  };
+
   const handleRemoveRecord = (index) => {
     setFormData((prev) => prev.filter((_, i) => i !== index));
   };
@@ -744,7 +790,32 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
         const status = result?.status?.toLowerCase?.();
         if (status === "error" || status === "fail") {
-          setError(result?.message || "Upload failed.");
+          // Parse validation errors for delivery orders
+          const { validationMap, messages: normalizedMessages } =
+            parseValidationErrors(result?.errors);
+
+          // Set validation errors to highlight the correct record card and fields
+          if (Object.keys(validationMap).length > 0) {
+            setValidationErrors(validationMap);
+            setSubmitted(true);
+          }
+
+          // Build friendly error message
+          const messageList = normalizedMessages.filter(Boolean);
+          if (!messageList.length && result?.errors) {
+            messageList.push("The selected DO number is invalid.");
+          }
+          const normalizedText = messageList.length
+            ? Array.from(new Set(messageList)).join("\n")
+            : "";
+          const backendMessage = result?.message || "Upload failed.";
+          const fullErrorMessage = normalizedText
+            ? normalizedText
+            : /The given data was invalid\.?/i.test(backendMessage)
+            ? "The selected DO number is invalid."
+            : backendMessage;
+
+          setError(fullErrorMessage);
           setToastMessage(null);
           return;
         }
@@ -831,41 +902,29 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           : [];
 
         // Parse validation errors from the errors object and extract index
-        let detailedErrors = "";
-        let errorIndex = null;
-        const errorFields = [];
-        
-        // Extract index from message like "Validation failed at index 0"
-        const indexMatch = result?.message?.match(/index\s*(\d+)/i);
-        if (indexMatch) {
-          errorIndex = parseInt(indexMatch[1], 10);
-        }
-        
-        if (result?.errors && typeof result.errors === "object") {
-          const errorMessages = [];
-          Object.entries(result.errors).forEach(([field, messages]) => {
-            // Extract base field name (remove array index like "cn_no.0" -> "cn_no")
-            const baseField = field.split(".")[0];
-            errorFields.push(baseField);
-            if (Array.isArray(messages)) {
-              messages.forEach((msg) => errorMessages.push(msg));
-            } else if (typeof messages === "string") {
-              errorMessages.push(messages);
-            }
-          });
-          if (errorMessages.length > 0) {
-            detailedErrors = errorMessages.join("\n");
-          }
-        }
+        const { validationMap, messages: normalizedMessages } =
+          parseValidationErrors(result?.errors);
 
-        // Set validation errors to highlight the field with red border
-        if (errorIndex !== null && errorFields.length > 0) {
-          setValidationErrors({ [errorIndex]: errorFields });
+        // Set validation errors to highlight the correct record card and fields
+        if (Object.keys(validationMap).length > 0) {
+          setValidationErrors(validationMap);
           setSubmitted(true);
         }
 
-        // Only show the detailed error messages, not the generic "Validation failed" message
-        const fullErrorMessage = detailedErrors || result?.message || "Upload failed.";
+        // Prefer normalized validation messages; fall back to backend message
+        const messageList = normalizedMessages.filter(Boolean);
+        if (!messageList.length && result?.errors) {
+          messageList.push("The selected DO number is invalid.");
+        }
+        const normalizedText = messageList.length
+          ? Array.from(new Set(messageList)).join("\n")
+          : "";
+        const backendMessage = result?.message || "Upload failed.";
+        const fullErrorMessage = normalizedText
+          ? normalizedText
+          : /The given data was invalid\.?/i.test(backendMessage)
+          ? "The selected DO number is invalid."
+          : backendMessage;
         const messageWithDup = dupList.length
           ? `${fullErrorMessage} (${dupList.join(", ")})`
           : fullErrorMessage;
@@ -937,49 +996,35 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           : [];
 
         // Parse validation errors from the errors object and extract index
-        let detailedErrors = "";
-        let errorIndex = null;
-        const errorFields = [];
-        
-        // Extract index from message like "Validation failed at index 0"
-        const indexMatch = errorData?.message?.match(/index\s*(\d+)/i);
-        if (indexMatch) {
-          errorIndex = parseInt(indexMatch[1], 10);
-        }
-        
-        if (errorData?.errors && typeof errorData.errors === "object") {
-          const errorMessages = [];
-          Object.entries(errorData.errors).forEach(([field, messages]) => {
-            // Extract base field name (remove array index like "cn_no.0" -> "cn_no")
-            const baseField = field.split(".")[0];
-            errorFields.push(baseField);
-            if (Array.isArray(messages)) {
-              messages.forEach((msg) => errorMessages.push(msg));
-            } else if (typeof messages === "string") {
-              errorMessages.push(messages);
-            }
-          });
-          if (errorMessages.length > 0) {
-            detailedErrors = errorMessages.join("\n");
-          }
-        }
+        const { validationMap, messages: normalizedMessages } =
+          parseValidationErrors(errorData?.errors);
 
-        // Set validation errors to highlight the field with red border
-        if (errorIndex !== null && errorFields.length > 0) {
-          setValidationErrors({ [errorIndex]: errorFields });
+        // Set validation errors to highlight the correct record card and fields
+        if (Object.keys(validationMap).length > 0) {
+          setValidationErrors(validationMap);
           setSubmitted(true);
         }
 
-        // Only show the detailed error messages, not the generic "Validation failed" message
-        const fullErrorMessage = detailedErrors || errorData?.message || "Upload failed.";
+        const messageList = normalizedMessages.filter(Boolean);
+        if (!messageList.length && errorData?.errors) {
+          messageList.push("The selected DO number is invalid.");
+        }
+        const normalizedText = messageList.length
+          ? Array.from(new Set(messageList)).join("\n")
+          : "";
+        const backendMessage = errorData?.message || "Upload failed.";
+        const fullErrorMessage = normalizedText
+          ? normalizedText
+          : /The given data was invalid\.?/i.test(backendMessage)
+          ? "The selected DO number is invalid."
+          : backendMessage;
         const messageWithDup = dupList.length
           ? `${fullErrorMessage} (${dupList.join(", ")})`
           : fullErrorMessage;
 
         console.log("Final Duplicate List:", dupList);
         console.log("Final Error Message:", fullErrorMessage);
-        console.log("Error Index:", errorIndex);
-        console.log("Error Fields:", errorFields);
+        console.log("Error Fields Map:", validationMap);
 
         setDuplicateList(dupList);
         setError(messageWithDup);
