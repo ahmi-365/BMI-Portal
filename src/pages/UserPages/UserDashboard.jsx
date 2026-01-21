@@ -228,7 +228,7 @@ export default function UserDashboard() {
                     subtitle="View Invoices"
                   />
                   <StatCard
-                    to="/user/creditnotes"
+                    to="/user/credit-notes"
                     title="Credit Notes"
                     value={dashboardData?.credit_notes || 0}
                     icon={CreditCard}
@@ -236,7 +236,7 @@ export default function UserDashboard() {
                     subtitle="View Credits"
                   />
                   <StatCard
-                    to="/user/debitnotes"
+                    to="/user/debit-notes"
                     title="Debit Notes"
                     value={dashboardData?.debit_notes || 0}
                     icon={FileText}
@@ -244,7 +244,7 @@ export default function UserDashboard() {
                     subtitle="View Debits"
                   />
                   <StatCard
-                    to="/user/deliveryorders"
+                    to="/user/delivery-orders"
                     title="Delivery Orders"
                     value={dashboardData?.delivery_orders || 0}
                     icon={Package}
@@ -281,7 +281,7 @@ export default function UserDashboard() {
                       subtitle="Processed transactions"
                     />
                     <StatCard
-                      to="/user/ppis"
+                      to="/user/ppi"
                       title="PPI Credit Notes"
                       value={dashboardData?.ppi_cn || 0}
                       icon={CreditCard}
