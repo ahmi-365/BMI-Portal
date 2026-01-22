@@ -44,7 +44,7 @@ const COLUMNS = [
   {
     header: "Updated At",
     accessor: "updated_at",
-    filterKey: "updated_at",
+    filterKey: "uploaded",
     filterType: "date-range",
     render: (row) =>
       row.updated_at || row.created_at
@@ -56,8 +56,9 @@ const COLUMNS = [
     header: "Uploaded By",
     accessor: "uploaded_by",
     render: (row) =>
-      row.admin?.name || row.user?.name || row.uploaded_by || "-",
+      row.admin?.name || "-",
     filterKey: "uploaded_by",
+    
   },
 ];
 
