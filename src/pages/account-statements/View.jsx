@@ -41,16 +41,16 @@ const COLUMNS = [
     // CHANGE: Use formatDate for consistent DMY format
     render: (row) => formatDate(row.statement_date),
   },
-  // {
-  //   header: "Updated At",
-  //   accessor: "updated_at",
-  //   filterKey: "updated_at",
-  //   filterType: "date-range",
-  //   render: (row) =>
-  //     row.updated_at || row.created_at
-  //       ? (row.updated_at || row.created_at).split("T")[0]
-  //       : "-",
-  // },
+  {
+    header: "Updated At",
+    accessor: "updated_at",
+    filterKey: "updated_at",
+    filterType: "date-range",
+    render: (row) =>
+      row.updated_at || row.created_at
+        ? (row.updated_at || row.created_at).split("T")[0]
+        : "-",
+  },
 
   {
     header: "Uploaded By",

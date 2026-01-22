@@ -88,7 +88,7 @@ const COLUMNS = [
 {
     header: "Uploaded At",
     accessor: "created_at",
-    filterKey: "uploaded_at",
+    filterKey: "uploaded",
     filterType: "date-range",
     // Use formatDate for consistent DMY format
     render: (row) => formatDate(row.created_at),

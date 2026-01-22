@@ -15,15 +15,15 @@ export const formatDate = (date, options = {}) => {
 
     const {
       format = "short", // 'short', 'long', 'full', 'time', 'datetime'
-      locale = "en-GB", // Changed to en-GB to enforce DMY order
+      locale = "en-GB", // en-GB ensures Day-Month-Year order
     } = options;
 
     switch (format) {
       case "short":
-        // 12 Dec 2025
+        // 12/12/2025 (Changed to numeric dd/mm/yyyy)
         return dateObj.toLocaleDateString(locale, {
-          day: "numeric",
-          month: "short",
+          day: "2-digit",   // Ensures '05' instead of '5'
+          month: "2-digit", // Ensures '12' instead of 'Dec'
           year: "numeric",
         });
 
@@ -49,22 +49,22 @@ export const formatDate = (date, options = {}) => {
         return dateObj.toLocaleTimeString(locale, {
           hour: "2-digit",
           minute: "2-digit",
-          hour12: true, // Explicitly set to 12-hour format
+          hour12: true,
         });
 
       case "datetime":
-        // 12 Dec 2025, 12:00 AM
+        // 12/12/2025, 12:00 AM (Updated to match numeric style)
         return dateObj.toLocaleString(locale, {
-          day: "numeric",
-          month: "short",
+          day: "2-digit",
+          month: "2-digit",
           year: "numeric",
           hour: "2-digit",
           minute: "2-digit",
-          hour12: true, // Explicitly set to 12-hour format
+          hour12: true,
         });
 
       case "iso":
-        // 2025-12-12 (Kept as standard ISO 8601)
+        // 2025-12-12
         return dateObj.toISOString().split("T")[0];
 
       default:
@@ -75,7 +75,6 @@ export const formatDate = (date, options = {}) => {
     return "-";
   }
 };
-
 /**
  * Format date to ISO format (YYYY-MM-DD)
  * @param {string|Date} date - Date string or Date object

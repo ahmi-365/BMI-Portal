@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2"; // Import SweetAlert2
 import {
-  apiCallFormData,
-  createResource,
-  getResourceById,
-  updateResource,
+    apiCallFormData,
+    createResource,
+    getResourceById,
+    updateResource,
 } from "../../services/api";
 import PageBreadcrumb from "./PageBreadCrumb";
 import SearchableSelect from "./SearchableSelect";
@@ -19,6 +19,8 @@ export const ResourceForm = ({
   title = "Add Record",
   // When true, treat form as edit mode even if no :id param is present
   forceEdit = false,
+  // Extra action buttons to render in the footer
+  extraActions = null,
 }) => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -526,6 +528,7 @@ const handleSubmit = async (e) => {
             )}
 
             <div className="mt-5 flex justify-end gap-4">
+              {extraActions}
               <button
                 type="button"
                 onClick={() => navigate(`/${resourceName}/view`)}
