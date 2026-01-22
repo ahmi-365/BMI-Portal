@@ -115,7 +115,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
   {
     header: "Customer No.",
     accessor: "customerNo",
-    filterKey: "user_invoices",
+    filterKey: "customer_no",
     render: (row) => row.user?.customer_no ?? "-",
   },
 

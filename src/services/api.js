@@ -618,7 +618,7 @@ export const invoicesAPI = {
   list: (params) => listResource("invoices", params),
 
   allInvoices: (search = "") => {
-    const qs = search ? `?search=${encodeURIComponent(search)}` : "";
+    const qs = search ? `?search=${encodeURIFComponent(search)}` : "";
     return apiCall(`/all-invoices${qs}`);
   },
 

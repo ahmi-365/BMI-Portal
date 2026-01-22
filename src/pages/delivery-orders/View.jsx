@@ -58,15 +58,15 @@ const COLUMNS = [
     accessor: "invoice_date",
     filterKey: "date",
     filterType: "date-range",
-        render: (row) => formatDate(row.invoice.invoice_date),
-    
+    render: (row) => formatDate(row.invoice.invoice_date),
+
   },
   {
     header: "Due Date",
     accessor: "date",
     filterKey: "due_date",
     filterType: "date-range",
-           render: (row) => formatDate(row.date),
+    render: (row) => formatDate(row.date),
 
   },
   {
@@ -92,7 +92,7 @@ export default function DeliveryOrdersView() {
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
+
 
   const handleBulkDeleteClick = () => {
     if (selectedIds.length === 0) {
@@ -190,7 +190,7 @@ export default function DeliveryOrdersView() {
         title="Delivery Orders"
         subtitle="View and manage all delivery orders"
         selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}   
+        onSelectionChange={setSelectedIds}
         headerAction={
           selectedIds.length > 0 ? (
             <div className="flex items-center gap-3 relative">
