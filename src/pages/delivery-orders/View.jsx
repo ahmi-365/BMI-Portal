@@ -61,18 +61,18 @@ const COLUMNS = [
     render: (row) => formatDate(row.invoice.invoice_date),
 
   },
-  {
-    header: "Due Date",
-    accessor: "date",
-    filterKey: "due_date",
-    filterType: "date-range",
-    render: (row) => formatDate(row.date),
+  // {
+  //   header: "Due Date",
+  //   accessor: "date",
+  //   filterKey: "due_date",
+  //   filterType: "date-range",
+  //   render: (row) => formatDate(row.date),
 
-  },
+  // },
   {
     header: "Uploaded At",
     accessor: "uploaded_at",
-    filterKey: "uploaded_at",
+    filterKey: "uploaded",
     filterType: "date-range",
     render: (row) => formatDate(row.created_at),
   },
