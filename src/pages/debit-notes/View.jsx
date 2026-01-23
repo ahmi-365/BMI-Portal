@@ -60,7 +60,7 @@ const COLUMNS = [
     filterKey: "po_no",
     sortable: true,
     render: (row) => (row.po_no ? row.po_no : "-"),
-    endpoint: "debitnotes",
+    // endpoint: "debitnotes",
   },
   {
     header: "Ref No.",
@@ -100,6 +100,7 @@ const COLUMNS = [
     header: "Uploaded By",
     accessor: "admin_id",
     filterKey: "uploaded_by",
+    sortable: true,
     render: (row) => row.admin.name || "-",
   },
 ];
