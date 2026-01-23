@@ -6,6 +6,7 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
 import { debitNotesAPI } from "../../services/api";
 
@@ -14,26 +15,28 @@ const COLUMNS = [
     header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
+    sortable: true,
     render: (row) => row.customer_no || "-",
   },
   {
     header: "Company Name",
     accessor: "company_name",
     filterKey: "company",
+    sortable: true,
     render: (row) => row.user.company || "-",
   },
   {
     header: "DN No.",
-
     accessor: "dn_no",
     filterKey: "dn_no",
-    // render: (row) => row.dn_no || "-" ,
+    sortable: true,
     render: (row) => row.dn_no || "-",
   },
   {
     header: "DN Document",
     accessor: "dn_doc",
     filterKey: "dn_doc",
+    sortable: false,
     render: (row) => (
       <FileDownloadButton
         file={row.dn_doc}
@@ -48,13 +51,14 @@ const COLUMNS = [
     accessor: "dn_date",
     filterKey: "dn_date",
     filterType: "date-range",
-           render: (row) => formatDate(row.dn_date),
+    sortable: true,
+    render: (row) => formatDate(row.dn_date),
   },
-
   {
     header: "PO No.",
     accessor: "po_no",
     filterKey: "po_no",
+    sortable: true,
     render: (row) => (row.po_no ? row.po_no : "-"),
     endpoint: "debitnotes",
   },
@@ -62,13 +66,15 @@ const COLUMNS = [
     header: "Ref No.",
     accessor: "ref_no",
     filterKey: "ref_no",
+    sortable: true,
     render: (row) => row.ref_no || "-",
   },
   {
     header: "Amount",
     accessor: "amount",
     filterKey: "amount",
-    render: (row) => (row.amount ? row.amount : "0"),
+    sortable: true,
+    render: (row) => formatAmount(row.amount ? row.amount : "0"),
   },
   // {
   //   header: "Payment Term",

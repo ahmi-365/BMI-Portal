@@ -1,6 +1,6 @@
 import { ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Loader from "../../components/common/Loader";
 import { adminUsersAPI } from "../../services/api";
 // CHANGE: Import formatDateTime for standardized date+time display
@@ -9,6 +9,8 @@ import { formatDateTime } from "../../lib/dateUtils";
 const AdminShow = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
   const [admin, setAdmin] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -77,7 +79,13 @@ const AdminShow = () => {
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-6 flex items-center gap-3">
         <button
-          onClick={() => navigate("/admin-users")}
+          onClick={() => {
+            if (returnTo) {
+              navigate(decodeURIComponent(returnTo));
+            } else {
+              navigate("/admin-users");
+            }
+          }}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -90,7 +98,12 @@ const AdminShow = () => {
           Admin Details
         </h2>
         <button
-          onClick={() => navigate(`/admins/edit/${id}`)}
+          onClick={() => {
+            const editUrl = returnTo
+              ? `/admins/edit/${id}?returnTo=${encodeURIComponent(returnTo)}`
+              : `/admins/edit/${id}`;
+            navigate(editUrl);
+          }}
           className="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-6 xl:px-8"
         >
           Edit Admin
@@ -179,13 +192,24 @@ const AdminShow = () => {
 
       <div className="mt-6 flex justify-end gap-4">
         <button
-          onClick={() => navigate("/admin-users")}
+          onClick={() => {
+            if (returnTo) {
+              navigate(decodeURIComponent(returnTo));
+            } else {
+              navigate("/admin-users");
+            }
+          }}
           className="flex justify-center rounded-lg border border-stroke px-6 py-2.5 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
         >
           Cancel
         </button>
         <button
-          onClick={() => navigate(`/admins/edit/${id}`)}
+          onClick={() => {
+            const editUrl = returnTo
+              ? `/admins/edit/${id}?returnTo=${encodeURIComponent(returnTo)}`
+              : `/admins/edit/${id}`;
+            navigate(editUrl);
+          }}
           className="flex justify-center rounded-lg bg-brand-500 px-6 py-2.5 font-medium text-white hover:bg-opacity-90"
         >
           Edit Admin

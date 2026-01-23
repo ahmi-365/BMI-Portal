@@ -6,6 +6,7 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
 import { invoicesAPI } from "../../services/api";
 
@@ -13,16 +14,19 @@ const COLUMNS = [
   {
     header: "Customer No.",
     accessor: "customer_no",
+    sortable: true,
   },
   {
     header: "Company Name",
     accessor: "company",
+    sortable: true,
   },
-  { header: "Invoice No.", accessor: "invoiceId", filterKey: "invoice_no" },
+  { header: "Invoice No.", accessor: "invoiceId", filterKey: "invoice_no", sortable: true },
   {
     header: "Invoice Doc",
     accessor: "invoice_doc",
     filterKey: "invoice_doc",
+    sortable: false,
     render: (row) => (
       <FileDownloadButton
         file={row.invoice_doc}
@@ -37,6 +41,7 @@ const COLUMNS = [
     accessor: "invoice_date",
     filterKey: "invoice_date",
     filterType: "date-range",
+    sortable: true,
     // Use formatDate to ensure DMY format (12 Dec 2025)
     render: (row) => formatDate(row.invoice_date),
   },
@@ -44,6 +49,7 @@ const COLUMNS = [
     header: "PO No.",
     accessor: "po_no",
     filterKey: "po_no",
+    sortable: true,
     render: (row) => {
       const poNoValue = row.po_no ? row.po_no : "-";
       return poNoValue;
@@ -53,7 +59,7 @@ const COLUMNS = [
     header: "DO No.",
     accessor: "do_no",
     filterKey: "do_no",
-
+    sortable: true,
     render: (row) => {
       const doNoValue = row.do_no ? row.do_no : "-";
       return doNoValue;
@@ -63,18 +69,20 @@ const COLUMNS = [
     header: "Amount",
     accessor: "amount",
     filterKey: "amount",
+    sortable: true,
     render: (row) => {
       const amountValue = row.amount ? row.amount : "0";
-      return amountValue;
+      return formatAmount(amountValue);
     },
   },
   {
     header: "Outstanding",
     accessor: "outstanding",
     filterKey: "outstanding",
+    sortable: true,
     render: (row) => {
       const outstandingValue = row.outstanding ? row.outstanding : "0";
-      return outstandingValue;
+      return formatAmount(outstandingValue);
     },
   },
 {
@@ -82,6 +90,7 @@ const COLUMNS = [
     accessor: "date",
     filterKey: "due_date",
     filterType: "date-range",
+    sortable: true,
     // Use formatDate for consistent DMY format
     render: (row) => formatDate(row.date),
   },
@@ -90,6 +99,7 @@ const COLUMNS = [
     accessor: "created_at",
     filterKey: "uploaded",
     filterType: "date-range",
+    sortable: true,
     // Use formatDate for consistent DMY format
     render: (row) => formatDate(row.created_at),
   },

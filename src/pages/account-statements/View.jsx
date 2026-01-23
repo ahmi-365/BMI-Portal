@@ -6,20 +6,23 @@ import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
-import { statementsAPI } from "../../services/api";
 import { formatDate } from "../../lib/dateUtils";
+import { statementsAPI } from "../../services/api";
 
 const COLUMNS = [
-  { header: "Customer No", accessor: "customer_no", filterKey: "customer_no" },
+  { header: "Customer No", accessor: "customer_no", filterKey: "customer_no", sortable: true },
   {
     header: "Company Name",
     accessor: "company_name",
-    render: (row) => row.user?.company || row.company_name || "-",
     filterKey: "company",
+    sortable: true,
+    render: (row) => row.user?.company || row.company_name || "-",
   },
   {
     header: "Statement Doc",
     accessor: "statement_doc",
+    filterKey: "statement_doc",
+    sortable: false,
     render: (row) =>
       row.statement_doc ? (
         <FileDownloadButton
@@ -31,14 +34,13 @@ const COLUMNS = [
       ) : (
         "-"
       ),
-    filterKey: "statement_doc",
   },
   {
     header: "Statement Date",
     accessor: "statement_date",
     filterKey: "statement_date",
     filterType: "date-range",
-    // CHANGE: Use formatDate for consistent DMY format
+    sortable: true,
     render: (row) => formatDate(row.statement_date),
   },
   {
@@ -46,19 +48,19 @@ const COLUMNS = [
     accessor: "updated_at",
     filterKey: "uploaded",
     filterType: "date-range",
+    sortable: true,
     render: (row) =>
       row.updated_at || row.created_at
         ? (row.updated_at || row.created_at).split("T")[0]
         : "-",
   },
-
   {
     header: "Uploaded By",
     accessor: "uploaded_by",
+    filterKey: "uploaded_by",
+    sortable: false,
     render: (row) =>
       row.admin?.name || "-",
-    filterKey: "uploaded_by",
-    
   },
 ];
 

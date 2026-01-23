@@ -14,24 +14,28 @@ const COLUMNS = [
     header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
+    sortable: true,
     render: (row) => row.user?.customer_no || row.customer_no || "-",
   },
   {
     header: "Company",
     accessor: "company",
     filterKey: "company",
+    sortable: true,
     render: (row) => row.user?.company || "-",
   },
   {
     header: "DO No.",
     accessor: "do_no",
     filterKey: "do_no",
+    sortable: true,
     render: (row) => row.do_no || "-",
   },
   {
     header: "DO Doc",
     accessor: "do_doc",
     filterKey: "do_doc",
+    sortable: false,
     render: (row) => (
       <FileDownloadButton
         file={row.do_doc}
@@ -45,12 +49,14 @@ const COLUMNS = [
     header: "Invoice No.",
     accessor: "invoice_no",
     filterKey: "invoice_no",
+    sortable: true,
     render: (row) => row.invoice?.invoiceId || row.invoice_no || "-",
   },
   {
     header: "PO No.",
     accessor: "po_no",
     filterKey: "po_no",
+    sortable: true,
     render: (row) => row.invoice?.po_no || row.po_no || "-",
   },
   {
@@ -58,8 +64,8 @@ const COLUMNS = [
     accessor: "invoice_date",
     filterKey: "date",
     filterType: "date-range",
+    sortable: true,
     render: (row) => formatDate(row.invoice.invoice_date),
-
   },
   // {
   //   header: "Due Date",

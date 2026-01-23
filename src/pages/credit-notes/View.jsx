@@ -6,39 +6,44 @@ import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
 import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
 import { creditNotesAPI } from "../../services/api";
-import { render } from "@fullcalendar/core/preact.js";
 
 const COLUMNS = [
   {
     header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
+    sortable: true,
     render: (row) => row.user?.customer_no || "-",
   },
   {
     header: "Company",
     accessor: "company",
     filterKey: "company",
+    sortable: true,
     render: (row) => row.user?.company || "-",
   },
   {
     header: "CN No.",
     accessor: "cn_no",
     filterKey: "cn_no",
+    sortable: true,
     render: (row) => row.cn_no || "N/A",
   },
   {
     header: "Do No.",
     accessor: "do_no",
     filterKey: "do_no",
+    sortable: true,
     render: (row) => row.invoice?.do_no || row.do_no || "-",
   },
   {
     header: "CN Document",
     accessor: "cn_doc",
     filterKey: "cn_doc",
+    sortable: false,
     render: (row) => (
       <FileDownloadButton
         file={row.cn_doc}
@@ -52,6 +57,7 @@ const COLUMNS = [
     header: "Do Document",
     accessor: "do_doc",
     filterKey: "do_doc",
+    sortable: false,
     render: (row) => (
       <FileDownloadButton
         file={row.invoice?.do_doc}
@@ -66,26 +72,29 @@ const COLUMNS = [
     accessor: "cn_date",
     filterKey: "cn_date",
     filterType: "date-range",
-   
+    sortable: true,
     render: (row) => formatDate(row.cn_date),
   },
   {
     header: "PO No.",
     accessor: "po_no",
     filterKey: "po_no",
+    sortable: true,
     render: (row) => row.po_no || "N/A",
   },
   {
     header: "Ref No.",
     accessor: "ref_no",
     filterKey: "ref_no",
+    sortable: true,
     render: (row) => row.ref_no || "-",
   },
   {
     header: "Amount",
     accessor: "amount",
     filterKey: "amount",
-    render: (row) => row.amount || "-",
+    sortable: true,
+    render: (row) => formatAmount(row.amount || "0"),
   },
   {
     header: "Uploaded At",

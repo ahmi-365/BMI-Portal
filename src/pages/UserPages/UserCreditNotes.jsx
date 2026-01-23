@@ -1,20 +1,21 @@
-import { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
-import FileDownloadButton from "../../components/common/FileDownloadButton";
-import { userDownloadBlob } from "../../services/api";
-import { render } from "@fullcalendar/core/preact.js";
-import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
+import { userDownloadBlob } from "../../services/api";
 
 
 
 const COLUMNS = [
-  { header: "Credit Note No.", accessor: "cn_no", filterKey: "cn_no" },
+  { header: "Credit Note No.", accessor: "cn_no", filterKey: "cn_no", sortable: true },
   {
     header: "CN Doc",
     accessor: "cn_doc",
+    sortable: false,
     render: (row) => (
       <FileDownloadButton
         file={row.cn_doc}
@@ -31,8 +32,8 @@ const COLUMNS = [
     accessor: "cn_date",
     filterKey: "cn_date",
     filterType: "date-range",
-      render: (row) => formatDate(row.cn_date),
-    
+    sortable: true,
+    render: (row) => formatDate(row.cn_date),
   },
   // {
   //   header: "Payment Term",
@@ -52,14 +53,17 @@ const COLUMNS = [
     header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
+    sortable: true,
     render: (row) => row.user?.customer_no || "-",
   },
-  { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
-  { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no" },
+  { header: "PO No.", accessor: "po_no", filterKey: "po_no", sortable: true },
+  { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no", sortable: true },
   {
     header: "Amount",
     accessor: "amount",
     filterKey: "amount",
+    sortable: true,
+    render: (row) => formatAmount(row.amount),
   },
   // {
   //   header: "Remarks",

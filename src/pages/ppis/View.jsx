@@ -8,6 +8,7 @@ import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
 import { ppisAPI } from "../../services/api";
 // CHANGE: Import formatDate utility
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
 
 const COLUMNS = [
@@ -15,18 +16,20 @@ const COLUMNS = [
     header: "Company",
     accessor: "user.company",
     filterKey: "company",
+    sortable: true,
     render: (row) => row.user?.company || "-",
   },
-  { header: "Customer No.", accessor: "customer_no", filterKey: "customer_no" },
-  { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
-  { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no" },
-  { header: "Amount", accessor: "amount", filterKey: "amount" },
+  { header: "Customer No.", accessor: "customer_no", filterKey: "customer_no", sortable: true },
+  { header: "PO No.", accessor: "po_no", filterKey: "po_no", sortable: true },
+  { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no", sortable: true },
+  { header: "Amount", accessor: "amount", filterKey: "amount", sortable: true, render: (row) => formatAmount(row.amount) },
   // { header: "Remarks", accessor: "remarks", filterKey: "remarks",disableFilter: true, },
   {
     header: "PPI Date",
     accessor: "ppi_date",
     filterKey: "ppi_date",
     filterType: "date-range",
+    sortable: true,
     // CHANGE: Use formatDate for DMY format
     render: (row) => formatDate(row.ppi_date),
   },
@@ -35,6 +38,7 @@ const COLUMNS = [
     accessor: "payment_term",
     filterKey: "payment_term",
     filterType: "date-range",
+    sortable: true,
     // CHANGE: Use formatDate for DMY format
     render: (row) => formatDate(row.payment_term),
   },

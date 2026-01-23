@@ -1,7 +1,8 @@
-import { ShowPage } from "../../components/common/ShowPage";
-import { userCreditNotesAPI } from "../../services/api";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
+import { ShowPage } from "../../components/common/ShowPage";
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
+import { userCreditNotesAPI } from "../../services/api";
 
 
 const FIELDS = [
@@ -52,7 +53,7 @@ const FIELDS = [
   {
     name: "amount",
     label: "Amount",
-    render: (value) => value || "0",
+    render: (value) => formatAmount(value || "0"),
   },
   {
     name: "remarks",

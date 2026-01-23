@@ -1,12 +1,12 @@
-import { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
-import FileDownloadButton from "../../components/common/FileDownloadButton";
-import { userDownloadBlob } from "../../services/api";
-import { render } from "@fullcalendar/core/preact.js";
-import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
+import { userDownloadBlob } from "../../services/api";
 
 
 
@@ -15,27 +15,32 @@ const COLUMNS = [
     header: "Company",
     accessor: "user.company",
     filterKey: "company",
+    sortable: true,
     render: (row) => row.user?.company || "-",
   },
   {
     header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
+    sortable: true,
   },
   {
     header: "PO No.",
     accessor: "po_no",
     filterKey: "po_no",
+    sortable: true,
   },
   {
     header: "Ref No.",
     accessor: "ref_no",
     filterKey: "ref_no",
+    sortable: true,
   },
-  { header: "Amount", accessor: "amount", filterKey: "amount" },
+  { header: "Amount", accessor: "amount", filterKey: "amount", sortable: true, render: (row) => formatAmount(row.amount) },
   {
     header: "PPI Date", accessor: "ppi_date", filterKey: "ppi_date",
     filterType: "date-range",
+    sortable: true,
     render: (row) => formatDate(row.ppi_date),
   },
   {
@@ -43,17 +48,20 @@ const COLUMNS = [
     accessor: "payment_term",
     filterKey: "payment_term",
     filterType: "date-range",
+    sortable: true,
     render: (row) => formatDate(row.payment_term),
   },
   {
     header: "PPI %",
     accessor: "ppi_percentage",
     filterKey: "ppi_percentage",
+    sortable: true,
   },
   {
     header: "PPI Doc",
     accessor: "ppi_doc",
     filterKey: "ppi_doc",
+    sortable: false,
     render: (row) => (
       <FileDownloadButton
         file={row.ppi_doc}

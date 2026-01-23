@@ -1,13 +1,13 @@
+import { Download, Loader2, Plus } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
-import FileDownloadButton from "../../components/common/FileDownloadButton";
-import { useState } from "react";
-import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
-import { userDownloadBlob } from "../../services/api"; // make sure this is imported
-import { Download, Loader2 } from "lucide-react"; // For the download icon
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
+import { userDownloadBlob } from "../../services/api"; // make sure this is imported
 
 
 
@@ -16,10 +16,12 @@ const COLUMNS = [
     header: "Reference ID",
     accessor: "reference_id",
     filterKey: "reference_id",
+    sortable: true,
   },
   {
     header: "Proof",
     accessor: "proof",
+    sortable: false,
     render: (row) => (
       <FileDownloadButton
         file={row.proof}
@@ -36,14 +38,16 @@ const COLUMNS = [
     accessor: "payment_date",
     filterKey: "payment_date",
     filterType: "date-range",
+    sortable: true,
     render: (row) => formatDate(row.payment_date),
   },
-  { header: "Amount", accessor: "amount", filterKey: "amount" },
-  { header: "Outstanding", accessor: "outstanding", filterKey: "outstanding" },
+  { header: "Amount", accessor: "amount", filterKey: "amount", sortable: true, render: (row) => formatAmount(row.amount) },
+  { header: "Outstanding", accessor: "outstanding", filterKey: "outstanding", sortable: true, render: (row) => formatAmount(row.outstanding) },
   {
     header: "Status",
     accessor: "status",
     disableFilter: true,
+    sortable: true,
     render: (row) => {
       const label =
         row.status === 0

@@ -6,6 +6,7 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
 import { paymentsAPI } from "../../services/api";
 
@@ -22,12 +23,15 @@ const PAID_COLUMNS = [
     header: "Amount (MYR)",
     accessor: "amount",
     filterKey: "amount",
+    sortable: true,
+    render: (row) => formatAmount(row.amount),
   },
 
   {
     header: "Customer No.",
     accessor: "invoice",
     filterKey: "customer_no",
+    sortable: true,
     render: (row) => row.user?.customer_no ?? "-",
   },
 
@@ -35,6 +39,7 @@ const PAID_COLUMNS = [
     header: "Company Name",
     accessor: "company",
     filterKey: "company",
+    sortable: true,
     render: (row) => row.user?.company ?? "-",
   },
 
@@ -43,11 +48,13 @@ const PAID_COLUMNS = [
     accessor: "payment_date",
     filterKey: "payment_date",
     filterType: "date-range",
+    sortable: true,
     render: (row) => formatDate(row.payment_date),
   },
   {
     header: "Proof of Payment",
     accessor: "proof",
+    sortable: false,
     render: (row) => (
       <PdfButton file={row.proof} id={row.id} endpoint="payments" path="download-proof" />
     ),
@@ -130,11 +137,13 @@ const createNotAcknowledgedColumns = (onApprove) => [
     header: "Amount",
     accessor: "amount",
     filterKey: "amount",
+    render: (row) => formatAmount(row.amount),
   },
   {
     header: "Outstanding",
     accessor: "outstanding",
     filterKey: "outstanding",
+    render: (row) => formatAmount(row.outstanding),
   },
   {
     header: "Payment Date",

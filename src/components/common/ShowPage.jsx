@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit, X } from "lucide-react";
+import { Edit, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { getResourceById } from "../../services/api";
 import PageBreadcrumb from "./PageBreadCrumb";
 
@@ -14,6 +14,8 @@ export const ShowPage = ({
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -88,7 +90,12 @@ export const ShowPage = ({
         </div>
         {shouldShowEdit && (
           <button
-            onClick={() => navigate(`/${resourceName}/edit/${id}`)}
+            onClick={() => {
+              const editUrl = returnTo 
+                ? `/${resourceName}/edit/${id}?returnTo=${encodeURIComponent(returnTo)}`
+                : `/${resourceName}/edit/${id}`;
+              navigate(editUrl);
+            }}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-700 hover:shadow-lg transition-all duration-200"
           >
             <Edit className="w-4 h-4" />
@@ -146,14 +153,25 @@ export const ShowPage = ({
         {/* Footer Actions */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50/50 border-t border-gray-100 dark:bg-gray-800/50 dark:border-gray-800">
           <button
-            onClick={() => navigate(backPath || `/${resourceName}/view`)}
+            onClick={() => {
+              if (returnTo) {
+                navigate(decodeURIComponent(returnTo));
+              } else {
+                navigate(backPath || `/${resourceName}/view`);
+              }
+            }}
             className="px-5 py-2.5 rounded-xl border border-gray-300 font-medium text-gray-700 hover:bg-white hover:border-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:border-gray-500 transition-all duration-200"
           >
             Close
           </button>
           {shouldShowEdit && (
             <button
-              onClick={() => navigate(`/${resourceName}/edit/${id}`)}
+              onClick={() => {
+                const editUrl = returnTo 
+                  ? `/${resourceName}/edit/${id}?returnTo=${encodeURIComponent(returnTo)}`
+                  : `/${resourceName}/edit/${id}`;
+                navigate(editUrl);
+              }}
               className="px-5 py-2.5 rounded-xl bg-brand-600 font-medium text-white hover:bg-brand-700 transition-all duration-200"
             >
               Edit Record

@@ -1,26 +1,25 @@
-import { useState, useEffect, useCallback, createContext, useContext } from "react";
-import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
 import {
-  Plus,
-  Search,
-  Filter,
+  AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  AlertTriangle, // Icon for the warning modal
+  Filter,
+  Search
 } from "lucide-react";
-import { DataTable, createActionColumn } from "./DataTable";
+import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  listResource,
-  userListResource,
   deleteResource,
+  listResource,
   paymentsAPI,
+  userListResource,
 } from "../../services/api";
+import ConfirmationModal from "./ConfirmationModal";
+import { DataTable, createActionColumn } from "./DataTable";
 import Loader from "./Loader";
 import PageBreadcrumb from "./PageBreadCrumb";
 import Toast from "./Toast";
-import ConfirmationModal from "./ConfirmationModal";
-import { setBulkConfirmHandler, clearBulkConfirmHandler } from "./bulkConfirmManager";
+import { clearBulkConfirmHandler, setBulkConfirmHandler } from "./bulkConfirmManager";
 
 // --- Internal Delete Confirmation Modal Component ---
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
@@ -92,22 +91,46 @@ export const ListPage = ({
   initialFilters = null,
 }) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Data State
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   // Pagination State
   const [perPageState, setPerPageState] = useState(perPage);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const page = searchParams.get("page");
+    return page ? parseInt(page, 10) : 1;
+  });
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
   // Search & Filter State
-  const [searchQuery, setSearchQuery] = useState("");
-  const [appliedSearch, setAppliedSearch] = useState("");
-  const [tempFilters, setTempFilters] = useState(initialFilters || {});
-  const [filters, setFilters] = useState(initialFilters || {});
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
+  const [appliedSearch, setAppliedSearch] = useState(() => searchParams.get("search") || "");
+  const [tempFilters, setTempFilters] = useState(() => {
+    const urlFilters = {};
+    searchParams.forEach((value, key) => {
+      if (!["page", "search", "sortBy", "sortOrder"].includes(key)) {
+        urlFilters[key] = value;
+      }
+    });
+    return Object.keys(urlFilters).length > 0 ? urlFilters : (initialFilters || {});
+  });
+  const [filters, setFilters] = useState(() => {
+    const urlFilters = {};
+    searchParams.forEach((value, key) => {
+      if (!["page", "search", "sortBy", "sortOrder"].includes(key)) {
+        urlFilters[key] = value;
+      }
+    });
+    return Object.keys(urlFilters).length > 0 ? urlFilters : (initialFilters || {});
+  });
   const [showFilters, setShowFilters] = useState(false);
+
+  // Sorting State
+  const [sortBy, setSortBy] = useState(() => searchParams.get("sortBy") || null);
+  const [sortOrder, setSortOrder] = useState(() => searchParams.get("sortOrder") || "asc");
 
   // Sync filters when parent provides a new initial set
   useEffect(() => {
@@ -116,6 +139,36 @@ export const ListPage = ({
       setTempFilters(initialFilters);
     }
   }, [initialFilters]);
+
+  // Sync URL params with state
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    // Add page if not 1
+    if (currentPage !== 1) {
+      params.set("page", currentPage.toString());
+    }
+    
+    // Add search if exists
+    if (appliedSearch) {
+      params.set("search", appliedSearch);
+    }
+    
+    // Add sort params if exists
+    if (sortBy) {
+      params.set("sortBy", sortBy);
+      params.set("sortOrder", sortOrder);
+    }
+    
+    // Add filters
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      }
+    });
+    
+    setSearchParams(params, { replace: true });
+  }, [currentPage, appliedSearch, sortBy, sortOrder, filters, setSearchParams]);
 
   // Delete Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -174,6 +227,12 @@ export const ListPage = ({
         ...additionalParams,
       };
 
+      // Add sorting parameters
+      if (sortBy) {
+        params.sortBy = sortBy;
+        params.sortOrder = sortOrder;
+      }
+
       const isUserResource = resourceName.startsWith("user/");
       const result = isUserResource
         ? await userListResource(resourceName, params)
@@ -197,6 +256,8 @@ export const ListPage = ({
     appliedSearch,
     filters,
     refreshKey,
+    sortBy,
+    sortOrder,
   ]);
 
   // Trigger Load
@@ -233,12 +294,35 @@ export const ListPage = ({
     setShowFilters(false);
   };
 
+  // Handle sorting
+  const handleSort = (columnKey) => {
+    if (!columnKey) return;
+    
+    if (sortBy === columnKey) {
+      // Toggle sort order if same column clicked
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      // Set new sort column with descending order as default
+      setSortBy(columnKey);
+      setSortOrder("desc");
+    }
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
   const resolvedBase = basePath || `/${resourceName}`;
   const handleView = (row) => {
     const route = basePath || `/${resourceName}`;
-    navigate(`${route}/show/${row.id}`);
+    // Preserve current URL params when navigating to show
+    const currentParams = searchParams.toString();
+    const showUrl = `${route}/show/${row.id}${currentParams ? `?returnTo=${encodeURIComponent(`${window.location.pathname}?${currentParams}`)}` : ''}`;
+    navigate(showUrl);
   };
-  const handleEdit = (row) => navigate(`${resolvedBase}/edit/${row.id}`);
+  const handleEdit = (row) => {
+    // Preserve current URL params when navigating to edit
+    const currentParams = searchParams.toString();
+    const editUrl = `${resolvedBase}/edit/${row.id}${currentParams ? `?returnTo=${encodeURIComponent(`${window.location.pathname}?${currentParams}`)}` : ''}`;
+    navigate(editUrl);
+  };
 
   // --- Delete Handlers ---
   const promptDelete = (row) => {
@@ -418,6 +502,9 @@ export const ListPage = ({
               onApplyFilters={handleApplyFilters}
               selectedIds={selectedIds}
               onSelectionChange={onSelectionChange}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSort={handleSort}
             />
           </div>
 

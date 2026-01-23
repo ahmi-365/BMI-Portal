@@ -2,6 +2,7 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ShowPage } from "../../components/common/ShowPage";
 import { ppisAPI } from "../../services/api";
 // CHANGE: Import formatDate utility
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
 
 const FIELDS = [
@@ -23,7 +24,7 @@ const FIELDS = [
     // CHANGE: Use formatDate for DMY format
     render: (value) => formatDate(value),
   },
-  { name: "amount", label: "Amount" },
+  { name: "amount", label: "Amount", render: (value) => formatAmount(value) },
   { name: "ppi_percentage", label: "PPI %" },
   { name: "customer_no", label: "Customer No." },
   { name: "po_no", label: "PO No." },

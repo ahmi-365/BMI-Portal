@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Download, ArrowLeft, X } from "lucide-react";
-import Loader from "../../components/common/Loader";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
-import { userInvoicesAPI } from "../../services/api";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
-import { render } from "@fullcalendar/core/preact.js";
+import { userInvoicesAPI } from "../../services/api";
 
 
 export default function UserInvoiceShow() {
@@ -73,8 +72,8 @@ export default function UserInvoiceShow() {
 ,
     { label: "PO No.", value: data.po_no || "-" },
     { label: "DO No.", value: data.do_no || "-" },
-    { label: "Amount (MYR)", value: data.amount || "-" },
-    { label: "Outstanding", value: data.outstanding || "-" },
+    { label: "Amount (MYR)", value: formatAmount(data.amount) || "-" },
+    { label: "Outstanding", value: formatAmount(data.outstanding) || "-" },
     {
       label: "Status",
       value:

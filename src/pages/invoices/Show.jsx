@@ -1,5 +1,6 @@
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ShowPage } from "../../components/common/ShowPage";
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
 
 
@@ -41,7 +42,7 @@ const FIELDS = [
 
   { name: "po_no", label: "PO No." },
   { name: "do_no", label: "DO No." },
-  { name: "amount", label: "Amount" },
+  { name: "amount", label: "Amount", render: (value) => formatAmount(value) },
   // { name: "outstanding", label: "Outstanding" },
 
   {

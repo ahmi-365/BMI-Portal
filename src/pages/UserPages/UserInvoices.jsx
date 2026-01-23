@@ -4,6 +4,7 @@ import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
 import { userDownloadBlob } from "../../services/api";
 
@@ -14,11 +15,13 @@ const COLUMNS = [
     header: "Invoice No.",
     accessor: "invoiceId",
     filterKey: "invoice_no",
+    sortable: true,
   },
   {
     header: "Invoice Doc",
     accessor: "invoice_doc",
     filterKey: "invoice_doc",
+    sortable: false,
     render: (row) => (
       <FileDownloadButton
         file={row.invoice_doc}
@@ -35,12 +38,13 @@ const COLUMNS = [
     accessor: "invoice_date",
     filterKey: "invoice_date",
     filterType: "date-range",
-   render: (row) => formatDate(row.invoice_date),
+    sortable: true,
+    render: (row) => formatDate(row.invoice_date),
   },
-  { header: "Customer No.", accessor: "customer_no", filterKey: "customer_no" },
-  { header: "PO No.", accessor: "po_no", filterKey: "po_no" },
-  { header: "DO No.", accessor: "do_no" },
-  { header: "Amount", accessor: "amount", filterKey: "amount" },
+  { header: "Customer No.", accessor: "customer_no", filterKey: "customer_no", sortable: true },
+  { header: "PO No.", accessor: "po_no", filterKey: "po_no", sortable: true },
+  { header: "DO No.", accessor: "do_no", sortable: true },
+  { header: "Amount", accessor: "amount", filterKey: "amount", sortable: true, render: (row) => formatAmount(row.amount) },
   // { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
   {
     header: "Created At",

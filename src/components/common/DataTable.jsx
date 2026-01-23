@@ -1,8 +1,8 @@
+import { ArrowDown, ArrowUp, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Eye, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Modal } from "../ui/modal"; // Ensure this path is correct for your project
 import { deleteResource, paymentsAPI } from "../../services/api";
+import { Modal } from "../ui/modal"; // Ensure this path is correct for your project
 import { DateRangePicker } from "./DateRangePicker";
 
 export const DataTable = ({
@@ -19,6 +19,10 @@ export const DataTable = ({
   // New props for selection
   selectedIds = [],
   onSelectionChange,
+  // New props for sorting
+  sortBy = null,
+  sortOrder = "asc",
+  onSort,
 }) => {
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -100,14 +104,36 @@ export const DataTable = ({
                     />
                   </th>
                 )}
-                {columns.map((column, index) => (
-                  <th
-                    key={index}
-                    className="px-5 py-4 font-semibold text-gray-700 text-xs uppercase tracking-wider dark:text-gray-300 whitespace-nowrap first:rounded-tl-2xl last:rounded-tr-2xl border-b-2 border-gray-200 dark:border-gray-700"
-                  >
-                    {column.header}
-                  </th>
-                ))}
+                {columns.map((column, index) => {
+                  const columnKey = column.filterKey || column.accessor || column.accessorKey;
+                  const isSortable = column.sortable !== false && columnKey;
+                  const isSorted = sortBy === columnKey;
+
+                  return (
+                    <th
+                      key={index}
+                      onClick={() => isSortable && onSort?.(columnKey)}
+                      className={`px-5 py-4 font-semibold text-gray-700 text-xs uppercase tracking-wider dark:text-gray-300 whitespace-nowrap first:rounded-tl-2xl last:rounded-tr-2xl border-b-2 border-gray-200 dark:border-gray-700 ${
+                        isSortable ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>{column.header}</span>
+                        {isSortable && (
+                          isSorted ? (
+                            sortOrder === "asc" ? (
+                              <ArrowUp className="w-4 h-4 text-brand-500" />
+                            ) : (
+                              <ArrowDown className="w-4 h-4 text-brand-500" />
+                            )
+                          ) : (
+                            <ArrowUp className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                          )
+                        )}
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
 
               {/* 2. Filter Input Row (Conditionally Rendered) */}

@@ -1,13 +1,13 @@
-import { ShowPage } from "../../components/common/ShowPage";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
-import { render } from "@fullcalendar/core/preact.js";
+import { ShowPage } from "../../components/common/ShowPage";
+import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
 
 
 const FIELDS = [
   // { name: "id", label: "ID" },
   // { name: "invoice", label: "Invoice" },
-  { name: "amount", label: "Amount (MYR)" },
+  { name: "amount", label: "Amount (MYR)", render: (value) => formatAmount(value) },
 
   // {
   //   name: "due_Date", // backend uses due_Date (capital D)

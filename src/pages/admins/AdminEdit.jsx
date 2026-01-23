@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Form from "../../components/common/Form";
 import Loader from "../../components/common/Loader";
 import { adminUsersAPI } from "../../services/api";
@@ -8,6 +8,8 @@ import { adminUsersAPI } from "../../services/api";
 const AdminEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
   const [admin, setAdmin] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -40,7 +42,11 @@ const AdminEdit = () => {
     setError(null);
     try {
       await adminUsersAPI.update(id, data);
-      navigate(`/admins/show/${id}`);
+      if (returnTo) {
+        navigate(decodeURIComponent(returnTo));
+      } else {
+        navigate(`/admins/show/${id}`);
+      }
     } catch (err) {
       console.error("Error updating admin:", err);
       setError(err.message);

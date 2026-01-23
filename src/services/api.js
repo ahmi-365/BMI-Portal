@@ -551,8 +551,11 @@ export const adminUsersAPI = {
 
 // Admin APIs
 export const adminAPI = {
-  // Fetch activity logs (paginated). Accepts optional page number.
-  logs: (page = 1) => apiCall(`/admin/logs?page=${page}`),
+  // Fetch activity logs (paginated with filters)
+  logs: (page = 1, params = {}) => {
+    const queryParams = new URLSearchParams({ page, ...params });
+    return apiCall(`/admin/logs?${queryParams.toString()}`);
+  },
 
   // Change admin password using backend payload shape
   changePassword: (data) =>
