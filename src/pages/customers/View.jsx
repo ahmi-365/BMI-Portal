@@ -14,7 +14,7 @@ const APPROVED_COLUMNS = [
     render: (row) => row.customer_no || row.customerNo || "-",
   },
   {
-    header: "Company",
+    header: "Company Name",
     accessor: "company",
     filterKey: "company",
     sortable: true,
@@ -61,7 +61,7 @@ const APPROVED_COLUMNS = [
     header: "Added By",
     accessor: "uploaded_by",
     filterKey: "uploaded_by",
-    sortable: false,
+    sortable: true,
     render: (row) => row.admin?.name || "-",
   },
 ];

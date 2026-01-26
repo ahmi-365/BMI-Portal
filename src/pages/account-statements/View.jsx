@@ -48,17 +48,15 @@ const COLUMNS = [
     accessor: "updated_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    sortable: true,
-    render: (row) =>
-      row.updated_at || row.created_at
-        ? (row.updated_at || row.created_at).split("T")[0]
-        : "-",
+    sortable: true, 
+        render: (row) => formatDate(row.updated_at),
+
   },
   {
     header: "Uploaded By",
     accessor: "uploaded_by",
     filterKey: "uploaded_by",
-    sortable: false,
+    sortable: true,
     render: (row) =>
       row.admin?.name || "-",
   },
