@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
 import { DateRangePicker } from "../../components/common/DateRangePicker";
+import SearchBar from "../../components/common/SearchBar";
 import { companiesAPI, reportsAPI } from "../../services/api";
 import { Download, Users, Calendar, FileText, CheckSquare } from "lucide-react";
 
@@ -30,6 +31,7 @@ export default function ExportReport() {
   const [dateTo, setDateTo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState({ message: null, type: "success" });
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -56,6 +58,13 @@ export default function ExportReport() {
     users.forEach((u) => map.set(u.value, u.label));
     return map;
   }, [users]);
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(user =>
+      user.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.value.toString().includes(searchTerm)
+    );
+  }, [users, searchTerm]);
 
   const handleToggleUser = (id) => {
     setSelectedUsers((prev) =>
@@ -248,15 +257,24 @@ export default function ExportReport() {
 
           {/* RIGHT COLUMN: Users (Takes remaining height, Scrollable) */}
           <div className="lg:col-span-8 flex flex-col bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden h-full">
+            {/* Search Bar */}
+            
+
             {/* User List Header */}
             <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-between shrink-0">
               <h2 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <Users size={16} className="text-blue-500" />
                 Target Users
                 <span className="text-xs font-normal text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">
-                  {users.length} total
+                  {filteredUsers.length} total
                 </span>
               </h2>
+              <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 shrink-0">
+              <SearchBar
+                onSearch={setSearchTerm}
+                placeholder="Search users..."
+              />
+            </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
                   {selectedUsers.length} selected
@@ -277,13 +295,13 @@ export default function ExportReport() {
             {/* Scrollable User List Area */}
             <div className="flex-1 overflow-y-auto p-2 min-h-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
-                {users.length === 0 ? (
+                {filteredUsers.length === 0 ? (
                   <div className="col-span-full h-40 flex flex-col items-center justify-center text-gray-400">
                     <Users size={32} className="mb-2 opacity-20" />
                     <p className="text-sm">No users found</p>
                   </div>
                 ) : (
-                  users.map((user) => (
+                  filteredUsers.map((user) => (
                     <label
                       key={user.value}
                       className={`flex items-start gap-3 p-2 rounded border transition-all cursor-pointer ${

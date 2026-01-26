@@ -215,7 +215,7 @@ export default function CustomersAdd() {
     { name: "payment_term", label: "Payment Term (EOM)", type: "text" },
     {
       name: "cc1",
-      label: "Upload Credit Application Form (CC1)",
+      label: "Upload Credit Application Form (CC1/CC2)",
       type: "file",
     },
     { name: "form_24", label: "Upload Form 24", type: "file" },
@@ -225,7 +225,7 @@ export default function CustomersAdd() {
       label: "Upload Financial Statements",
       type: "file",
     },
-    { name: "pdpa", label: "Upload PDPA", type: "file" },
+    { name: "pdpa", label: "Upload PDPA/Consent Letter", type: "file" },
   ];
 
   const handleSubmit = async (formData) => {

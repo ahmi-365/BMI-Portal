@@ -5,7 +5,7 @@ import { formatDate } from "../../lib/dateUtils";
 
 
 const FIELDS = [
-  { name: "id", label: "Invoice No" },
+  { name: "invoiceId", label: "Invoice No" },
 
   {
     name: "customer_no",

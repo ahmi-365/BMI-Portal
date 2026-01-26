@@ -51,7 +51,8 @@ export const DataTable = ({
   };
 
   const handleEdit = (row) => {
-    navigate(`/${resourceName}/edit/${row.id}`);
+    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+    navigate(`/${resourceName}/edit/${row.id}?returnTo=${returnTo}`);
   };
 
   const handleDeleteClick = (row) => {

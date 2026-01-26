@@ -74,7 +74,7 @@ const FIELDS = [
     // CHANGE: Use formatDate for consistent DMY format
     render: (value) => formatDate(value),
   },
-  { name: "cc1", label: "Credit App (CC1)", render: fileRender },
+  { name: "cc1", label: "Credit App (CC1/CC2)", render: fileRender },
   { name: "form_24", label: "Form 24", render: fileRender },
   { name: "form_9", label: "Form 9", render: fileRender },
   {
@@ -82,7 +82,7 @@ const FIELDS = [
     label: "Financial Statement",
     render: fileRender,
   },
-  { name: "pdpa", label: "PDPA", render: fileRender },
+  { name: "pdpa", label: "PDPA/Consent Letter", render: fileRender },
 ];
 
 export default function CustomersShow() {
