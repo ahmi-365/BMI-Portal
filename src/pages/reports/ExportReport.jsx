@@ -233,6 +233,7 @@ export default function ExportReport() {
                 dateFrom={dateFrom}
                 dateTo={dateTo}
                 onDateChange={handleDateChange}
+                rangeRestriction={exportType === 'zip' ? 'month' : exportType === 'excel' ? 'year' : null}
               />
             </div>
 

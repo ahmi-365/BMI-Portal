@@ -3,6 +3,7 @@ import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 
+
 const customFlatpickrStyles = `
   .flatpickr-calendar {
     transform: scale(0.9);
@@ -44,7 +45,7 @@ const customFlatpickrStyles = `
   }
 `;
 
-export const DateRangePicker = ({ dateFrom, dateTo, onDateChange }) => {
+export const DateRangePicker = ({ dateFrom, dateTo, onDateChange, rangeRestriction }) => {
   const pickerRef = useRef(null);
   const fpInstance = useRef(null);
 
@@ -64,6 +65,20 @@ export const DateRangePicker = ({ dateFrom, dateTo, onDateChange }) => {
             onDateChange("to", toDate);
           } else if (selectedDates.length === 0) {
             onDateChange("clear", null);
+          } else if (selectedDates.length === 1 && rangeRestriction) {
+            // Set maxDate based on restriction
+            const startDate = new Date(selectedDates[0]);
+            let maxDate;
+            if (rangeRestriction === 'month') {
+              maxDate = new Date(startDate);
+              maxDate.setDate(maxDate.getDate() + 30);
+            } else if (rangeRestriction === 'year') {
+              maxDate = new Date(startDate);
+              maxDate.setDate(maxDate.getDate() + 365);
+            }
+            if (maxDate) {
+              instance.set('maxDate', maxDate);
+            }
           }
         },
         // CHANGED: Force the calendar to always open ABOVE the input
@@ -76,7 +91,7 @@ export const DateRangePicker = ({ dateFrom, dateTo, onDateChange }) => {
         fpInstance.current.destroy();
       }
     };
-  }, []);
+  }, [rangeRestriction]);
 
   useEffect(() => {
     if (fpInstance.current) {
@@ -87,6 +102,7 @@ export const DateRangePicker = ({ dateFrom, dateTo, onDateChange }) => {
   const handleClear = () => {
     if (fpInstance.current) {
       fpInstance.current.clear();
+      fpInstance.current.set('maxDate', null);
     }
     onDateChange("clear", null);
   };

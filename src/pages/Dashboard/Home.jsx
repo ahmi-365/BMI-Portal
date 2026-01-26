@@ -19,6 +19,9 @@ import { twMerge } from "tailwind-merge";
 
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import { DateRangePicker } from "../../components/common/DateRangePicker";
+import MultiSelect from "../../components/common/MultiSelect";
+import { companiesAPI } from "../../services/api";
 
 // Utility for cleaner tailwind classes
 function cn(...inputs) {
@@ -93,9 +96,56 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Filter states
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
   useEffect(() => {
     fetchDashboardData();
+    fetchUsers();
   }, []);
+
+  useEffect(() => {
+    // Refetch when filters change
+    fetchDashboardData();
+  }, [dateFrom, dateTo, selectedUserIds]);
+
+  const handleDateChange = (type, value) => {
+    if (type === "from") {
+      setDateFrom(value);
+    } else if (type === "to") {
+      setDateTo(value);
+    } else if (type === "clear") {
+      setDateFrom("");
+      setDateTo("");
+    }
+  };
+
+  const handleUserChange = (newSelected) => {
+    setSelectedUserIds(newSelected);
+  };
+
+  const fetchUsers = async () => {
+    try {
+      setUsersLoading(true);
+      const response = await companiesAPI.list();
+      const list = response?.data ?? response ?? [];
+      const userOptions = Array.isArray(list)
+        ? list.map(user => ({
+            value: user.id,
+            label: user.company || user.name || user.email || `User ${user.id}`
+          }))
+        : [];
+      setUsers(userOptions);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -105,7 +155,15 @@ export default function AdminDashboard() {
       const BASE_URL = import.meta.env.VITE_API_BASE;
       const token = localStorage.getItem("bmi_admin_token");
 
-      const response = await fetch(`${BASE_URL}/dashboard`, {
+      // Build query params
+      const params = new URLSearchParams();
+      if (dateFrom) params.append("date_from", dateFrom);
+      if (dateTo) params.append("date_to", dateTo);
+      selectedUserIds.forEach(id => params.append("user_ids[]", id));
+
+      const url = `${BASE_URL}/dashboard${params.toString() ? `?${params.toString()}` : ""}`;
+
+      const response = await fetch(url, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -196,6 +254,59 @@ export default function AdminDashboard() {
               {loading ? "Refreshing..." : "Refresh Data"}
             </button>
           </div>
+
+          {/* Filters Section */}
+         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-end">
+  <div className="flex flex-col gap-6 md:flex-row md:items-end">
+    <div className="flex flex-col min-w-[280px]">
+      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
+        Date Range
+      </label>
+      <DateRangePicker
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateChange={handleDateChange}
+      />
+    </div>
+    <div className="flex flex-col min-w-[320px] md:min-w-[400px]">
+      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
+        Select Users
+      </label>
+      <MultiSelect
+        options={users}
+        value={selectedUserIds}
+        onChange={handleUserChange}
+        placeholder="Select users..."
+        disabled={usersLoading}
+      />
+    </div>
+  </div>
+</div>
+
+          {/* Active Filters Preview */}
+          {(dateFrom || dateTo || selectedUserIds.length > 0) && (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+               <strong>Active Filters:</strong> 
+              </h3>
+              <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                {dateFrom && dateTo && (
+                  <span>
+                    <strong>Date Range:</strong> {dateFrom} to {dateTo}
+                  </span>
+                )}
+                {selectedUserIds.length > 0 && (
+                  <span>
+                    <strong>Users:</strong>{" "}
+                    {selectedUserIds
+                      .map(id => users.find(u => u.value === id)?.label)
+                      .filter(Boolean)
+                      .join(", ")}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* DOCUMENT SECTION */}
           <div className="space-y-6">
