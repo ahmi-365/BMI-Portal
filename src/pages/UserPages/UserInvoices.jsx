@@ -1,6 +1,5 @@
 import { Download, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
@@ -87,40 +86,32 @@ export default function UserInvoices() {
       setIsDownloading(false);
     }
   };
-  const handleZipDownloadWithConfirm = () => {
+  const handleZipDownload = async () => {
     if (selectedIds.length === 0) {
       alert("Please select at least one invoice");
       return;
     }
 
-    openBulkConfirm({
-      type: "zip",
-      title: "Download ZIP",
-      message: `Are you sure you want to download ${selectedIds.length} invoice(s)?`,
-      confirmText: "Yes, Download",
-      onConfirm: async () => {
-        setIsDownloading(true);
-        try {
-          const blob = await userDownloadBlob(`/user/invoices/bulk-download`, {
-            ids: selectedIds,
-          });
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = blobUrl;
-          a.download = "invoices.zip";
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-          setSelectedIds([]);
-        } catch (err) {
-          console.error("Bulk download failed:", err);
-          alert("Failed to download files. Please try again.");
-        } finally {
-          setIsDownloading(false);
-        }
-      },
-    });
+    setIsDownloading(true);
+    try {
+      const blob = await userDownloadBlob(`/user/invoices/bulk-download`, {
+        ids: selectedIds,
+      });
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = "invoices.zip";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      setSelectedIds([]);
+    } catch (err) {
+      console.error("Bulk download failed:", err);
+      alert("Failed to download files. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
 
@@ -141,7 +132,7 @@ export default function UserInvoices() {
         headerAction={
           selectedIds.length > 0 ? (
             <button
-              onClick={handleZipDownloadWithConfirm}  //   use new function
+              onClick={handleZipDownload}  //   use new function
               disabled={isDownloading}
               className="inline-flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >

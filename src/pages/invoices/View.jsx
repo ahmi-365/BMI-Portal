@@ -1,6 +1,6 @@
 import { Download, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
+
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
@@ -277,30 +277,14 @@ export default function InvoicesView() {
                 {isDownloadOpen && (
                   <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
                     <button
-                      onClick={() =>
-                        openBulkConfirm({
-                          type: "zip",
-                          onConfirm: handleZipDownload,
-                          title: "Download ZIP",
-                          message: `Are you sure you want to download ${selectedIds.length} invoice(s)?`,
-                          confirmText: isDownloading ? "Downloading" : "Yes, Download",
-                        })
-                      }
+                      onClick={handleZipDownload}
                       className="w-full px-4 py-2 text-left hover:bg-gray-100"
                     >
                       Download ZIP
                     </button>
 
                     <button
-                      onClick={() =>
-                        openBulkConfirm({
-                          type: "csv",
-                          onConfirm: handleCSVDownload,
-                          title: "Export CSV",
-                          message: `Are you sure you want to export ${selectedIds.length} invoice(s) as CSV?`,
-                          confirmText: isDownloading ? "Downloading" : "Yes, Export",
-                        })
-                      }
+                      onClick={handleCSVDownload}
                       className="w-full px-4 py-2 text-left hover:bg-gray-100"
                     >
                       Export CSV

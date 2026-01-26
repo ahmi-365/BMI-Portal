@@ -5,7 +5,6 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
-import { openBulkConfirm } from "../../components/common/bulkConfirmManager";
 import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
 import { creditNotesAPI } from "../../services/api";
@@ -259,13 +258,7 @@ export default function CreditNotesView() {
                     <button
                       onClick={() => {
                         setIsDownloadOpen(false);
-                        openBulkConfirm({
-                          type: "zip",
-                          title: "Download ZIP",
-                          message: `Are you sure you want to download ${selectedIds.length} credit note(s)?`,
-                          confirmText: isDownloading ? "Downloading" : `Download (${selectedIds.length})`,
-                          onConfirm: handleZipDownload,
-                        });
+                        handleZipDownload();
                       }}
                       className="w-full px-4 py-2 text-left hover:bg-gray-100"
                     >
@@ -275,13 +268,7 @@ export default function CreditNotesView() {
                     <button
                       onClick={() => {
                         setIsDownloadOpen(false);
-                        openBulkConfirm({
-                          type: "csv",
-                          title: "Export CSV",
-                          message: `Are you sure you want to export ${selectedIds.length} credit note(s) to CSV?`,
-                          confirmText: isDownloading ? "Exporting" : `Export CSV (${selectedIds.length})`,
-                          onConfirm: handleCSVDownload,
-                        });
+                        handleCSVDownload();
                       }}
                       className="w-full px-4 py-2 text-left hover:bg-gray-100"
                     >

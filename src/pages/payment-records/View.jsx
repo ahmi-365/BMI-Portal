@@ -277,47 +277,39 @@ export default function PaymentRecordsView() {
       setIsDownloading(false);
     }
   };
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     if (selectedIds.length === 0) {
       setToastType("error");
       setToastMessage("Please select items to export");
       return;
     }
 
-    openBulkConfirm({
-      type: "csv",
-      title: "Export CSV",
-      message: `Are you sure you want to export ${selectedIds.length} payment record(s) as CSV?`,
-      confirmText: "Yes, Export",
-      onConfirm: async () => {
-        try {
-          setIsDownloading(true);
-          let blob;
+    try {
+      setIsDownloading(true);
+      let blob;
 
-          if (activeTab === "paid") {
-            blob = await paymentsAPI.exportApprovedCSV(selectedIds);
-          } else {
-            blob = await paymentsAPI.exportPendingCSV(selectedIds);
-          }
+      if (activeTab === "paid") {
+        blob = await paymentsAPI.exportApprovedCSV(selectedIds);
+      } else {
+        blob = await paymentsAPI.exportPendingCSV(selectedIds);
+      }
 
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `payments-${activeTab}-${Date.now()}.csv`;
-          a.click();
-          window.URL.revokeObjectURL(url);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `payments-${activeTab}-${Date.now()}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
 
-          setToastType("success");
-          setToastMessage("CSV exported successfully");
-        } catch (error) {
-          setToastType("error");
-          setToastMessage(error.message || "CSV export failed");
-        } finally {
-          setIsDownloading(false);
-          setIsDownloadMenuOpen(false);
-        }
-      },
-    });
+      setToastType("success");
+      setToastMessage("CSV exported successfully");
+    } catch (error) {
+      setToastType("error");
+      setToastMessage(error.message || "CSV export failed");
+    } finally {
+      setIsDownloading(false);
+      setIsDownloadMenuOpen(false);
+    }
   };
 
 
@@ -412,6 +404,7 @@ export default function PaymentRecordsView() {
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
           refreshKey={refreshKey}
+          basePath="/payments"
           headerAction={
             selectedIds.length > 0 && (
               <div className="flex items-center gap-3">
