@@ -19,13 +19,7 @@ const PdfButton = ({ label, file, id, endpoint, path = "download-proof" }) =>
     "-"
   );
 const PAID_COLUMNS = [
-  {
-    header: "Amount (MYR)",
-    accessor: "amount",
-    filterKey: "amount",
-    sortable: true,
-    render: (row) => formatAmount(row.amount),
-  },
+  
 
   {
     header: "Customer No.",
@@ -66,13 +60,13 @@ const PAID_COLUMNS = [
     filterKey: "reference_id",
   },
 
-  {
-    header: "Invoice Doc",
-    accessor: "invoice_doc",
-    render: (row) => (
-      <PdfButton file={row.invoice_doc} id={row.id} endpoint="payments" path="download-invoice" />
-    ),
-  },
+  // {
+  //   header: "Invoice Doc",
+  //   accessor: "invoice_doc",
+  //   render: (row) => (
+  //     <PdfButton file={row.invoice_doc} id={row.id} endpoint="payments" path="download-invoice" />
+  //   ),
+  // },
 
   {
     header: "DO Doc",
@@ -82,20 +76,27 @@ const PAID_COLUMNS = [
     ),
   },
 
-  {
-    header: "DN Doc",
-    accessor: "dn_doc",
-    render: (row) => (
-      <PdfButton file={row.dn_doc} id={row.id} endpoint="payments" path="download-dn" />
-    ),
-  },
+  // {
+  //   header: "DN Doc",
+  //   accessor: "dn_doc",
+  //   render: (row) => (
+  //     <PdfButton file={row.dn_doc} id={row.id} endpoint="payments" path="download-dn" />
+  //   ),
+  // },
 
+  // {
+  //   header: "CN Doc",
+  //   accessor: "cn_doc",
+  //   render: (row) => (
+  //     <PdfButton file={row.cn_doc} id={row.id} endpoint="payments" path="download-cn" />
+  //   ),
+  // },
   {
-    header: "CN Doc",
-    accessor: "cn_doc",
-    render: (row) => (
-      <PdfButton file={row.cn_doc} id={row.id} endpoint="payments" path="download-cn" />
-    ),
+    header: "Amount (MYR)",
+    accessor: "amount",
+    filterKey: "amount",
+    sortable: true,
+    render: (row) => formatAmount(row.amount),
   },
 
   {
@@ -133,12 +134,7 @@ const createNotAcknowledgedColumns = (onApprove) => [
     render: (row) => row.user?.company ?? "-",
   },
 
-  {
-    header: "Amount",
-    accessor: "amount",
-    filterKey: "amount",
-    render: (row) => formatAmount(row.amount),
-  },
+  
   {
     header: "Outstanding",
     accessor: "outstanding",
@@ -175,20 +171,26 @@ const createNotAcknowledgedColumns = (onApprove) => [
     ),
   },
 
-  {
-    header: "DN DOC",
-    accessor: "dnDoc",
-    render: (row) => (
-      <PdfButton file={row.dn_doc} id={row.id} endpoint="payments" path="download-dn" />
-    ),
-  },
+  // {
+  //   header: "DN DOC",
+  //   accessor: "dnDoc",
+  //   render: (row) => (
+  //     <PdfButton file={row.dn_doc} id={row.id} endpoint="payments" path="download-dn" />
+  //   ),
+  // },
 
+  // {
+  //   header: "CN DOC",
+  //   accessor: "cnDoc",
+  //   render: (row) => (
+  //     <PdfButton file={row.cn_doc} id={row.id} endpoint="payments" path="download-cn" />
+  //   ),
+  // },
   {
-    header: "CN DOC",
-    accessor: "cnDoc",
-    render: (row) => (
-      <PdfButton file={row.cn_doc} id={row.id} endpoint="payments" path="download-cn" />
-    ),
+    header: "Amount",
+    accessor: "amount",
+    filterKey: "amount",
+    render: (row) => formatAmount(row.amount),
   },
 
   {

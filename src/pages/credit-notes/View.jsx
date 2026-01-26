@@ -53,20 +53,20 @@ const COLUMNS = [
       />
     ),
   },
-  {
-    header: "Do Document",
-    accessor: "do_doc",
-    filterKey: "do_doc",
-    sortable: false,
-    render: (row) => (
-      <FileDownloadButton
-        file={row.invoice?.do_doc}
-        id={row.id}
-        endpoint="creditnotes"
-        path="download"
-      />
-    ),
-  },
+  // {
+  //   header: "Do Document",
+  //   accessor: "do_doc",
+  //   filterKey: "do_doc",
+  //   sortable: false,
+  //   render: (row) => (
+  //     <FileDownloadButton
+  //       file={row.invoice?.do_doc}
+  //       id={row.id}
+  //       endpoint="creditnotes"
+  //       path="download"
+  //     />
+  //   ),
+  // },
   {
     header: "CN Date",
     accessor: "cn_date",

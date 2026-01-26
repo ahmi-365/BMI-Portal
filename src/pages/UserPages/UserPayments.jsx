@@ -41,8 +41,19 @@ const COLUMNS = [
     sortable: true,
     render: (row) => formatDate(row.payment_date),
   },
-  { header: "Amount", accessor: "amount", filterKey: "amount", sortable: true, render: (row) => formatAmount(row.amount) },
+  
+  
   { header: "Outstanding", accessor: "outstanding", filterKey: "outstanding", sortable: true, render: (row) => formatAmount(row.outstanding) },
+  {
+    header: "Created At",
+    accessor: "created_at",
+    filterKey: "uploaded",
+    filterType: "date-range",
+    render: (row) => formatDate(row.created_at),
+  },
+  { header: "Amount", accessor: "amount", filterKey: "amount", sortable: true, render: (row) => formatAmount(row.amount) },
+  
+  
   {
     header: "Status",
     accessor: "status",
@@ -70,13 +81,7 @@ const COLUMNS = [
       );
     },
   },
-  {
-    header: "Created At",
-    accessor: "created_at",
-    filterKey: "uploaded",
-    filterType: "date-range",
-    render: (row) => formatDate(row.created_at),
-  },
+  
 ];
 
 export default function UserPayments() {

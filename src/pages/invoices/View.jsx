@@ -75,16 +75,16 @@ const COLUMNS = [
       return formatAmount(amountValue);
     },
   },
-  {
-    header: "Outstanding",
-    accessor: "outstanding",
-    filterKey: "outstanding",
-    sortable: true,
-    render: (row) => {
-      const outstandingValue = row.outstanding ? row.outstanding : "0";
-      return formatAmount(outstandingValue);
-    },
-  },
+  // {
+  //   header: "Outstanding",
+  //   accessor: "outstanding",
+  //   filterKey: "outstanding",
+  //   sortable: true,
+  //   render: (row) => {
+  //     const outstandingValue = row.outstanding ? row.outstanding : "0";
+  //     return formatAmount(outstandingValue);
+  //   },
+  // },
 {
     header: "Due Date",
     accessor: "date",
