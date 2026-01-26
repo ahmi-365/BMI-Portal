@@ -101,7 +101,7 @@ const COLUMNS = [
     accessor: "admin_id",
     filterKey: "uploaded_by",
     sortable: true,
-    render: (row) => row.admin.name || "-",
+    render: (row) => row.admin?.name || "-",
   },
 ];
 
