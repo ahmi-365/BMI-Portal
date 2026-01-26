@@ -17,11 +17,11 @@ const FIELDS = [
     label: "PPI Date",
     render: (value) => formatDate(value),
   },
-  {
-    name: "payment_term",
-    label: "Payment Term",
-    render: (value) => formatDate(value),
-  },
+  // {
+  //   name: "payment_term",
+  //   label: "Payment Term",
+  //   render: (value) => formatDate(value),
+  // },
   {
     name: "customer_no",
     label: "Customer No.",

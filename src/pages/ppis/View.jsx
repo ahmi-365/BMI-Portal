@@ -32,15 +32,15 @@ const COLUMNS = [
     // CHANGE: Use formatDate for DMY format
     render: (row) => formatDate(row.ppi_date),
   },
-  {
-    header: "Payment Term",
-    accessor: "payment_term",
-    filterKey: "payment_term",
-    filterType: "date-range",
-    sortable: true,
-    // CHANGE: Use formatDate for DMY format
-    render: (row) => formatDate(row.payment_term),
-  },
+  // {
+  //   header: "Payment Term",
+  //   accessor: "payment_term",
+  //   filterKey: "payment_term",
+  //   filterType: "date-range",
+  //   sortable: true,
+  //   // CHANGE: Use formatDate for DMY format
+  //   render: (row) => formatDate(row.payment_term),
+  // },
   { header: "PPI %", accessor: "ppi_percentage", filterKey: "ppi_percentage" },
   {
     header: "PPI Doc",

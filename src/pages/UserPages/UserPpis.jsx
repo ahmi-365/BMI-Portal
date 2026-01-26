@@ -42,14 +42,14 @@ const COLUMNS = [
     sortable: true,
     render: (row) => formatDate(row.ppi_date),
   },
-  {
-    header: "Payment Term",
-    accessor: "payment_term",
-    filterKey: "payment_term",
-    filterType: "date-range",
-    sortable: true,
-    render: (row) => formatDate(row.payment_term),
-  },
+  // {
+  //   header: "Payment Term",
+  //   accessor: "payment_term",
+  //   filterKey: "payment_term",
+  //   filterType: "date-range",
+  //   sortable: true,
+  //   render: (row) => formatDate(row.payment_term),
+  // },
   {
     header: "PPI %",
     accessor: "ppi_percentage",

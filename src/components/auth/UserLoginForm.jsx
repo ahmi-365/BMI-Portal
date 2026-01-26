@@ -7,6 +7,7 @@ import Label from "../form/Label";
 import Checkbox from "../form/input/Checkbox";
 import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
+import ConfirmationModal from "../common/ConfirmationModal";
 
 export default function UserLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,11 +16,16 @@ export default function UserLoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setShowModal(true);
+  };
+
+  const performLogin = async () => {
     setLoading(true);
     try {
       const res = await userAuthAPI.login(customerNo, password);
@@ -56,6 +62,11 @@ export default function UserLoginForm() {
       setError(errorMessage);
       setLoading(false);
     }
+  };
+
+  const handleConfirm = () => {
+    setShowModal(false);
+    performLogin();
   };
 
   return (
@@ -140,6 +151,19 @@ export default function UserLoginForm() {
           </div>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleConfirm}
+        title="Acknowledgement Required"
+        message="Please acknowledge the following before proceeding with login."
+        confirmText="Login"
+        cancelText="Cancel"
+        isLoading={loading}
+        requireAcknowledgement={true}
+        acknowledgementText="I acknowledge that amounts are converted to MYR and I have read and accept the Bribery Act / Code of Conduct."
+      />
     </div>
   );
 }

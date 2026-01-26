@@ -107,12 +107,12 @@ export default function PpisAdd() {
         type: "date",
         required: true,
       },
-      {
-        name: "payment_term",
-        label: "Payment Term",
-        type: "date",
-        required: true,
-      },
+      // {
+      //   name: "payment_term",
+      //   label: "Payment Term",
+      //   type: "date",
+      //   required: true,
+      // },
       {
         name: "amount",
         label: "Amount",

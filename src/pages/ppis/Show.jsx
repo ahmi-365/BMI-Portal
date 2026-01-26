@@ -18,12 +18,12 @@ const FIELDS = [
     // CHANGE: Use formatDate for DMY format
     render: (value) => formatDate(value),
   },
-  {
-    name: "payment_term",
-    label: "Payment Term",
-    // CHANGE: Use formatDate for DMY format
-    render: (value) => formatDate(value),
-  },
+  // {
+  //   name: "payment_term",
+  //   label: "Payment Term",
+  //   // CHANGE: Use formatDate for DMY format
+  //   render: (value) => formatDate(value),
+  // },
   { name: "amount", label: "Amount", render: (value) => formatAmount(value) },
   { name: "ppi_percentage", label: "PPI %" },
   { name: "customer_no", label: "Customer No." },

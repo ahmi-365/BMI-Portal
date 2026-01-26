@@ -1214,7 +1214,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                     </>
                   ) : (
                     <>
-                      Paste & Continue
+                      Continue
                       <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
@@ -1409,7 +1409,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                 />
                               </div>
 
-                              <div className="relative">
+                              {/* <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
                                   Payment Term
                                 </label>
@@ -1429,7 +1429,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     "payment_term"
                                   )}`}
                                 />
-                              </div>
+                              </div> */}
 
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
