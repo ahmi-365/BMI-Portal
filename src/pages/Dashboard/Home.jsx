@@ -135,9 +135,9 @@ export default function AdminDashboard() {
       const list = response?.data ?? response ?? [];
       const userOptions = Array.isArray(list)
         ? list.map(user => ({
-            value: user.id,
-            label: user.company || user.name || user.email || `User ${user.id}`
-          }))
+          value: user.id,
+          label: user.company || user.name || user.email || `User ${user.id}`
+        }))
         : [];
       setUsers(userOptions);
     } catch (err) {
@@ -256,38 +256,38 @@ export default function AdminDashboard() {
           </div>
 
           {/* Filters Section */}
-         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-end">
-  <div className="flex flex-col gap-6 md:flex-row md:items-end">
-    <div className="flex flex-col min-w-[280px]">
-      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
-        Date Range
-      </label>
-      <DateRangePicker
-        dateFrom={dateFrom}
-        dateTo={dateTo}
-        onDateChange={handleDateChange}
-      />
-    </div>
-    <div className="flex flex-col min-w-[320px] md:min-w-[400px]">
-      <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
-        Select Users
-      </label>
-      <MultiSelect
-        options={users}
-        value={selectedUserIds}
-        onChange={handleUserChange}
-        placeholder="Select users..."
-        disabled={usersLoading}
-      />
-    </div>
-  </div>
-</div>
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-end">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end">
+              <div className="flex flex-col min-w-[280px]">
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
+                  Date Range:
+                </label>
+                <DateRangePicker
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  onDateChange={handleDateChange}
+                />
+              </div>
+              <div className="flex flex-col min-w-[320px] md:min-w-[400px]">
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
+                  Select Users:
+                </label>
+                <MultiSelect
+                  options={users}
+                  value={selectedUserIds}
+                  onChange={handleUserChange}
+                  placeholder="Select users..."
+                  disabled={usersLoading}
+                />
+              </div>
+            </div>
+          </div>
 
           {/* Active Filters Preview */}
           {(dateFrom || dateTo || selectedUserIds.length > 0) && (
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-               <strong>Active Filters:</strong> 
+                <strong>Active Filters:</strong>
               </h3>
               <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
                 {dateFrom && dateTo && (

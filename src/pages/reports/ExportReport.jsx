@@ -4,7 +4,7 @@ import Toast from "../../components/common/Toast";
 import { DateRangePicker } from "../../components/common/DateRangePicker";
 import SearchBar from "../../components/common/SearchBar";
 import { companiesAPI, reportsAPI } from "../../services/api";
-import { Download, Users, Calendar, FileText, CheckSquare } from "lucide-react";
+import { Download, Users, Calendar, FileText, CheckSquare, X } from "lucide-react";
 
 const RESOURCE_OPTIONS = [
   { value: "invoice", label: "Invoices" },
@@ -184,11 +184,10 @@ export default function ExportReport() {
                     key={option.value}
                     type="button"
                     onClick={() => setResource(option.value)}
-                    className={`px-3 py-2 rounded-md text-xs font-medium text-left transition-all duration-200 border ${
-                      resource === option.value
+                    className={`px-3 py-2 rounded-md text-xs font-medium text-left transition-all duration-200 border ${resource === option.value
                         ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm"
                         : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-blue-300"
-                    }`}
+                      }`}
                   >
                     {option.label}
                   </button>
@@ -208,11 +207,10 @@ export default function ExportReport() {
                     key={option.value}
                     type="button"
                     onClick={() => setExportType(option.value)}
-                    className={`px-3 py-2 rounded-md text-xs font-medium text-left transition-all duration-200 border ${
-                      exportType === option.value
+                    className={`px-3 py-2 rounded-md text-xs font-medium text-left transition-all duration-200 border ${exportType === option.value
                         ? "border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 shadow-sm"
                         : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-green-300"
-                    }`}
+                      }`}
                   >
                     {option.label}
                   </button>
@@ -259,40 +257,62 @@ export default function ExportReport() {
           {/* RIGHT COLUMN: Users (Takes remaining height, Scrollable) */}
           <div className="lg:col-span-8 flex flex-col bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden h-full">
             {/* Search Bar */}
-            
+
 
             {/* User List Header */}
-            <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-between shrink-0">
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                <Users size={16} className="text-blue-500" />
-                Target Users
-                <span className="text-xs font-normal text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">
-                  {filteredUsers.length} total
-                </span>
-              </h2>
-              <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 shrink-0">
-              <SearchBar
-                onSearch={setSearchTerm}
-                placeholder="Search users..."
-              />
-            </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                  {selectedUsers.length} selected
-                </span>
-                <button
-                  type="button"
-                  onClick={handleSelectAllUsers}
-                  className="flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  <CheckSquare size={14} />
-                  {selectedUsers.length === users.length
-                    ? "Clear All"
-                    : "Select All"}
-                </button>
+            <div className="border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 shrink-0">
+              {/* Header Section */}
+              <div className="p-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Users size={16} className="text-blue-500" />
+                  Target Users
+                  <span className="text-xs font-normal text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full">
+                    {filteredUsers.length} total
+                  </span>
+                </h2>
+
+                <div className="flex items-center gap-2">
+                  {selectedUsers.length > 0 && (
+                    <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded">
+                      {selectedUsers.length} selected
+                    </span>
+                  )}
+
+                  {/* Action Buttons */}
+                  {selectedUsers.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedUsers([])}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 rounded-md transition-colors shadow-sm"
+                    >
+                      <X size={14} />
+                      Clear Selection
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleSelectAllUsers}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 rounded-md transition-colors shadow-sm"
+                  >
+                    <CheckSquare size={14} />
+                    {selectedUsers.length === filteredUsers.length && selectedUsers.length > 0
+                      ? "Deselect All"
+                      : "Select All"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Compact Search Bar Section */}
+              <div className="px-3 pb-3">
+                <div className="max-w-xs">
+                  <SearchBar
+                    onSearch={setSearchTerm}
+                    placeholder="Search users..."
+                  />
+                </div>
               </div>
             </div>
-
             {/* Scrollable User List Area */}
             <div className="flex-1 overflow-y-auto p-2 min-h-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
@@ -305,11 +325,10 @@ export default function ExportReport() {
                   filteredUsers.map((user) => (
                     <label
                       key={user.value}
-                      className={`flex items-start gap-3 p-2 rounded border transition-all cursor-pointer ${
-                        selectedUsers.includes(user.value)
+                      className={`flex items-start gap-3 p-2 rounded border transition-all cursor-pointer ${selectedUsers.includes(user.value)
                           ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
                           : "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-blue-300"
-                      }`}
+                        }`}
                     >
                       <input
                         type="checkbox"
@@ -319,11 +338,10 @@ export default function ExportReport() {
                       />
                       <div className="min-w-0">
                         <p
-                          className={`text-xs font-medium truncate ${
-                            selectedUsers.includes(user.value)
+                          className={`text-xs font-medium truncate ${selectedUsers.includes(user.value)
                               ? "text-blue-800 dark:text-blue-200"
                               : "text-gray-700 dark:text-gray-200"
-                          }`}
+                            }`}
                         >
                           {user.label}
                         </p>

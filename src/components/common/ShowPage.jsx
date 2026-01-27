@@ -92,7 +92,7 @@ export const ShowPage = ({
           <button
             onClick={() => {
               const editUrl = returnTo 
-                ? `/${resourceName}/edit/${id}?returnTo=${encodeURIComponent(returnTo)}`
+                ? `/${resourceName}/edit/${id}?returnTo=${returnTo}`
                 : `/${resourceName}/edit/${id}`;
               navigate(editUrl);
             }}

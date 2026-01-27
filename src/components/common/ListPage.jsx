@@ -140,6 +140,28 @@ export const ListPage = ({
     }
   }, [initialFilters]);
 
+  // Sync state from URL params when they change
+  useEffect(() => {
+    const page = searchParams.get("page");
+    const search = searchParams.get("search") || "";
+    const sortByParam = searchParams.get("sortBy") || null;
+    const sortOrderParam = searchParams.get("sortOrder") || "asc";
+    const urlFilters = {};
+    searchParams.forEach((value, key) => {
+      if (!["page", "search", "sortBy", "sortOrder"].includes(key)) {
+        urlFilters[key] = value;
+      }
+    });
+
+    setCurrentPage(page ? parseInt(page, 10) : 1);
+    setSearchQuery(search);
+    setAppliedSearch(search);
+    setFilters(urlFilters);
+    setTempFilters(urlFilters);
+    setSortBy(sortByParam);
+    setSortOrder(sortOrderParam);
+  }, [searchParams]);
+
   // Sync URL params with state
   useEffect(() => {
     const params = new URLSearchParams();
