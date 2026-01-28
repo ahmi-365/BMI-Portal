@@ -909,7 +909,7 @@ export const reportsAPI = {
     date_to = null,
   }) => {
     const url = `${API_BASE_URL}/user/files-download-bulk`;
-    const token = auth?.getToken?.();
+    const token = userAuth?.getToken?.();
 
     const payload = {
       model,
@@ -935,9 +935,9 @@ export const reportsAPI = {
 
     if (response.status === 401) {
       try {
-        auth.clear();
+        userAuth.clear();
       } catch (e) {}
-      if (typeof window !== "undefined") window.location.href = "/signin";
+      if (typeof window !== "undefined") window.location.href = "/user/login";
       throw new Error("Unauthorized");
     }
 
