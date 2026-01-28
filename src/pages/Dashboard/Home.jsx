@@ -102,7 +102,7 @@ export default function AdminDashboard() {
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
-  
+
   // UI State for "Show More"
   const [showAllUsers, setShowAllUsers] = useState(false);
 
@@ -138,9 +138,9 @@ export default function AdminDashboard() {
       const list = response?.data ?? response ?? [];
       const userOptions = Array.isArray(list)
         ? list.map((user) => ({
-            value: user.id,
-            label: user.company || user.name || user.email || `User ${user.id}`,
-          }))
+          value: user.id,
+          label: user.company || user.name || user.email || `User ${user.id}`,
+        }))
         : [];
       setUsers(userOptions);
     } catch (err) {
@@ -164,9 +164,8 @@ export default function AdminDashboard() {
       if (dateTo) params.append("date_to", dateTo);
       selectedUserIds.forEach((id) => params.append("user_ids[]", id));
 
-      const url = `${BASE_URL}/dashboard${
-        params.toString() ? `?${params.toString()}` : ""
-      }`;
+      const url = `${BASE_URL}/dashboard${params.toString() ? `?${params.toString()}` : ""
+        }`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -194,7 +193,7 @@ export default function AdminDashboard() {
   // --- Helper to render Selected Users List ---
   const renderSelectedUsers = () => {
     const VISIBLE_LIMIT = 3; // Number of items to show before truncating (approx 1 line)
-    
+
     // Get all selected user labels
     const allSelectedNames = selectedUserIds
       .map((id) => users.find((u) => u.value === id)?.label)
@@ -204,7 +203,7 @@ export default function AdminDashboard() {
 
     // Calculate hidden count
     const hiddenCount = allSelectedNames.length - VISIBLE_LIMIT;
-    
+
     // Determine which names to display
     const displayedNames = showAllUsers
       ? allSelectedNames
@@ -308,7 +307,7 @@ export default function AdminDashboard() {
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-end">
             {/* Wrapper for both inputs */}
             <div className="flex w-full flex-col gap-6 lg:flex-row lg:items-end">
-              
+
               {/* Date Range: Keeps a consistent width on desktop, full width on mobile */}
               <div className="flex flex-col w-full lg:w-auto lg:min-w-[280px]">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
@@ -352,7 +351,7 @@ export default function AdminDashboard() {
                     <strong>Date Range:</strong> {dateFrom} to {dateTo}
                   </span>
                 )}
-                
+
                 {selectedUserIds.length > 0 && renderSelectedUsers()}
               </div>
             </div>
@@ -378,6 +377,7 @@ export default function AdminDashboard() {
                     value={dashboardData?.invoices || 0}
                     icon={FileText}
                     colorClass="bg-gradient-to-br from-blue-500 to-blue-600"
+                    subtitle="View Invoices"
                   />
                   <StatCard
                     to="/creditnotes"
@@ -385,6 +385,7 @@ export default function AdminDashboard() {
                     value={dashboardData?.credit_notes || 0}
                     icon={CreditCard}
                     colorClass="bg-gradient-to-br from-purple-500 to-purple-600"
+                    subtitle="View Credits"
                   />
                   <StatCard
                     to="/debitnotes"
@@ -392,13 +393,16 @@ export default function AdminDashboard() {
                     value={dashboardData?.debit_notes || 0}
                     icon={FileText}
                     colorClass="bg-gradient-to-br from-orange-500 to-orange-600"
+                    subtitle="View Debits"
                   />
+
                   <StatCard
                     to="/deliveryorders"
                     title="Delivery Orders"
                     value={dashboardData?.delivery_orders || 0}
                     icon={Package}
                     colorClass="bg-gradient-to-br from-emerald-500 to-emerald-600"
+                    subtitle="View Orders"
                   />
                 </>
               )}
@@ -470,6 +474,7 @@ export default function AdminDashboard() {
                       value={dashboardData?.["total-customers"] || 0}
                       icon={Users}
                       colorClass="bg-blue-600"
+                      subtitle="All customers"
                     />
                     <StatCard
                       to="/customers/approved"
@@ -477,6 +482,7 @@ export default function AdminDashboard() {
                       value={dashboardData?.["approved-customers"] || 0}
                       icon={UserCheck}
                       colorClass="bg-green-600"
+                      subtitle="Verified accounts"
                     />
                     <StatCard
                       to="/customers/pending"
@@ -484,6 +490,7 @@ export default function AdminDashboard() {
                       value={dashboardData?.["pending-customers"] || 0}
                       icon={Clock}
                       colorClass="bg-yellow-500"
+                      subtitle="Awaiting review"
                     />
                   </>
                 )}
