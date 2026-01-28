@@ -12,7 +12,7 @@ import ConfirmationModal from "../common/ConfirmationModal";
 export default function UserLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
-  const [customerNo, setCustomerNo] = useState("");
+  const [identity, setidentity] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,7 +28,7 @@ export default function UserLoginForm() {
   const performLogin = async () => {
     setLoading(true);
     try {
-      const res = await userAuthAPI.login(customerNo, password);
+      const res = await userAuthAPI.login(identity, password);
       const token = res?.token || res?.data?.token;
       if (token) {
         userAuth.setToken(token);
@@ -79,7 +79,7 @@ export default function UserLoginForm() {
               Customer Login
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Enter your email and password to access your account!
+              Enter your Customer Number/Email and password to access your account!
             </p>
           </div>
           <div>
@@ -88,13 +88,13 @@ export default function UserLoginForm() {
               <div className="space-y-6">
                 <div>
                   <Label>
-                    Customer Number <span className="text-error-500">*</span>
+                    Customer Number / Email <span className="text-error-500">*</span>
                   </Label>
                   <Input
                     type="text"
                     placeholder="Enter your customer number"
-                    value={customerNo}
-                    onChange={(e) => setCustomerNo(e.target.value)}
+                    value={identity}
+                    onChange={(e) => setidentity(e.target.value)}
                     required
                   />
                 </div>

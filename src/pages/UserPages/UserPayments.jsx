@@ -42,7 +42,7 @@ const COLUMNS = [
   },
   
   
-  { header: "Outstanding", accessor: "outstanding", filterKey: "outstanding", sortable: true, render: (row) => formatAmount(row.outstanding) },
+  // { header: "Outstanding", accessor: "outstanding", filterKey: "outstanding", sortable: true, render: (row) => formatAmount(row.outstanding) },
   {
     header: "Created At",
     accessor: "created_at",

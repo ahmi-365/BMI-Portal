@@ -17,6 +17,7 @@ import { twMerge } from "tailwind-merge";
 
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import { DateRangePicker } from "../../components/common/DateRangePicker";
 import { userAuthAPI } from "../../services/api";
 
 // Utility for cleaner tailwind classes
@@ -48,6 +49,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass, subtitle, to }) => {
         "group cursor-pointer"
       )}
     >
+      
       {/* Background Gradient Blob */}
       <div
         className={cn(
@@ -93,10 +95,28 @@ export default function UserDashboard() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+
+    fetchDashboardData();
+  }, [dateFrom, dateTo]);
+
+  const handleDateChange = (type, value) => {
+    if (type === "from") {
+      setDateFrom(value);
+    } else if (type === "to") {
+      setDateTo(value);
+    } else if (type === "clear") {
+      setDateFrom("");
+      setDateTo("");
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -106,10 +126,16 @@ export default function UserDashboard() {
       const BASE_URL = import.meta.env.VITE_API_BASE;
       const token = localStorage.getItem("bmi_user_token");
 
+      // Build query params
+      const params = new URLSearchParams();
+      if (dateFrom) params.append("date_from", dateFrom);
+      if (dateTo) params.append("date_to", dateTo);
+      const url = `${BASE_URL}/user/dashboard${params.toString() ? `?${params.toString()}` : ""}`;
+
       // Fetch Profile and Dashboard simultaneously
       const [profileResponse, dashboardResponse] = await Promise.all([
         userAuthAPI.profile(),
-        fetch(`${BASE_URL}/user/dashboard`, {
+        fetch(url, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -203,6 +229,37 @@ export default function UserDashboard() {
               />
               {loading ? "Refreshing..." : "Refresh Data"}
             </button>
+          </div>
+
+          {/* Filter Section */}
+          <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col md:flex-row md:items-end md:gap-4">
+                <div className="flex flex-col min-w-[280px]">
+                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
+                    Date Range:
+                  </label>
+                  <DateRangePicker
+                    dateFrom={dateFrom}
+                    dateTo={dateTo}
+                    onDateChange={handleDateChange}
+                  />
+                </div>
+              </div>
+
+              {/* Active Filters Preview */}
+              {(dateFrom || dateTo) && (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    {dateFrom && dateTo && (
+                      <span>
+                        <strong>Date Range:</strong> {dateFrom} to {dateTo}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* DOCUMENT SECTION */}

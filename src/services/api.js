@@ -1081,10 +1081,10 @@ export const adminProfileAPI = {
 
 // User Auth APIs
 export const userAuthAPI = {
-  login: (customerNo, password) =>
+  login: (identity, password) =>
     userApiCall("/user/login", {
       method: "POST",
-      body: JSON.stringify({ customer_no: customerNo, password }),
+      body: JSON.stringify({ identity: identity, password }),
     }),
 
   logout: () =>
