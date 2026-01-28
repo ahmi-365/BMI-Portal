@@ -1,26 +1,26 @@
-import { useState, useEffect } from "react";
+import { clsx } from "clsx";
 import {
-  FileText,
-  CreditCard,
-  Package,
-  DollarSign,
+  Activity,
   ClipboardList,
-  Users,
-  UserCheck,
   Clock,
+  CreditCard,
+  DollarSign,
+  FileText,
+  Package,
   RefreshCw,
   TrendingUp,
-  Activity,
+  UserCheck,
+  Users,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import CountUp from "react-countup";
-import { clsx } from "clsx";
+import { Link } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import PageMeta from "../../components/common/PageMeta";
 import { DateRangePicker } from "../../components/common/DateRangePicker";
 import MultiSelect from "../../components/common/MultiSelect";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import PageMeta from "../../components/common/PageMeta";
 import { companiesAPI } from "../../services/api";
 
 // Utility for cleaner tailwind classes
@@ -102,6 +102,9 @@ export default function AdminDashboard() {
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
+  
+  // UI State for "Show More"
+  const [showAllUsers, setShowAllUsers] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -134,10 +137,10 @@ export default function AdminDashboard() {
       const response = await companiesAPI.list();
       const list = response?.data ?? response ?? [];
       const userOptions = Array.isArray(list)
-        ? list.map(user => ({
-          value: user.id,
-          label: user.company || user.name || user.email || `User ${user.id}`
-        }))
+        ? list.map((user) => ({
+            value: user.id,
+            label: user.company || user.name || user.email || `User ${user.id}`,
+          }))
         : [];
       setUsers(userOptions);
     } catch (err) {
@@ -159,9 +162,11 @@ export default function AdminDashboard() {
       const params = new URLSearchParams();
       if (dateFrom) params.append("date_from", dateFrom);
       if (dateTo) params.append("date_to", dateTo);
-      selectedUserIds.forEach(id => params.append("user_ids[]", id));
+      selectedUserIds.forEach((id) => params.append("user_ids[]", id));
 
-      const url = `${BASE_URL}/dashboard${params.toString() ? `?${params.toString()}` : ""}`;
+      const url = `${BASE_URL}/dashboard${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -184,6 +189,50 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // --- Helper to render Selected Users List ---
+  const renderSelectedUsers = () => {
+    const VISIBLE_LIMIT = 3; // Number of items to show before truncating (approx 1 line)
+    
+    // Get all selected user labels
+    const allSelectedNames = selectedUserIds
+      .map((id) => users.find((u) => u.value === id)?.label)
+      .filter(Boolean);
+
+    if (allSelectedNames.length === 0) return null;
+
+    // Calculate hidden count
+    const hiddenCount = allSelectedNames.length - VISIBLE_LIMIT;
+    
+    // Determine which names to display
+    const displayedNames = showAllUsers
+      ? allSelectedNames
+      : allSelectedNames.slice(0, VISIBLE_LIMIT);
+
+    return (
+      <span className="flex flex-wrap items-center gap-1">
+        <strong>Users:</strong>{" "}
+        <span>{displayedNames.join(", ")}</span>
+
+        {/* Show "... & X others" if truncated */}
+        {!showAllUsers && hiddenCount > 0 && (
+          <span className="text-gray-500">
+            {" "}& {hiddenCount} {hiddenCount === 1 ? "other" : "others"}
+          </span>
+        )}
+
+        {/* Toggle Button */}
+        {allSelectedNames.length > VISIBLE_LIMIT && (
+          <button
+            onClick={() => setShowAllUsers(!showAllUsers)}
+            className="ml-1 rounded text-xs font-semibold text-blue-600 hover:text-blue-500 hover:underline dark:text-blue-400"
+          >
+            {showAllUsers ? "Show Less" : "Show More"}
+          </button>
+        )}
+      </span>
+    );
   };
 
   /* -------------------- ERROR STATE -------------------- */
@@ -257,8 +306,11 @@ export default function AdminDashboard() {
 
           {/* Filters Section */}
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-end">
-            <div className="flex flex-col gap-6 md:flex-row md:items-end">
-              <div className="flex flex-col min-w-[280px]">
+            {/* Wrapper for both inputs */}
+            <div className="flex w-full flex-col gap-6 lg:flex-row lg:items-end">
+              
+              {/* Date Range: Keeps a consistent width on desktop, full width on mobile */}
+              <div className="flex flex-col w-full lg:w-auto lg:min-w-[280px]">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
                   Date Range:
                 </label>
@@ -268,17 +320,22 @@ export default function AdminDashboard() {
                   onDateChange={handleDateChange}
                 />
               </div>
-              <div className="flex flex-col min-w-[320px] md:min-w-[400px]">
+
+              {/* User Select: Takes up all remaining space (flex-1) to handle many tags */}
+              <div className="flex flex-col w-full lg:flex-1 min-w-0">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
                   Select Users:
                 </label>
-                <MultiSelect
-                  options={users}
-                  value={selectedUserIds}
-                  onChange={handleUserChange}
-                  placeholder="Select users..."
-                  disabled={usersLoading}
-                />
+                <div className="w-full">
+                  <MultiSelect
+                    options={users}
+                    value={selectedUserIds}
+                    onChange={handleUserChange}
+                    placeholder="Select users..."
+                    disabled={usersLoading}
+                    className="w-full"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -295,15 +352,8 @@ export default function AdminDashboard() {
                     <strong>Date Range:</strong> {dateFrom} to {dateTo}
                   </span>
                 )}
-                {selectedUserIds.length > 0 && (
-                  <span>
-                    <strong>Users:</strong>{" "}
-                    {selectedUserIds
-                      .map(id => users.find(u => u.value === id)?.label)
-                      .filter(Boolean)
-                      .join(", ")}
-                  </span>
-                )}
+                
+                {selectedUserIds.length > 0 && renderSelectedUsers()}
               </div>
             </div>
           )}
@@ -369,7 +419,6 @@ export default function AdminDashboard() {
                 [...Array(3)].map((_, i) => <SkeletonCard key={i} />)
               ) : (
                 <>
-                  {/* FIX: Use bracket notation for keys with hyphens */}
                   <StatCard
                     to="/payments"
                     title="Total Payments"
@@ -415,7 +464,6 @@ export default function AdminDashboard() {
                   [...Array(3)].map((_, i) => <SkeletonCard key={i} />)
                 ) : (
                   <>
-                    {/* FIX: Use bracket notation for keys with hyphens */}
                     <StatCard
                       to="/customers"
                       title="Total"
@@ -476,7 +524,6 @@ export default function AdminDashboard() {
                       Total Payments
                     </span>
                     <span className="font-mono text-lg font-semibold text-gray-900 dark:text-white">
-                      {/* FIX: Bracket notation */}
                       <CountUp
                         end={dashboardData?.["total-payments"] || 0}
                         duration={2}

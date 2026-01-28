@@ -27,6 +27,21 @@ const COLUMNS = [
     ),
   },
   {
+    header: "DO Doc",
+    accessor: "do_doc",
+    sortable: false,
+    render: (row) => (
+      <FileDownloadButton
+      file={row.deliveryorder?.do_doc}
+        id={row.id}
+        endpoint="user/credit-notes"
+        path="download"
+        isUserAPI={true}
+        onClick={(e) => e.stopPropagation()}
+      />
+    ),
+  },
+  {
     header: "CN Date",
     accessor: "cn_date",
     filterKey: "cn_date",

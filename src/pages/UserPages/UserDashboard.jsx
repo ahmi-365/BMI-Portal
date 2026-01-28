@@ -1,23 +1,23 @@
-import { useState, useEffect } from "react";
+import { clsx } from "clsx";
 import {
-  FileText,
-  CreditCard,
-  Package,
-  DollarSign,
+  Activity,
   ClipboardList,
+  CreditCard,
+  DollarSign,
+  FileText,
+  Package,
   RefreshCw,
   TrendingUp,
-  Activity,
   User,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import CountUp from "react-countup";
-import { clsx } from "clsx";
+import { Link } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 
+import { DateRangePicker } from "../../components/common/DateRangePicker";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import { DateRangePicker } from "../../components/common/DateRangePicker";
 import { userAuthAPI } from "../../services/api";
 
 // Utility for cleaner tailwind classes
@@ -25,7 +25,15 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-// --- Sub Components (Shared with Admin UI) ---
+// --- Helper for Date Formatting (YYYY-MM-DD) ---
+const formatDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+// --- Sub Components ---
 
 const SkeletonCard = () => (
   <div className="rounded-2xl border border-gray-100 bg-white/50 p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
@@ -49,15 +57,12 @@ const StatCard = ({ title, value, icon: Icon, colorClass, subtitle, to }) => {
         "group cursor-pointer"
       )}
     >
-      
-      {/* Background Gradient Blob */}
       <div
         className={cn(
           "absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-2xl transition-all group-hover:opacity-20",
           colorClass.replace("bg-", "bg-")
         )}
       />
-
       <div className="relative z-10 flex items-start justify-between">
         <div>
           <p className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -86,7 +91,6 @@ const StatCard = ({ title, value, icon: Icon, colorClass, subtitle, to }) => {
       </div>
     </div>
   );
-
   return to ? <Link to={to}>{CardContent}</Link> : CardContent;
 };
 
@@ -97,26 +101,58 @@ export default function UserDashboard() {
   const [error, setError] = useState(null);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [activeFilter, setActiveFilter] = useState("");
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   useEffect(() => {
-
     fetchDashboardData();
   }, [dateFrom, dateTo]);
 
   const handleDateChange = (type, value) => {
-    if (type === "from") {
-      setDateFrom(value);
-    } else if (type === "to") {
-      setDateTo(value);
-    } else if (type === "clear") {
+    if (type === "from") setDateFrom(value);
+    else if (type === "to") setDateTo(value);
+    else if (type === "clear") {
       setDateFrom("");
       setDateTo("");
+      setActiveFilter("");
     }
+    // Clear active filter pill style if manually changing date
+    if (type !== "clear") setActiveFilter("");
   };
+
+  // --- Quick Filter Logic ---
+  const handleQuickFilter = (type) => {
+    const today = new Date();
+    let start = new Date();
+    let end = new Date();
+
+    switch (type) {
+      case "today":
+        break; // Start/End are today
+      case "week":
+        const day = today.getDay();
+        // Calculate Monday (if day is 0 (Sunday), subtract 6, else subtract day - 1)
+        const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+        start.setDate(diff);
+        break;
+      case "month":
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+        break;
+      case "year":
+        start = new Date(today.getFullYear(), 0, 1);
+        break;
+      default:
+        break;
+    }
+
+    setDateFrom(formatDate(start));
+    setDateTo(formatDate(end));
+    setActiveFilter(type);
+  };
+  // --------------------------
 
   const fetchDashboardData = async () => {
     try {
@@ -126,13 +162,13 @@ export default function UserDashboard() {
       const BASE_URL = import.meta.env.VITE_API_BASE;
       const token = localStorage.getItem("bmi_user_token");
 
-      // Build query params
       const params = new URLSearchParams();
       if (dateFrom) params.append("date_from", dateFrom);
       if (dateTo) params.append("date_to", dateTo);
-      const url = `${BASE_URL}/user/dashboard${params.toString() ? `?${params.toString()}` : ""}`;
+      const url = `${BASE_URL}/user/dashboard${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
 
-      // Fetch Profile and Dashboard simultaneously
       const [profileResponse, dashboardResponse] = await Promise.all([
         userAuthAPI.profile(),
         fetch(url, {
@@ -163,7 +199,6 @@ export default function UserDashboard() {
     }
   };
 
-  /* -------------------- ERROR STATE -------------------- */
   if (error) {
     return (
       <div className="flex h-[80vh] flex-col items-center justify-center gap-4 text-center">
@@ -184,18 +219,32 @@ export default function UserDashboard() {
     );
   }
 
-  // Calculated Totals for Summary
   const totalDocuments =
     (dashboardData?.invoices || 0) +
     (dashboardData?.credit_notes || 0) +
     (dashboardData?.debit_notes || 0) +
     (dashboardData?.delivery_orders || 0);
 
+  // Quick Filter Button Component
+  const FilterPill = ({ label, value }) => (
+    <button
+      onClick={() => handleQuickFilter(value)}
+      className={cn(
+        "px-3 py-2 text-xs font-medium rounded-lg transition-all border",
+        activeFilter === value
+          ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+          : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+      )}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <>
       <PageMeta title="User Dashboard" />
 
-      <div className="min-h-screen  mt-12" >
+      <div className="min-h-screen mt-12">
         <div className="mx-auto max-w-7xl space-y-8">
           {/* Top Header Section */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -231,7 +280,7 @@ export default function UserDashboard() {
             </button>
           </div>
 
-          {/* Filter Section */}
+          {/* Filter Section - UI SAME AS BEFORE + QUICK FILTERS */}
           <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col md:flex-row md:items-end md:gap-4">
@@ -244,6 +293,14 @@ export default function UserDashboard() {
                     dateTo={dateTo}
                     onDateChange={handleDateChange}
                   />
+                </div>
+
+                {/* Quick Filters (Added here to sit next to picker on desktop, below on mobile) */}
+                <div className="flex flex-wrap gap-2">
+                  <FilterPill label="Today" value="today" />
+                  <FilterPill label="This Week" value="week" />
+                  <FilterPill label="This Month" value="month" />
+                  <FilterPill label="This Year" value="year" />
                 </div>
               </div>
 
@@ -362,11 +419,10 @@ export default function UserDashboard() {
 
             {/* Quick Summary Card (Span 1) */}
             <div className="space-y-6">
-              {/* Header spacer to align with left column */}
               <div className="hidden lg:flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-gray-800 opacity-0">
-                 <h2 className="text-lg font-semibold">Spacer</h2>
+                <h2 className="text-lg font-semibold">Spacer</h2>
               </div>
-              
+
               <div className="rounded-2xl border border-gray-200 bg-gradient-to-b from-white to-gray-50 p-6 shadow-lg dark:border-gray-800 dark:from-gray-900 dark:to-gray-900/50 h-full">
                 <h3 className="mb-6 text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
                   <Activity className="h-5 w-5 text-blue-600" />
@@ -411,13 +467,17 @@ export default function UserDashboard() {
 
                     <div className="mt-8 rounded-xl bg-gray-50 p-4 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
                       <div className="flex items-center gap-3">
-                         <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center dark:bg-blue-900/30">
-                            <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                         </div>
-                         <div>
-                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Account Status</p>
-                            <p className="text-sm font-bold text-gray-900 dark:text-white">Active Member</p>
-                         </div>
+                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center dark:bg-blue-900/30">
+                          <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                            Account Status
+                          </p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">
+                            Active Member
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -621,7 +621,7 @@ export const invoicesAPI = {
   list: (params) => listResource("invoices", params),
 
   allInvoices: (search = "") => {
-    const qs = search ? `?search=${encodeURIFComponent(search)}` : "";
+    const qs = search ? `?search=${encodeURIComponent(search)}` : "";
     return apiCall(`/all-invoices${qs}`);
   },
 
@@ -913,11 +913,7 @@ export const reportsAPI = {
 
     const payload = {
       model,
-      date_from,
-      date_to,
     };
-
-   
 
     if (date_from) {
       payload.date_from = date_from;

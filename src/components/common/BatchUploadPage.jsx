@@ -334,7 +334,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
               invoice_no: matchedInvoiceNo, 
               do_no: extractedDoNo || "", 
               do_doc: file.name,
-              remarks: remarkText,
+              remarks: null,
               _file: file 
             };
           })
@@ -652,11 +652,28 @@ export const BatchUploadPage = ({ resourceName, title }) => {
   };
 
   // Parse validation errors into per-row field map so we can highlight the record card
-  const parseValidationErrors = (errorsObj) => {
+  const parseValidationErrors = (errorsObj, backendMessage = "") => {
     const validationMap = {};
     const messages = [];
 
     if (!errorsObj || typeof errorsObj !== "object") {
+      // Check if backend message contains duplicate DO error
+      if (backendMessage && /Delivery Order already exists/i.test(backendMessage)) {
+        // Extract DO number from error message: "Delivery Order already exists for invoice 5100610760"
+        const doMatch = backendMessage.match(/for\s+(?:invoice\s+)?(\d+)/i);
+        if (doMatch) {
+          const duplicateDO = doMatch[1];
+          // Find the record with matching do_no and mark it
+          formData.forEach((form, idx) => {
+            if (String(form.do_no || "").trim() === duplicateDO.trim()) {
+              validationMap[idx] = validationMap[idx] || [];
+              if (!validationMap[idx].includes("do_no")) {
+                validationMap[idx].push("do_no");
+              }
+            }
+          });
+        }
+      }
       return { validationMap, messages };
     }
 
@@ -791,8 +808,9 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         const status = result?.status?.toLowerCase?.();
         if (status === "error" || status === "fail") {
           // Parse validation errors for delivery orders
+          const backendMessage = result?.message || "";
           const { validationMap, messages: normalizedMessages } =
-            parseValidationErrors(result?.errors);
+            parseValidationErrors(result?.errors, backendMessage);
 
           // Set validation errors to highlight the correct record card and fields
           if (Object.keys(validationMap).length > 0) {
@@ -808,7 +826,6 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           const normalizedText = messageList.length
             ? Array.from(new Set(messageList)).join("\n")
             : "";
-          const backendMessage = result?.message || "Upload failed.";
           const fullErrorMessage = normalizedText
             ? normalizedText
             : /The given data was invalid\.?/i.test(backendMessage)
@@ -892,6 +909,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const duplicateInvoices = result?.duplicate_invoices;
       const duplicateCN = result?.duplicate_cn;
       const duplicates = result?.duplicates;
+      const backendMessage = result?.message || "Upload failed.";
+      
       if (status === "error" || status === "fail" || status === "false") {
         const dupList = Array.isArray(duplicateInvoices)
           ? duplicateInvoices.map((d) => String(d))
@@ -903,7 +922,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
         // Parse validation errors from the errors object and extract index
         const { validationMap, messages: normalizedMessages } =
-          parseValidationErrors(result?.errors);
+          parseValidationErrors(result?.errors, backendMessage);
 
         // Set validation errors to highlight the correct record card and fields
         if (Object.keys(validationMap).length > 0) {
@@ -919,7 +938,6 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         const normalizedText = messageList.length
           ? Array.from(new Set(messageList)).join("\n")
           : "";
-        const backendMessage = result?.message || "Upload failed.";
         const fullErrorMessage = normalizedText
           ? normalizedText
           : /The given data was invalid\.?/i.test(backendMessage)

@@ -23,6 +23,60 @@ const UserHeader = () => {
   const profileDropdownRef = useRef(null);
   const notificationDropdownRef = useRef(null);
 
+  // --- Notification Routing Logic ---
+  const NOTIFICATION_ROUTES = {
+    'App\\Notifications\\NewInvoiceAdded': '/user/invoices',
+    'App\\Notifications\\NewCreditNoteAdded': '/user/credit-notes',
+    'App\\Notifications\\NewPpiAdded': '/user/ppi',
+    'App\\Notifications\\NewDeliveryOrderAdded': '/user/delivery-orders',
+    'App\\Notifications\\PaymentApproved': '/user/payments',
+    // Mapped based on standard naming conventions if they arise later:
+    'App\\Notifications\\NewDebitNoteAdded': '/user/debit-notes', 
+    'App\\Notifications\\NewStatementAdded': '/user/statements',
+  };
+
+  const handleNotificationClick = (notification) => {
+    // 1. Mark as read immediately if unread
+    if (!notification.read_at) {
+      handleMarkAsRead(notification.id);
+    }
+
+    // 2. Check if we have a mapped route for this notification type
+    const targetPath = NOTIFICATION_ROUTES[notification.type];
+
+    if (targetPath) {
+      navigate(targetPath);
+      setIsNotificationDropdownOpen(false);
+      return;
+    }
+
+    // 3. Fallback: Use the API provided action_url if type isn't mapped
+    if (notification.data?.action_url) {
+      try {
+        let urlStr = notification.data.action_url;
+        // If it's an absolute URL (e.g. includes domain), strip it to keep SPA navigation
+        if (urlStr.startsWith('http')) {
+          const url = new URL(urlStr);
+          urlStr = url.pathname + url.search + url.hash;
+        }
+        
+        // Ensure path starts with /
+        if (!urlStr.startsWith('/')) {
+            urlStr = '/' + urlStr;
+        }
+
+        navigate(urlStr);
+        setIsNotificationDropdownOpen(false);
+      } catch (e) {
+        console.error("Invalid Notification URL", e);
+        // Fallback to dashboard if URL parsing fails
+        navigate('/user/dashboard');
+        setIsNotificationDropdownOpen(false);
+      }
+    }
+  };
+  // ----------------------------------
+
   // Define user pages
   const pages = useMemo(
     () => [
@@ -375,17 +429,7 @@ const UserHeader = () => {
                     notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        onClick={() => {
-                          if (!notification.read_at) {
-                            handleMarkAsRead(notification.id);
-                          }
-                          // Navigate if action_url exists
-                          if (notification.data?.action_url) {
-                            const url = new URL(notification.data.action_url);
-                            navigate(url.pathname);
-                            setIsNotificationDropdownOpen(false);
-                          }
-                        }}
+                        onClick={() => handleNotificationClick(notification)}
                         className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${
                           !notification.read_at
                             ? "bg-blue-50/50 dark:bg-blue-900/10"

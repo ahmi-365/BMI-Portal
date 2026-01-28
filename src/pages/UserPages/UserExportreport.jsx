@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import PageMeta from "../../components/common/PageMeta";
-import Toast from "../../components/common/Toast";
+import { Calendar, Download, FileText } from "lucide-react";
+import { useState } from "react";
 import { DateRangePicker } from "../../components/common/DateRangePicker";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import PageMeta from "../../components/common/PageMeta";
+import Toast from "../../components/common/Toast";
 import { reportsAPI } from "../../services/api";
-import { Download, Calendar, FileText } from "lucide-react";
 
 const RESOURCE_OPTIONS = [
   { value: "invoice", label: "Invoices" },
@@ -13,6 +13,7 @@ const RESOURCE_OPTIONS = [
   { value: "debitNote", label: "Debit Notes" },
   { value: "statement", label: "Statements" },
   { value: "payment", label: "Payments" },
+  { value: "ppi", label: "PPIs" },
 ];
 
 export default function UserExportReport() {
