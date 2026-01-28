@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import { Calendar as CalendarIcon, X } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 
 const customFlatpickrStyles = `
@@ -43,6 +43,128 @@ const customFlatpickrStyles = `
     background: #60a5fa;
     border-color: #60a5fa;
   }
+
+  /* Light mode styling for calendar */
+  .flatpickr-calendar {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  .flatpickr-months {
+    background: white !important;
+  }
+
+  .flatpickr-month {
+    color: #111827 !important;
+  }
+
+  .flatpickr-prev-month,
+  .flatpickr-next-month {
+    color: #6b7280 !important;
+  }
+
+  /* Month/Year dropdown styling - Light mode */
+  .flatpickr-monthDropdown-months,
+  .flatpickr-monthDropdown-years {
+    background: white !important;
+    color: #111827 !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  .flatpickr-monthDropdown-months option,
+  .flatpickr-monthDropdown-years option {
+    background: white !important;
+    color: #111827 !important;
+  }
+
+  /* Weekday styling */
+  .flatpickr-weekday {
+    color: #6b7280 !important;
+    background: #f9fafb !important;
+  }
+
+  /* Day styling */
+  .flatpickr-day {
+    color: #111827 !important;
+  }
+
+  .flatpickr-day.prevMonthDay,
+  .flatpickr-day.nextMonthDay {
+    color: #d1d5db !important;
+  }
+
+  .flatpickr-day:hover {
+    background: #e5e7eb !important;
+    border-color: #e5e7eb !important;
+  }
+
+  /* Dark mode - when dark class is present on body/html */
+  html.dark .flatpickr-calendar,
+  body.dark .flatpickr-calendar {
+    background: #1f2937 !important;
+    border: 1px solid #374151 !important;
+  }
+
+  html.dark .flatpickr-months,
+  body.dark .flatpickr-months {
+    background: #1f2937 !important;
+  }
+
+  html.dark .flatpickr-month,
+  body.dark .flatpickr-month {
+    color: #f3f4f6 !important;
+  }
+
+  html.dark .flatpickr-prev-month,
+  html.dark .flatpickr-next-month,
+  body.dark .flatpickr-prev-month,
+  body.dark .flatpickr-next-month {
+    color: #d1d5db !important;
+  }
+
+  /* Month/Year dropdown styling - Dark mode */
+  html.dark .flatpickr-monthDropdown-months,
+  html.dark .flatpickr-monthDropdown-years,
+  body.dark .flatpickr-monthDropdown-months,
+  body.dark .flatpickr-monthDropdown-years {
+    background: #374151 !important;
+    color: #f3f4f6 !important;
+    border: 1px solid #4b5563 !important;
+  }
+
+  html.dark .flatpickr-monthDropdown-months option,
+  html.dark .flatpickr-monthDropdown-years option,
+  body.dark .flatpickr-monthDropdown-months option,
+  body.dark .flatpickr-monthDropdown-years option {
+    background: #374151 !important;
+    color: #f3f4f6 !important;
+  }
+
+  /* Weekday styling - Dark mode */
+  html.dark .flatpickr-weekday,
+  body.dark .flatpickr-weekday {
+    color: #d1d5db !important;
+    background: #111827 !important;
+  }
+
+  /* Day styling - Dark mode */
+  html.dark .flatpickr-day,
+  body.dark .flatpickr-day {
+    color: #f3f4f6 !important;
+  }
+
+  html.dark .flatpickr-day.prevMonthDay,
+  html.dark .flatpickr-day.nextMonthDay,
+  body.dark .flatpickr-day.prevMonthDay,
+  body.dark .flatpickr-day.nextMonthDay {
+    color: #6b7280 !important;
+  }
+
+  html.dark .flatpickr-day:hover,
+  body.dark .flatpickr-day:hover {
+    background: #4b5563 !important;
+    border-color: #4b5563 !important;
+  }
 `;
 
 export const DateRangePicker = ({ dateFrom, dateTo, onDateChange, rangeRestriction }) => {
@@ -81,8 +203,8 @@ export const DateRangePicker = ({ dateFrom, dateTo, onDateChange, rangeRestricti
             }
           }
         },
-        // CHANGED: Force the calendar to always open ABOVE the input
-        position: "above",
+        // Show the calendar BELOW the input
+        position: "below",
       });
     }
 
