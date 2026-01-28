@@ -14,6 +14,7 @@ import {
   Plus,
   Upload,
   LineChart,
+  Download,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -60,6 +61,11 @@ const othersItems = [
     name: "Payments",
     icon: <CreditCard className="w-5 h-5" />,
     path: "/user/payments",
+  },
+  {
+    name: "Export Report",
+    icon: <Download className="w-5 h-5" />,
+    path: "/user/export-report",
   },
 ];
 

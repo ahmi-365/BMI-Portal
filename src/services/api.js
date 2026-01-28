@@ -903,6 +903,55 @@ export const reportsAPI = {
 
     return await response.blob();
   },
+  UserbulkDownload: async ({
+    model,
+    date_from = null,
+    date_to = null,
+  }) => {
+    const url = `${API_BASE_URL}/user/files-download-bulk`;
+    const token = auth?.getToken?.();
+
+    const payload = {
+      model,
+      date_from,
+      date_to,
+    };
+
+   
+
+    if (date_from) {
+      payload.date_from = date_from;
+    }
+
+    if (date_to) {
+      payload.date_to = date_to;
+    }
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Accept: "application/octet-stream",
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.status === 401) {
+      try {
+        auth.clear();
+      } catch (e) {}
+      if (typeof window !== "undefined") window.location.href = "/signin";
+      throw new Error("Unauthorized");
+    }
+
+    if (!response.ok) {
+      const message = await parseErrorResponse(response);
+      throw new Error(message);
+    }
+
+    return await response.blob();
+  },
 };
 
 // Helper to download binary content (blob) from an endpoint with auth handling

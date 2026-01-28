@@ -74,6 +74,7 @@ import UserPaymentShow from "./pages/UserPages/UserPaymentShow";
 import UserProfileEdit from "./pages/UserPages/UserProfileEdit";
 import UserStatements from "./pages/UserPages/UserStatements";
 import UserStatementShow from "./pages/UserPages/UserStatementShow";
+import UserExportReport from "./pages/UserPages/UserExportreport";
 // CN PPI
 import PpisEdit from "./pages/ppis/Edit";
 import PpisIndex from "./pages/ppis/Index";
@@ -238,6 +239,7 @@ export default function App() {
               path="/user/statements/show/:id"
               element={<UserStatementShow />}
             />
+            <Route path="/user/export-report" element={<UserExportReport />} />
           </Route>
 
           {/* Fallback Route */}
