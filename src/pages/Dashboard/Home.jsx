@@ -289,7 +289,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <button
+            {/* <button
               onClick={fetchDashboardData}
               disabled={loading}
               className="group flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-200 transition-all hover:bg-gray-50 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700 dark:hover:bg-gray-700"
@@ -301,7 +301,7 @@ export default function AdminDashboard() {
                 )}
               />
               {loading ? "Refreshing..." : "Refresh Data"}
-            </button>
+            </button> */}
           </div>
 
           {/* Filters Section */}
