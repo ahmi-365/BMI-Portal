@@ -386,7 +386,7 @@ const UserHeader = () => {
           <ThemeToggleButton />
 
           {/* Notifications Dropdown */}
-          <div className="relative" ref={notificationDropdownRef}>
+          <div className="relative " ref={notificationDropdownRef}>
             <button
               onClick={() =>
                 setIsNotificationDropdownOpen(!isNotificationDropdownOpen)
@@ -395,7 +395,7 @@ const UserHeader = () => {
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-semibold text-white">
+                <span className="absolute -top-1  -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-semibold text-white">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -403,8 +403,8 @@ const UserHeader = () => {
 
             {/* Notifications Dropdown Menu */}
             {isNotificationDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50">
-                <div className="sticky top-0 bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+              <div className=" absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50">
+                <div className="sticky top-0  bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                     Notifications
                   </h3>
@@ -417,9 +417,9 @@ const UserHeader = () => {
                     </button>
                   )}
                 </div>
-                <div className="py-1">
+                <div className="py-1 ">
                   {notifications.length === 0 ? (
-                    <div className="px-4 py-8 text-center">
+                    <div className="px-4 py-8 text-center ">
                       <Bell className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         No notifications
@@ -436,7 +436,7 @@ const UserHeader = () => {
                             : ""
                         }`}
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-3 overflow-hidden">
                           {!notification.read_at && (
                             <div className="w-2 h-2 rounded-full bg-brand-500 mt-1.5 flex-shrink-0"></div>
                           )}

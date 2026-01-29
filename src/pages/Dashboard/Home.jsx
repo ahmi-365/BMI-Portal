@@ -288,19 +288,35 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* <button
+            <button
               onClick={fetchDashboardData}
               disabled={loading}
-              className="group flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-200 transition-all hover:bg-gray-50 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700 dark:hover:bg-gray-700"
+              className={cn(
+                "group relative flex items-center gap-2.5 rounded-xl px-5 py-2.5 text-sm font-semibold shadow-sm transition-all duration-200",
+                "bg-gradient-to-b from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/80",
+                "ring-1 ring-gray-900/10 dark:ring-white/10",
+                "hover:shadow-md hover:ring-gray-900/20 dark:hover:ring-white/20",
+                "active:scale-[0.98] active:shadow-sm",
+                "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-sm disabled:active:scale-100",
+                loading
+                  ? "text-blue-600 dark:text-blue-400"
+                  : "text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white"
+              )}
             >
               <RefreshCw
                 className={cn(
-                  "h-4 w-4 transition-transform",
-                  loading && "animate-spin"
+                  "h-4 w-4 transition-all duration-300",
+                  loading && "animate-spin text-blue-600 dark:text-blue-400",
+                  !loading && "group-hover:rotate-180 group-hover:text-blue-600 dark:group-hover:text-blue-400"
                 )}
               />
-              {loading ? "Refreshing..." : "Refresh Data"}
-            </button> */}
+              <span className="relative">
+                {loading ? "Refreshing..." : "Refresh Data"}
+              </span>
+
+              {/* Subtle shine effect on hover */}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            </button>
           </div>
 
           {/* Filters Section */}
@@ -342,16 +358,28 @@ export default function AdminDashboard() {
           {/* Active Filters Preview */}
           {(dateFrom || dateTo || selectedUserIds.length > 0) && (
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <strong>Active Filters:</strong>
-              </h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <strong>Active Filters:</strong>
+                </h3>
+                <button
+                  onClick={() => {
+                    // Clear all filters
+                    setDateFrom('');
+                    setDateTo('');
+                    setSelectedUserIds([]);
+                  }}
+                  className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium transition-colors"
+                >
+                  Clear All
+                </button>
+              </div>
               <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
                 {dateFrom && dateTo && (
                   <span>
                     <strong>Date Range:</strong> {dateFrom} to {dateTo}
                   </span>
                 )}
-
                 {selectedUserIds.length > 0 && renderSelectedUsers()}
               </div>
             </div>

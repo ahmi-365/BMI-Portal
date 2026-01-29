@@ -24,12 +24,21 @@ const COLUMNS = [
       />
     ),
   },
+  
   {
     header: "Invoice Date",
     accessor: "invoice_date",
     filterKey: "date",
     filterType: "date-range",
       render: (row) => formatDate(row.invoice.invoice_date),
+    
+  },
+  {
+    header: "Invoice No.",
+    accessor: "invoiceId",
+    filterKey: "invoiceId",
+    render: (row) => row.invoice?.invoiceId || row.customer_no || "-",
+
     
   },
   {

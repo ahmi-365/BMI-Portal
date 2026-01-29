@@ -37,6 +37,12 @@ const FIELDS = [
   {
     name: "invoice_id",
     label: "Invoice ID",
+    render: (row) => row.invoice?.invoiceId || row.customer_no || "-",
+
+  },
+  {
+    name: "invoiceId",
+    label: "Invoice No.",
     render: (value) => value || "-",
   },
   {
@@ -81,7 +87,7 @@ const FIELDS = [
   },
 ];
 
-export default function   UserDeliveryOrderShow() {
+export default function UserDeliveryOrderShow() {
   return (
     <ShowPage
       resourceName="user/delivery-orders"

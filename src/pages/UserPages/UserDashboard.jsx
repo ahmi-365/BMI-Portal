@@ -165,9 +165,8 @@ export default function UserDashboard() {
       const params = new URLSearchParams();
       if (dateFrom) params.append("date_from", dateFrom);
       if (dateTo) params.append("date_to", dateTo);
-      const url = `${BASE_URL}/user/dashboard${
-        params.toString() ? `?${params.toString()}` : ""
-      }`;
+      const url = `${BASE_URL}/user/dashboard${params.toString() ? `?${params.toString()}` : ""
+        }`;
 
       const [profileResponse, dashboardResponse] = await Promise.all([
         userAuthAPI.profile(),
@@ -307,12 +306,23 @@ export default function UserDashboard() {
               {/* Active Filters Preview */}
               {(dateFrom || dateTo) && (
                 <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
-                    {dateFrom && dateTo && (
-                      <span>
-                        <strong>Date Range:</strong> {dateFrom} to {dateTo}
-                      </span>
-                    )}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                      {dateFrom && dateTo && (
+                        <span>
+                          <strong>Date Range:</strong> {dateFrom} to {dateTo}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setDateFrom('');
+                        setDateTo('');
+                      }}
+                      className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium transition-colors whitespace-nowrap"
+                    >
+                      Clear All
+                    </button>
                   </div>
                 </div>
               )}
