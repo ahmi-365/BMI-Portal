@@ -175,13 +175,13 @@ export default function CustomersAdd() {
     },
     {
       name: "company",
-      label: "Business Contact Name ",
+      label: "Business Contact Name",
       type: "text",
       required: true,
     },
     {
       name: "email",
-      label: "Business E-mail (Primary) ",
+      label: "Business E-mail (Primary)",
       type: "email",
       required: true,
     },
@@ -213,19 +213,37 @@ export default function CustomersAdd() {
     { name: "email2", label: "Business E-mail 2", type: "email" },
     { name: "email3", label: "Business E-mail 3", type: "email" },
     { name: "payment_term", label: "Payment Term (EOM)", type: "text" },
+    
+    // --- UPDATED FILE UPLOAD SECTION ---
     {
-      name: "cc1",
+      name: "credit_application_files", // Grouped CC1/CC2
       label: "Upload Credit Application Form (CC1/CC2)",
       type: "file",
+      multiple: true,
+      maxFiles: 2, // Hint for ResourceForm
     },
-    { name: "form_24", label: "Upload Form 24", type: "file" },
-    { name: "form_9", label: "Upload Form 9", type: "file" },
     {
-      name: "financial_statement",
-      label: "Upload Financial Statements",
+      name: "registration_files", // Grouped Form 9/24/49
+      label: "Upload Company Registration Form (9/24/49)",
       type: "file",
+      multiple: true,
+      maxFiles: 3, // Hint for ResourceForm
     },
-    { name: "pdpa", label: "Upload PDPA/Consent Letter", type: "file" },
+    { 
+      name: "letter_of_guarantee", 
+      label: "Letter of Guarantee", 
+      type: "file" 
+    },
+    // { 
+    //   name: "financial_statement", 
+    //   label: "Upload Financial Statements", 
+    //   type: "file" 
+    // },
+    { 
+      name: "pdpa", 
+      label: "Upload PDPA/Consent Letter", 
+      type: "file" 
+    },
   ];
 
   const handleSubmit = async (formData) => {
@@ -234,14 +252,26 @@ export default function CustomersAdd() {
     Object.keys(formData).forEach((key) => {
       const val = formData[key];
 
-      // Skip blank passwords during edit so backend keeps existing password
+      // Skip blank passwords during edit
       if ((key === "password" || key === "password_confirmation") && !val) {
         return;
       }
 
-      if (val instanceof File) fd.append(key, val, val.name);
-      else if (val !== undefined && val !== null && val !== "")
+      // Handle Multiple Files (FileList or Array)
+      if (val instanceof FileList || (Array.isArray(val) && val[0] instanceof File)) {
+         // Convert FileList to Array and append each
+         Array.from(val).forEach((file) => {
+            fd.append(`${key}[]`, file, file.name);
+         });
+      } 
+      // Handle Single File
+      else if (val instanceof File) {
+        fd.append(key, val, val.name);
+      } 
+      // Handle Text Data
+      else if (val !== undefined && val !== null && val !== "") {
         fd.append(key, String(val));
+      }
     });
 
     if (isEditMode) {
@@ -264,9 +294,6 @@ export default function CustomersAdd() {
         fields={FIELDS}
         title={isEditMode ? "Edit Customer" : "New Customer"}
         onSubmit={handleSubmit}
-        // onSubmitSuccess={() => {
-        //   toast.success(isEditMode ? "Customer updated successfully" : "Customer added successfully");
-        // }}
         extraActions={
           isEditMode ? (
             <button
