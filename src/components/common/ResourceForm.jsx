@@ -1,12 +1,12 @@
 import { Eye, EyeOff, UploadCloud, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import Swal from "sweetalert2"; // Import SweetAlert2
+import Swal from "sweetalert2";
 import {
-    apiCallFormData,
-    createResource,
-    getResourceById,
-    updateResource,
+  apiCallFormData,
+  createResource,
+  getResourceById,
+  updateResource,
 } from "../../services/api";
 import PageBreadcrumb from "./PageBreadCrumb";
 import SearchableSelect from "./SearchableSelect";
@@ -17,9 +17,7 @@ export const ResourceForm = ({
   onSubmitSuccess,
   onSubmit,
   title = "Add Record",
-  // When true, treat form as edit mode even if no :id param is present
   forceEdit = false,
-  // Extra action buttons to render in the footer
   extraActions = null,
 }) => {
   const navigate = useNavigate();
@@ -47,12 +45,10 @@ export const ResourceForm = ({
     try {
       const data = await getResourceById(resourceName, id);
       if (data) {
-        // Flatten some nested relations so form fields can bind to simple names
         const flat = { ...data };
         if (data.user && data.user.id) flat.user_id = data.user.id;
-        if (data.user && data.user.company)
-          flat.company_name = data.user.company;
-        // Normalize ISO datetime strings to YYYY-MM-DD for date inputs
+        if (data.user && data.user.company) flat.company_name = data.user.company;
+        
         const isoDateRE = /^\d{4}-\d{2}-\d{2}T/;
         Object.keys(flat).forEach((k) => {
           const v = flat[k];
@@ -61,52 +57,21 @@ export const ResourceForm = ({
           }
         });
 
-        // For invoice edit forms, map backend fields to match form field names
-        if (resourceName === "invoices") {
-          // Map invoice_doc (backend) to file (form field)
-          if (flat.invoice_doc && !flat.file) {
-            flat.file = flat.invoice_doc;
-          }
-        }
+        // Resource specific mappings (Legacy support)
+        if (resourceName === "invoices" && flat.invoice_doc && !flat.file) flat.file = flat.invoice_doc;
+        if (resourceName === "creditnotes" && flat.cn_doc && !flat.file) flat.file = flat.cn_doc;
+        if (resourceName === "debitnotes" && flat.dn_doc && !flat.file) flat.file = flat.dn_doc;
+        if (resourceName === "ppis" && flat.ppi_doc && !flat.file) flat.file = flat.ppi_doc;
 
-        // For delivery orders edit forms, map backend fields to match form field names
         if (resourceName === "deliveryorders") {
-          // Map do_doc (backend) to file (form field)
-          if (flat.do_doc && !flat.file) {
-            flat.file = flat.do_doc;
-          }
-          // For the do_no select field, we need the invoice_id (not the do_no string)
-          if (flat.invoice_id) {
-            flat.do_no = flat.invoice_id;
-          }
-          // Map invoiceId from nested invoice object to invoice_id and invoice_no
+          if (flat.do_doc && !flat.file) flat.file = flat.do_doc;
+          if (flat.invoice_id) flat.do_no = flat.invoice_id;
           if (data.invoice && data.invoice.invoiceId) {
             flat.invoice_id = data.invoice.invoiceId;
             flat.invoice_no = data.invoice.invoiceId;
           } else if (flat.invoiceId) {
             flat.invoice_id = flat.invoiceId;
             flat.invoice_no = flat.invoiceId;
-          }
-        }
-
-        // For credit notes edit forms, map backend cn_doc to file field
-        if (resourceName === "creditnotes") {
-          if (flat.cn_doc && !flat.file) {
-            flat.file = flat.cn_doc;
-          }
-        }
-
-        // For debit notes edit forms, map backend dn_doc to file field
-        if (resourceName === "debitnotes") {
-          if (flat.dn_doc && !flat.file) {
-            flat.file = flat.dn_doc;
-          }
-        }
-
-        // For PPIs edit forms, map backend ppi_doc to file field
-        if (resourceName === "ppis") {
-          if (flat.ppi_doc && !flat.file) {
-            flat.file = flat.ppi_doc;
           }
         }
 
@@ -119,28 +84,69 @@ export const ResourceForm = ({
     }
   };
 
-  const handleChange = (e) => {
+  // --- UPDATED HANDLE CHANGE WITH MAX FILES CHECK ---
+  const handleChange = (e, fieldDefinition = null) => {
     const { name, value, type, checked, files } = e.target;
 
     if (type === "file") {
-      // store the File object so callers can build FormData when needed
-      setFormData((prev) => ({
-        ...prev,
-        [name]: files?.[0] || null,
-      }));
+      const newFiles = files ? Array.from(files) : [];
+      
+      setFormData((prev) => {
+        // Logic for Multiple Files
+        if (fieldDefinition?.multiple) {
+            const currentFiles = prev[name];
+            // Ensure we are working with an array
+            const prevArray = Array.isArray(currentFiles) 
+              ? currentFiles 
+              : (currentFiles ? [currentFiles] : []);
+            
+            // 🛑 CHECK MAX FILES LIMIT
+            if (fieldDefinition.maxFiles) {
+                const totalCount = prevArray.length + newFiles.length;
+                
+                if (totalCount > fieldDefinition.maxFiles) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Limit Exceeded',
+                        text: `You can only upload a maximum of ${fieldDefinition.maxFiles} files.`,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                    // Return previous state without adding new files
+                    return prev;
+                }
+            }
+
+            // Append new files
+            return {
+                ...prev,
+                [name]: [...prevArray, ...newFiles]
+            };
+        }
+
+        // Logic for Single File (Replace)
+        return {
+          ...prev,
+          [name]: newFiles[0] || null,
+        };
+      });
+      
+      // Reset input value to allow re-uploading same file if needed
+      e.target.value = "";
+
     } else {
+      // Logic for Text/Checkbox/Select
       setFormData((prev) => ({
         ...prev,
         [name]: type === "checkbox" ? checked : value,
       }));
     }
 
-    // Clear error for this field when user starts typing
+    // Clear validation error on type
     if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -156,14 +162,28 @@ export const ResourceForm = ({
     const newErrors = {};
     fields.forEach((field) => {
       if (field.required && !formData[field.name]) {
-        newErrors[field.name] = `${field.label} is required`;
+         // Check for empty array if multiple
+         if (field.multiple && Array.isArray(formData[field.name]) && formData[field.name].length === 0) {
+             newErrors[field.name] = `${field.label} is required`;
+         } else if (!formData[field.name]) {
+             newErrors[field.name] = `${field.label} is required`;
+         }
       }
     });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-const handleSubmit = async (e) => {
+  const renderFileName = (value) => {
+    if (!value) return "Upload file";
+    if (Array.isArray(value)) {
+        if (value.length === 0) return "Upload file";
+        return `${value.length} file(s) selected`; 
+    }
+    return value.name || value; 
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -181,45 +201,45 @@ const handleSubmit = async (e) => {
 
     const payload = pickFieldValues(formData);
     setSubmitLoading(true);
-    setErrors({}); // Clear previous errors
+    setErrors({});
 
     try {
       let result;
+      // Check for files
+      const hasFile = Object.values(payload).some(v => 
+        v instanceof File || (Array.isArray(v) && v.some(item => item instanceof File))
+      );
+
       if (onSubmit) {
         result = await onSubmit(payload);
-      } else if (isEditMode) {
-        // ... (Your existing Edit Logic)
-        const hasFile = Object.values(payload).some((v) => v instanceof File);
-        if (hasFile) {
-          const fd = new FormData();
-          Object.keys(payload).forEach((key) => {
-            const val = payload[key];
-            if (val instanceof File) fd.append(key, val, val.name);
-            else if (val !== undefined && val !== null)
-              fd.append(key, String(val));
-          });
-          result = await apiCallFormData(`/${resourceName}/update/${id}`, fd, "POST");
-        } else {
-          result = await updateResource(resourceName, id, payload);
-        }
       } else {
-        // ... (Your existing Create Logic)
-        const hasFile = Object.values(payload).some((v) => v instanceof File);
         if (hasFile) {
           const fd = new FormData();
           Object.keys(payload).forEach((key) => {
             const val = payload[key];
-            if (val instanceof File) fd.append(key, val, val.name);
-            else if (val !== undefined && val !== null)
-              fd.append(key, String(val));
+            
+            if (val instanceof File) {
+                fd.append(key, val, val.name);
+            } else if (Array.isArray(val) && val.length > 0 && val[0] instanceof File) {
+                val.forEach(file => {
+                    fd.append(`${key}[]`, file, file.name);
+                });
+            } else if (val !== undefined && val !== null) {
+                fd.append(key, String(val));
+            }
           });
-          result = await apiCallFormData(`/${resourceName}/create`, fd, "POST");
+
+          const url = isEditMode ? `/${resourceName}/update/${id}` : `/${resourceName}/create`;
+          result = await apiCallFormData(url, fd, "POST");
         } else {
-          result = await createResource(resourceName, payload);
+          if (isEditMode) {
+            result = await updateResource(resourceName, id, payload);
+          } else {
+            result = await createResource(resourceName, payload);
+          }
         }
       }
 
-      // Success Popup
       Swal.fire({
         icon: "success",
         title: "Success",
@@ -240,50 +260,33 @@ const handleSubmit = async (e) => {
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-
       const validationErrors = {};
       let alertMessage = "";
-
-      // --- ERROR HANDLING LOGIC ---
       const responseData = error?.response?.data;
       
-      // 1. Check if the 'errors' object exists in the response
       if (responseData?.errors) {
         const errorList = [];
-        
-        // Loop through keys like "email", "password"
         Object.keys(responseData.errors).forEach((key) => {
-          // API returns an array like ["The email has already been taken."]
           const messageArray = responseData.errors[key];
           const message = Array.isArray(messageArray) ? messageArray[0] : messageArray;
-          
-          // Add to the list for the Popup
           errorList.push(message);
-          
-          // Add to the list for Red Text under fields
           validationErrors[key] = message;
         });
-
-        // Join messages with a line break
         alertMessage = errorList.join("\n");
       } 
       
-      // 2. Fallback: If no specific errors, use the generic message
       if (!alertMessage) {
         alertMessage = responseData?.message || error.message || "An unexpected error occurred.";
         validationErrors.submit = alertMessage;
       }
 
-      // 3. Show the Popup with the specific messages
       Swal.fire({
         icon: "error",
         title: "Error",
-        // HTML <pre> ensures the new lines (\n) are respected and not squashed
         html: `<pre style="font-family: inherit; white-space: pre-wrap; color: #d33; font-size: 0.9rem;">${alertMessage}</pre>`,
         confirmButtonColor: "#d33",
       });
 
-      // 4. Update the form to show red text under fields
       setErrors(validationErrors);
     } finally {
       setSubmitLoading(false);
@@ -300,7 +303,6 @@ const handleSubmit = async (e) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 animate-fadeIn">
-      {/* Breadcrumb Navigation */}
       <PageBreadcrumb
         pageTitle={title}
         breadcrumbs={[
@@ -337,7 +339,7 @@ const handleSubmit = async (e) => {
                     <textarea
                       name={field.name}
                       value={formData[field.name] || ""}
-                      onChange={handleChange}
+                      onChange={(e) => handleChange(e, field)}
                       placeholder={field.placeholder}
                       rows={4}
                       className={`w-full rounded-xl border-2 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600 ${
@@ -357,18 +359,18 @@ const handleSubmit = async (e) => {
                           <UploadCloud className="h-6 w-6" />
                         </div>
                         <div className="flex flex-col flex-1">
-                          <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                            {formData[field.name]?.name ||
-                              formData[field.name] ||
-                              "Upload file"}
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[200px]">
+                            {renderFileName(formData[field.name])}
                           </span>
-                          {!formData[field.name] && (
+                          {(!formData[field.name] || (Array.isArray(formData[field.name]) && formData[field.name].length === 0)) && (
                             <span className="text-xs text-gray-500 dark:text-gray-400">
-                              Drag & drop or click to browse
+                              {field.multiple ? "Drag & drop files or click" : "Drag & drop or click to browse"}
                             </span>
                           )}
                         </div>
-                        {formData[field.name] && (
+                        
+                        {/* Clear Button Logic */}
+                        {(formData[field.name] && (!Array.isArray(formData[field.name]) || formData[field.name].length > 0)) && (
                           <button
                             type="button"
                             onClick={(e) => {
@@ -376,7 +378,7 @@ const handleSubmit = async (e) => {
                               e.stopPropagation();
                               setFormData((prev) => ({
                                 ...prev,
-                                [field.name]: null,
+                                [field.name]: field.multiple ? [] : null,
                               }));
                             }}
                             className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600 transition-all hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
@@ -388,18 +390,30 @@ const handleSubmit = async (e) => {
                         <input
                           type="file"
                           name={field.name}
-                          onChange={handleChange}
+                          multiple={field.multiple} 
+                          onChange={(e) => handleChange(e, field)} 
                           className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                           aria-label={`Upload ${field.label}`}
                         />
                       </label>
+                      {/* Optional: Show list of files if multiple */}
+                      {field.multiple && Array.isArray(formData[field.name]) && formData[field.name].length > 0 && (
+                          <div className="mt-2 text-xs text-gray-500 space-y-1">
+                              {formData[field.name].map((f, i) => (
+                                  <div key={i} className="flex items-center gap-1">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
+                                      {f.name || "Unknown file"}
+                                  </div>
+                              ))}
+                          </div>
+                      )}
                     </div>
                   ) : field.type === "date" ? (
                     <input
                       type="date"
                       name={field.name}
                       value={formData[field.name] || ""}
-                      onChange={handleChange}
+                      onChange={(e) => handleChange(e, field)}
                       className={`w-full rounded-xl border-2 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600 ${
                         errors[field.name]
                           ? "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30"
@@ -421,23 +435,19 @@ const handleSubmit = async (e) => {
                               [field.name]: v,
                             }));
                           }
-                          // Manually clear error since SearchableSelect might not trigger standard onChange
                           if (errors[field.name]) {
                             setErrors((prev) => ({ ...prev, [field.name]: "" }));
                           }
                         }}
                         onSearch={field.onSearch}
-                        placeholder={
-                          field.placeholder || `Select ${field.label}`
-                        }
-                        // You might need to pass an error class to SearchableSelect if it supports it
+                        placeholder={field.placeholder || `Select ${field.label}`}
                         className={errors[field.name] ? "border-red-500" : ""}
                       />
                     ) : (
                       <select
                         name={field.name}
                         value={formData[field.name] || ""}
-                        onChange={handleChange}
+                        onChange={(e) => handleChange(e, field)}
                         className={`relative z-20 w-full appearance-none rounded-xl border-2 bg-white/70 px-4 py-2.5 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 active:border-brand-500 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600 ${
                           errors[field.name]
                             ? "border-red-500 focus:ring-red-100 dark:focus:ring-red-900/30"
@@ -458,7 +468,7 @@ const handleSubmit = async (e) => {
                         type="checkbox"
                         name={field.name}
                         checked={formData[field.name] || false}
-                        onChange={handleChange}
+                        onChange={(e) => handleChange(e, field)}
                         className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-400 dark:border-gray-600 dark:bg-gray-800"
                       />
                       <label
@@ -474,7 +484,7 @@ const handleSubmit = async (e) => {
                         type={passwordVisible[field.name] ? "text" : "password"}
                         name={field.name}
                         value={formData[field.name] || ""}
-                        onChange={handleChange}
+                        onChange={(e) => handleChange(e, field)}
                         placeholder={field.placeholder}
                         className={`w-full rounded-xl border-2 bg-white/70 px-4 py-2.5 pr-12 text-gray-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:bg-gray-800/70 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-600 ${
                           errors[field.name]
@@ -500,7 +510,7 @@ const handleSubmit = async (e) => {
                       type={field.type || "text"}
                       name={field.name}
                       value={formData[field.name] || ""}
-                      onChange={handleChange}
+                      onChange={(e) => handleChange(e, field)}
                       placeholder={field.placeholder}
                       readOnly={field.readOnly}
                       disabled={field.disabled}
@@ -512,7 +522,6 @@ const handleSubmit = async (e) => {
                     />
                   )}
 
-                  {/* Field Specific Error Message */}
                   {errors[field.name] && (
                     <p className="mt-1 text-xs font-medium text-red-500 animate-pulse">
                       {errors[field.name]}
@@ -522,7 +531,6 @@ const handleSubmit = async (e) => {
               ))}
             </div>
 
-            {/* General Submit Error */}
             {errors.submit && (
               <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400">
                 {errors.submit}
