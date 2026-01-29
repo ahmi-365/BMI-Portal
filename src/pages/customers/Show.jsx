@@ -1,6 +1,4 @@
-import { render } from "@fullcalendar/core/preact.js";
 import { ShowPage } from "../../components/common/ShowPage";
-import { downloadBlob } from "../../services/api";
 import { formatDate } from "../../lib/dateUtils";
 
 const fileRender = (filename, data) =>
@@ -16,6 +14,30 @@ const fileRender = (filename, data) =>
   ) : (
     "-"
   );
+
+const fileArrayRender = (files, data) => {
+  if (!files || (Array.isArray(files) && files.length === 0)) {
+    return "-";
+  }
+  
+  const fileArray = Array.isArray(files) ? files : [files];
+  
+  return (
+    <div className="flex flex-col gap-2">
+      {fileArray.map((file, index) => (
+        <a
+          key={index}
+          href={file}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-brand-500 hover:underline"
+        >
+          File {index + 1}
+        </a>
+      ))}
+    </div>
+  );
+};
 
 
 const FIELDS = [
@@ -74,15 +96,27 @@ const FIELDS = [
     // CHANGE: Use formatDate for consistent DMY format
     render: (value) => formatDate(value),
   },
-  { name: "cc1", label: "Credit App (CC1/CC2)", render: fileRender },
-  { name: "form_24", label: "Form 24", render: fileRender },
-  { name: "form_9", label: "Form 9", render: fileRender },
-  {
-    name: "financial_statement",
-    label: "Financial Statement",
-    render: fileRender,
+  { name: "payment_term", label: "Payment Term (Days)" },
+  { 
+    name: "letter_of_guarantee", 
+    label: "Letter of Guarantee", 
+    render: fileRender 
   },
-  { name: "pdpa", label: "PDPA/Consent Letter", render: fileRender },
+  { 
+    name: "credit_application_files", 
+    label: "Credit Application Files", 
+    render: fileArrayRender 
+  },
+  { 
+    name: "registration_files", 
+    label: "Registration Files", 
+    render: fileArrayRender 
+  },
+  { 
+    name: "pdpa", 
+    label: "PDPA/Consent Letter", 
+    render: fileRender 
+  }
 ];
 
 export default function CustomersShow() {

@@ -212,8 +212,12 @@ export default function CustomersAdd() {
     { name: "address", label: "Billing Address", type: "textarea" },
     { name: "email2", label: "Business E-mail 2", type: "email" },
     { name: "email3", label: "Business E-mail 3", type: "email" },
-    { name: "payment_term", label: "Payment Term (EOM)", type: "text" },
-    
+    {
+      name: "payment_term",
+      label: "Payment Term (EOM)",
+      type: "number",
+    },
+
     // --- UPDATED FILE UPLOAD SECTION ---
     {
       name: "credit_application_files", // Grouped CC1/CC2
@@ -229,20 +233,20 @@ export default function CustomersAdd() {
       multiple: true,
       maxFiles: 3, // Hint for ResourceForm
     },
-    { 
-      name: "letter_of_guarantee", 
-      label: "Letter of Guarantee", 
-      type: "file" 
+    {
+      name: "letter_of_guarantee",
+      label: "Letter of Guarantee",
+      type: "file",
     },
-    // { 
-    //   name: "financial_statement", 
-    //   label: "Upload Financial Statements", 
-    //   type: "file" 
+    // {
+    //   name: "financial_statement",
+    //   label: "Upload Financial Statements",
+    //   type: "file"
     // },
-    { 
-      name: "pdpa", 
-      label: "Upload PDPA/Consent Letter", 
-      type: "file" 
+    {
+      name: "pdpa",
+      label: "Upload PDPA/Consent Letter",
+      type: "file",
     },
   ];
 
@@ -257,17 +261,31 @@ export default function CustomersAdd() {
         return;
       }
 
-      // Handle Multiple Files (FileList or Array)
-      if (val instanceof FileList || (Array.isArray(val) && val[0] instanceof File)) {
-         // Convert FileList to Array and append each
-         Array.from(val).forEach((file) => {
-            fd.append(`${key}[]`, file, file.name);
-         });
-      } 
+      // Handle Multiple Files (FileList, Array of Files, or Array with URLs)
+      if (val instanceof FileList) {
+        // Convert FileList to Array and append each
+        Array.from(val).forEach((file) => {
+          fd.append(`${key}[]`, file, file.name);
+        });
+      } else if (Array.isArray(val) && val.length > 0) {
+        // Separate files and URLs
+        const newFiles = val.filter((item) => item instanceof File);
+        const existingUrls = val.filter((item) => typeof item === "string");
+
+        // Append new files
+        newFiles.forEach((file) => {
+          fd.append(`${key}[]`, file, file.name);
+        });
+
+        // Append existing URLs (to keep them)
+        existingUrls.forEach((url) => {
+          fd.append(`${key}[]`, url);
+        });
+      }
       // Handle Single File
       else if (val instanceof File) {
         fd.append(key, val, val.name);
-      } 
+      }
       // Handle Text Data
       else if (val !== undefined && val !== null && val !== "") {
         fd.append(key, String(val));
