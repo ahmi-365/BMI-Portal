@@ -135,12 +135,12 @@ const createNotAcknowledgedColumns = (onApprove) => [
   },
 
   
-  {
-    header: "Outstanding",
-    accessor: "outstanding",
-    filterKey: "outstanding",
-    render: (row) => formatAmount(row.outstanding),
-  },
+  // {
+  //   header: "Outstanding",
+  //   accessor: "outstanding",
+  //   filterKey: "outstanding",
+  //   render: (row) => formatAmount(row.outstanding),
+  // },
   {
     header: "Payment Date",
     accessor: "payment_date",

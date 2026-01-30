@@ -44,11 +44,11 @@ const FIELDS = [
 
   ,
   {
-  name: "payment_date",
-  label: "Payment Date",
-  render: (value) => formatDate(value),
-}
-,
+    name: "payment_date",
+    label: "Payment Date",
+    render: (value) => formatDate(value),
+  }
+  ,
 
   {
     name: "proof",
@@ -69,7 +69,7 @@ const FIELDS = [
   // { name: "do_doc", label: "DO Doc" },
   // { name: "dn_doc", label: "DN Doc" },
   // { name: "cn_doc", label: "CN Doc" },
-  { name: "outstanding", label: "Outstanding" },
+  // { name: "outstanding", label: "Outstanding" },
 
   // foreign key from backend
   // { name: "user_id", label: "User ID" },
