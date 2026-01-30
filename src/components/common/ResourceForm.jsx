@@ -1,10 +1,12 @@
 import { Eye, EyeOff, UploadCloud, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import {
   apiCallFormData,
   createResource,
+  customersAPI,
   getResourceById,
   updateResource,
 } from "../../services/api";
@@ -33,6 +35,46 @@ export const ResourceForm = ({
 
   const togglePasswordVisible = (name) => {
     setPasswordVisible((prev) => ({ ...prev, [name]: !prev[name] }));
+  };
+
+  // Delete document handler for customers
+  const handleDeleteDocument = async (docId, fieldName, index) => {
+    // For customers resource, use the deleteDoc API with document ID
+    if (resourceName === "customers") {
+      const confirmed = await Swal.fire({
+        icon: "warning",
+        title: "Delete Document?",
+        text: "This will permanently delete the document from the server.",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Delete",
+      });
+
+      if (confirmed.isConfirmed) {
+        try {
+          // Use document ID directly
+          await customersAPI.deleteDoc(docId);
+
+          // Remove from form data
+          setFormData((prev) => {
+            const updated = { ...prev };
+            if (Array.isArray(updated[fieldName])) {
+              updated[fieldName] = updated[fieldName].filter(
+                (_, i) => i !== index,
+              );
+            } else {
+              updated[fieldName] = null;
+            }
+            return updated;
+          });
+
+          toast.success("Document deleted successfully");
+        } catch (error) {
+          toast.error(error.message || "Failed to delete document");
+        }
+      }
+    }
   };
 
   useEffect(() => {
@@ -82,6 +124,12 @@ export const ResourceForm = ({
 
         // Convert numeric values to strings for select fields
         const pickedData = pickFieldValues(flat);
+
+        // Preserve docs array for customers resource (needed for document deletion)
+        if (resourceName === "customers" && flat.docs) {
+          pickedData.docs = flat.docs;
+        }
+
         fields.forEach((field) => {
           if (
             field.type === "select" &&
@@ -467,6 +515,22 @@ export const ResourceForm = ({
                               const fileName = isUrl
                                 ? f.split("/").pop().split("?")[0]
                                 : f.name;
+
+                              // Find document ID from docs array for existing files
+                              let docId = null;
+                              if (
+                                isUrl &&
+                                formData.docs &&
+                                Array.isArray(formData.docs)
+                              ) {
+                                const doc = formData.docs.find(
+                                  (d) =>
+                                    d.doc_type === field.name &&
+                                    d.file_path === fileName,
+                                );
+                                docId = doc?.id;
+                              }
+
                               return (
                                 <div
                                   key={i}
@@ -494,12 +558,24 @@ export const ResourceForm = ({
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      setFormData((prev) => ({
-                                        ...prev,
-                                        [field.name]: prev[field.name].filter(
-                                          (_, idx) => idx !== i,
-                                        ),
-                                      }));
+                                      // If it's an existing document (URL), delete from server
+                                      if (isUrl && docId) {
+                                        handleDeleteDocument(
+                                          docId,
+                                          field.name,
+                                          i,
+                                        );
+                                      } else if (isUrl) {
+                                        toast.error("Document ID not found");
+                                      } else {
+                                        // If it's a new file, just remove from form
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          [field.name]: prev[field.name].filter(
+                                            (_, idx) => idx !== i,
+                                          ),
+                                        }));
+                                      }
                                     }}
                                     className="flex-shrink-0 p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
                                     title="Remove file"
@@ -512,26 +588,74 @@ export const ResourceForm = ({
                           </div>
                         )}
                       {!field.multiple && formData[field.name] && (
-                        <div className="mt-3 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="mt-3 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-between">
+                          <div className="flex-1">
+                            {(() => {
+                              const f = formData[field.name];
+                              const isUrl = typeof f === "string";
+                              const fileName = isUrl
+                                ? f.split("/").pop().split("?")[0]
+                                : f.name;
+                              return (
+                                <a
+                                  href={isUrl ? f : "#"}
+                                  target={isUrl ? "_blank" : undefined}
+                                  rel={
+                                    isUrl ? "noopener noreferrer" : undefined
+                                  }
+                                  className={`text-xs truncate block ${
+                                    isUrl
+                                      ? "text-brand-500 hover:underline"
+                                      : "text-gray-600 dark:text-gray-400"
+                                  }`}
+                                >
+                                  {fileName}
+                                </a>
+                              );
+                            })()}
+                          </div>
                           {(() => {
                             const f = formData[field.name];
                             const isUrl = typeof f === "string";
                             const fileName = isUrl
                               ? f.split("/").pop().split("?")[0]
                               : f.name;
+
+                            // Find document ID from docs array for existing files
+                            let docId = null;
+                            if (
+                              isUrl &&
+                              formData.docs &&
+                              Array.isArray(formData.docs)
+                            ) {
+                              const doc = formData.docs.find(
+                                (d) =>
+                                  d.doc_type === field.name &&
+                                  d.file_path === fileName,
+                              );
+                              docId = doc?.id;
+                            }
+
                             return (
-                              <a
-                                href={isUrl ? f : "#"}
-                                target={isUrl ? "_blank" : undefined}
-                                rel={isUrl ? "noopener noreferrer" : undefined}
-                                className={`text-xs truncate block ${
-                                  isUrl
-                                    ? "text-brand-500 hover:underline"
-                                    : "text-gray-600 dark:text-gray-400"
-                                }`}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isUrl && docId) {
+                                    handleDeleteDocument(docId, field.name, 0);
+                                  } else if (isUrl) {
+                                    toast.error("Document ID not found");
+                                  } else {
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      [field.name]: null,
+                                    }));
+                                  }
+                                }}
+                                className="flex-shrink-0 p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors ml-2"
+                                title="Remove file"
                               >
-                                {fileName}
-                              </a>
+                                <X className="h-4 w-4" />
+                              </button>
                             );
                           })()}
                         </div>

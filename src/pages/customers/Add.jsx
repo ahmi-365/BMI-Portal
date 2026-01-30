@@ -4,6 +4,17 @@ import { toast } from "react-toastify";
 import { ResourceForm } from "../../components/common/ResourceForm";
 import { customersAPI } from "../../services/api";
 
+// Define file field categories based on PHP backend logic
+const SINGLE_FILE_FIELDS = [
+  "letter_of_guarantee",
+  "pdpa",
+];
+
+const MULTI_FILE_FIELDS = [
+  "credit_application_files",
+  "registration_files",
+];
+
 // Change Password Modal Component
 function ChangePasswordModal({ isOpen, onClose, userId }) {
   const [formData, setFormData] = useState({
@@ -253,6 +264,7 @@ export default function CustomersAdd() {
   const handleSubmit = async (formData) => {
     // Build FormData for file uploads
     const fd = new FormData();
+    
     Object.keys(formData).forEach((key) => {
       const val = formData[key];
 
@@ -268,23 +280,40 @@ export default function CustomersAdd() {
           fd.append(`${key}[]`, file, file.name);
         });
       } else if (Array.isArray(val) && val.length > 0) {
+        // Check if this is a multi-file field
+        const isMultiField = MULTI_FILE_FIELDS.includes(key);
+
         // Separate files and URLs
         const newFiles = val.filter((item) => item instanceof File);
         const existingUrls = val.filter((item) => typeof item === "string");
 
-        // Append new files
-        newFiles.forEach((file) => {
-          fd.append(`${key}[]`, file, file.name);
-        });
+        // For single-file fields, only append new files (they will replace old ones)
+        // For multi-file fields, append both new files and existing URLs
+        if (isMultiField) {
+          // Append new files
+          newFiles.forEach((file) => {
+            fd.append(`${key}[]`, file, file.name);
+          });
 
-        // Append existing URLs (to keep them)
-        existingUrls.forEach((url) => {
-          fd.append(`${key}[]`, url);
-        });
+          // Append existing URLs (to keep them)
+          existingUrls.forEach((url) => {
+            fd.append(`${key}[]`, url);
+          });
+        } else {
+          // Single-file field: only send new files, not URLs
+          newFiles.forEach((file) => {
+            fd.append(key, file, file.name);
+          });
+        }
       }
       // Handle Single File
       else if (val instanceof File) {
-        fd.append(key, val, val.name);
+        const isSingleField = SINGLE_FILE_FIELDS.includes(key);
+        if (isSingleField) {
+          fd.append(key, val, val.name);
+        } else {
+          fd.append(`${key}[]`, val, val.name);
+        }
       }
       // Handle Text Data
       else if (val !== undefined && val !== null && val !== "") {

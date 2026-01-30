@@ -609,6 +609,11 @@ export const customersAPI = {
     }),
 
   bulkDownload: (ids) => downloadBlobPost("/customers/bulk-download", { ids }),
+
+  deleteDoc: (docId) =>
+    apiCall(`/customers/doc/delete/${docId}`, {
+      method: "DELETE",
+    }),
 };
 
 // Companies API (for dropdowns and lookups)
