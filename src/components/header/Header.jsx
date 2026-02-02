@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { canAccess } from "../../lib/permissionHelper";
 import { ThemeToggleButton } from "../common/ThemeToggleButton";
 import NotificationDropdown from "./NotificationDropdown";
 import UserDropdown from "./UserDropdown";
@@ -9,11 +10,15 @@ const Header = ({ onClick, onToggle }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const navigate = useNavigate();
-
   // Define all available pages
   const pages = useMemo(
     () => [
-      { name: "Dashboard", path: "/", category: "Dashboard" },
+      {
+        name: "Dashboard",
+        path: "/",
+        category: "Dashboard",
+        permission: "view-dashboard",
+      },
       { name: "Profile", path: "/profile", category: "User" },
 
       // Admin Users
@@ -21,16 +26,19 @@ const Header = ({ onClick, onToggle }) => {
         name: "Admin Users View",
         path: "/admin-users/view",
         category: "Admin",
+        permission: "list-admins",
       },
       {
         name: "Admin Users Add",
         path: "/admin-users/add",
         category: "Admin",
+        permission: "create-admins",
       },
       {
         name: "Admin Users Batch Upload",
         path: "/admin-users/batch-upload",
         category: "Admin",
+        permission: "create-admins",
       },
 
       // Payment Records (routes use /payments)
@@ -38,25 +46,39 @@ const Header = ({ onClick, onToggle }) => {
         name: "Payment Records View",
         path: "/payments/view",
         category: "Payment",
+        permission: "list-payments",
       },
       {
         name: "Payment Records Add",
         path: "/payments/add",
         category: "Payment",
+        permission: "create-payments",
       },
       {
         name: "Payment Records Batch Upload",
         path: "/payments/batch-upload",
         category: "Payment",
+        permission: "create-payments",
       },
 
       // Invoices
-      { name: "Invoices View", path: "/invoices/view", category: "Invoices" },
-      { name: "Invoices Add", path: "/invoices/add", category: "Invoices" },
+      {
+        name: "Invoices View",
+        path: "/invoices/view",
+        category: "Invoices",
+        permission: "list-invoices",
+      },
+      {
+        name: "Invoices Add",
+        path: "/invoices/add",
+        category: "Invoices",
+        permission: "create-invoices",
+      },
       {
         name: "Invoices Batch Upload",
         path: "/invoices/batch-upload",
         category: "Invoices",
+        permission: "create-invoices",
       },
 
       // Delivery Orders (routes use /deliveryorders)
@@ -64,16 +86,19 @@ const Header = ({ onClick, onToggle }) => {
         name: "Delivery Orders View",
         path: "/deliveryorders/view",
         category: "Delivery",
+        permission: "list-delivery-orders",
       },
       {
         name: "Delivery Orders Add",
         path: "/deliveryorders/add",
         category: "Delivery",
+        permission: "create-delivery-orders",
       },
       {
         name: "Delivery Orders Batch Upload",
         path: "/deliveryorders/batch-upload",
         category: "Delivery",
+        permission: "create-delivery-orders",
       },
 
       // Debit Notes (routes use /debitnotes)
@@ -81,16 +106,19 @@ const Header = ({ onClick, onToggle }) => {
         name: "Debit Notes View",
         path: "/debitnotes/view",
         category: "Debit Notes",
+        permission: "list-debit-notes",
       },
       {
         name: "Debit Notes Add",
         path: "/debitnotes/add",
         category: "Debit Notes",
+        permission: "create-debit-notes",
       },
       {
         name: "Debit Notes Batch Upload",
         path: "/debitnotes/batch-upload",
         category: "Debit Notes",
+        permission: "create-debit-notes",
       },
 
       // Credit Notes (routes use /creditnotes)
@@ -98,16 +126,19 @@ const Header = ({ onClick, onToggle }) => {
         name: "Credit Notes View",
         path: "/creditnotes/view",
         category: "Credit Notes",
+        permission: "list-credit-notes",
       },
       {
         name: "Credit Notes Add",
         path: "/creditnotes/add",
         category: "Credit Notes",
+        permission: "create-credit-notes",
       },
       {
         name: "Credit Notes Batch Upload",
         path: "/creditnotes/batch-upload",
         category: "Credit Notes",
+        permission: "create-credit-notes",
       },
 
       // Account Statements (routes use both /account-statements and /statements)
@@ -115,16 +146,19 @@ const Header = ({ onClick, onToggle }) => {
         name: "Account Statements View",
         path: "/account-statements/view",
         category: "Statements",
+        permission: "list-statements",
       },
       {
         name: "Account Statements Add",
         path: "/account-statements/add",
         category: "Statements",
+        permission: "create-statements",
       },
       {
         name: "Account Statements Batch Upload",
         path: "/account-statements/batch-upload",
         category: "Statements",
+        permission: "create-statements",
       },
 
       // Customers
@@ -132,12 +166,19 @@ const Header = ({ onClick, onToggle }) => {
         name: "Customers View",
         path: "/customers/view",
         category: "Customers",
+        permission: "list-customers",
       },
-      { name: "Customers Add", path: "/customers/add", category: "Customers" },
+      {
+        name: "Customers Add",
+        path: "/customers/add",
+        category: "Customers",
+        permission: "create-customers",
+      },
       {
         name: "Customers Batch Upload",
         path: "/customers/batch-upload",
         category: "Customers",
+        permission: "create-customers",
       },
 
       // Administration
@@ -145,25 +186,32 @@ const Header = ({ onClick, onToggle }) => {
         name: "Administration View",
         path: "/administration/view",
         category: "Admin",
+        permission: "list-roles",
       },
       {
         name: "Administration Add",
         path: "/administration/add",
         category: "Admin",
+        permission: "create-roles",
       },
     ],
-    []
+    [],
+  );
+
+  const availablePages = useMemo(
+    () => pages.filter((page) => canAccess(page.permission)),
+    [pages],
   );
 
   // Filter pages based on search query
   const filteredPages = useMemo(() => {
     if (!searchQuery.trim()) return [];
-    return pages.filter(
+    return availablePages.filter(
       (page) =>
         page.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        page.category.toLowerCase().includes(searchQuery.toLowerCase())
+        page.category.toLowerCase().includes(searchQuery.toLowerCase()),
     );
-  }, [searchQuery, pages]);
+  }, [searchQuery, availablePages]);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;

@@ -1,14 +1,29 @@
 import PageMeta from "../../components/common/PageMeta";
 import TabbedResource from "../../components/common/TabbedResource";
-import View from "./View";
 import Add from "./Add";
 import BatchUpload from "./BatchUpload";
+import View from "./View";
 
 export default function DeliveryOrdersIndex() {
   const tabs = [
-    { key: "view", label: "View Delivery Order", component: View },
-    { key: "add", label: "Add Delivery Order", component: Add },
-    { key: "batch", label: "Batch Upload", component: BatchUpload },
+    {
+      key: "view",
+      label: "View Delivery Order",
+      component: View,
+      permission: "list-delivery-orders",
+    },
+    {
+      key: "add",
+      label: "Add Delivery Order",
+      component: Add,
+      permission: "create-delivery-orders",
+    },
+    {
+      key: "batch",
+      label: "Batch Upload",
+      component: BatchUpload,
+      permission: "create-delivery-orders",
+    },
   ];
 
   return (

@@ -1,14 +1,29 @@
 import PageMeta from "../../components/common/PageMeta";
 import TabbedResource from "../../components/common/TabbedResource";
-import View from "./View";
 import Add from "./Add";
 import BatchUpload from "./BatchUpload";
+import View from "./View";
 
 export default function AccountStatementsIndex() {
   const tabs = [
-    { key: "view", label: "View Statements", component: View },
-    { key: "add", label: "Add Statement", component: Add },
-    { key: "batch", label: "Batch Upload", component: BatchUpload },
+    {
+      key: "view",
+      label: "View Statements",
+      component: View,
+      permission: "list-statements",
+    },
+    {
+      key: "add",
+      label: "Add Statement",
+      component: Add,
+      permission: "create-statements",
+    },
+    {
+      key: "batch",
+      label: "Batch Upload",
+      component: BatchUpload,
+      permission: "create-statements",
+    },
   ];
 
   return (

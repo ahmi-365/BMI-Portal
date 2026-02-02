@@ -1,13 +1,22 @@
 import PageMeta from "../../components/common/PageMeta";
 import TabbedResource from "../../components/common/TabbedResource";
-import AdminView from "../admins/AdminView";
 import AdminCreate from "../admins/AdminCreate";
-import BatchUpload from "./BatchUpload";
+import AdminView from "../admins/AdminView";
 
 export default function AdminUsersIndex() {
   const tabs = [
-    { key: "view", label: "View Users", component: AdminView },
-    { key: "add", label: "Add User", component: AdminCreate },
+    {
+      key: "view",
+      label: "View Users",
+      component: AdminView,
+      permission: "list-admins",
+    },
+    {
+      key: "add",
+      label: "Add User",
+      component: AdminCreate,
+      permission: "create-admins",
+    },
   ];
 
   return (

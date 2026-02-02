@@ -1,14 +1,29 @@
 import PageMeta from "../../components/common/PageMeta";
 import TabbedResource from "../../components/common/TabbedResource";
-import View from "./View";
 import Add from "./Add";
 import BatchUpload from "./BatchUpload";
+import View from "./View";
 
 export default function PpisIndex() {
   const tabs = [
-    { key: "view", label: "View CN PPI", component: View },
-    { key: "add", label: "Add CN PPI", component: Add },
-    { key: "batch", label: "Batch Upload", component: BatchUpload },
+    {
+      key: "view",
+      label: "View CN PPI",
+      component: View,
+      permission: "list-ppis",
+    },
+    {
+      key: "add",
+      label: "Add CN PPI",
+      component: Add,
+      permission: "create-ppis",
+    },
+    {
+      key: "batch",
+      label: "Batch Upload",
+      component: BatchUpload,
+      permission: "create-ppis",
+    },
   ];
 
   return (

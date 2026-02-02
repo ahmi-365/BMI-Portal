@@ -1,46 +1,55 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Calendar,
-  List,
-  Table,
   Box,
-  FileText,
-  User,
-  Users,
-  MoreHorizontal,
+  Calendar,
+  ChartBar,
   ChevronDown,
   Eye,
-  Plus,
-  Upload,
-  ChartBar,
-  FileDown,
+  FileText,
+  LayoutDashboard,
   LineChart,
+  List,
+  MoreHorizontal,
+  Plus,
+  Table,
+  Upload,
+  User,
+  Users,
 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
+import { canAccess } from "../lib/permissionHelper";
 
 const navItems = [
   {
     icon: <LayoutDashboard className="w-5 h-5" />,
     name: "Dashboard",
     path: "/",
+    permission: "view-dashboard",
   },
   {
     icon: <Calendar className="w-5 h-5" />,
     name: "Payment Records",
     path: "/payments",
+    permission: "list-payments",
   },
-  { name: "Invoices", icon: <List className="w-5 h-5" />, path: "/invoices" },
+  {
+    name: "Invoices",
+    icon: <List className="w-5 h-5" />,
+    path: "/invoices",
+    permission: "list-invoices",
+  },
   {
     name: "Delivery Orders",
     icon: <Table className="w-5 h-5" />,
     path: "/deliveryorders",
+    permission: "list-delivery-orders",
   },
   {
     name: "Debit Notes",
     icon: <Box className="w-5 h-5" />,
     path: "/debitnotes",
+    permission: "list-debit-notes",
   },
 ];
 
@@ -49,33 +58,47 @@ const othersItems = [
     name: "Credit Notes",
     icon: <Table className="w-5 h-5" />,
     path: "/creditnotes",
+    permission: "list-credit-notes",
   },
   {
     name: "CN PPI",
-    icon: <LineChart  className="w-5 h-5" />,
+    icon: <LineChart className="w-5 h-5" />,
     path: "/ppis",
+    permission: "list-ppis",
   },
   {
     name: "Account Statements",
     icon: <FileText className="w-5 h-5" />,
     path: "/statements",
+    permission: "list-statements",
   },
-  { name: "Customers", icon: <User className="w-5 h-5" />, path: "/customers" },
+  {
+    name: "Customers",
+    icon: <User className="w-5 h-5" />,
+    path: "/customers",
+    permission: "list-customers",
+  },
   {
     name: "Admin Users",
     icon: <Users className="w-5 h-5" />,
     path: "/admin-users",
+    permission: "list-admins",
   },
   {
     name: "Administration",
     icon: <MoreHorizontal className="w-5 h-5" />,
     path: "/administration",
+    permission: "list-roles",
   },
 ];
 
 const AppSidebar = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
+  const filterNavItems = useCallback(
+    (items) => items.filter((item) => canAccess(item.permission)),
+    [],
+  );
 
   const [openSubmenu, setOpenSubmenu] = useState(null);
   const [subMenuHeight, setSubMenuHeight] = useState({});
@@ -83,7 +106,7 @@ const AppSidebar = () => {
 
   const isActive = useCallback(
     (path) => location.pathname === path,
-    [location.pathname]
+    [location.pathname],
   );
 
   useEffect(() => {
@@ -302,8 +325,8 @@ const AppSidebar = () => {
           isExpanded || isMobileOpen
             ? "w-[250px]"
             : isHovered
-            ? "w-[250px]"
-            : "w-[90px]"
+              ? "w-[250px]"
+              : "w-[90px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
@@ -351,7 +374,7 @@ const AppSidebar = () => {
                   <MoreHorizontal className="w-6 h-6" />
                 )}
               </h2> */}
-              {renderMenuItems(navItems, "main")}
+              {renderMenuItems(filterNavItems(navItems), "main")}
             </div>
             <div className="">
               {/* <h2
@@ -365,7 +388,7 @@ const AppSidebar = () => {
                   <MoreHorizontal className="w-6 h-6" />
                 )}
               </h2> */}
-              {renderMenuItems(othersItems, "others")}
+              {renderMenuItems(filterNavItems(othersItems), "others")}
             </div>
           </div>
         </nav>
