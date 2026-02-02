@@ -3,7 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  Search
+  Search,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -19,7 +19,10 @@ import { DataTable, createActionColumn } from "./DataTable";
 import Loader from "./Loader";
 import PageBreadcrumb from "./PageBreadCrumb";
 import Toast from "./Toast";
-import { clearBulkConfirmHandler, setBulkConfirmHandler } from "./bulkConfirmManager";
+import {
+  clearBulkConfirmHandler,
+  setBulkConfirmHandler,
+} from "./bulkConfirmManager";
 
 // --- Internal Delete Confirmation Modal Component ---
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
@@ -89,6 +92,7 @@ export const ListPage = ({
   refreshKey = 0,
   additionalParams = {},
   initialFilters = null,
+  onDelete = null,
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -106,8 +110,12 @@ export const ListPage = ({
   const [total, setTotal] = useState(0);
 
   // Search & Filter State
-  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
-  const [appliedSearch, setAppliedSearch] = useState(() => searchParams.get("search") || "");
+  const [searchQuery, setSearchQuery] = useState(
+    () => searchParams.get("search") || "",
+  );
+  const [appliedSearch, setAppliedSearch] = useState(
+    () => searchParams.get("search") || "",
+  );
   const [tempFilters, setTempFilters] = useState(() => {
     const urlFilters = {};
     searchParams.forEach((value, key) => {
@@ -115,7 +123,9 @@ export const ListPage = ({
         urlFilters[key] = value;
       }
     });
-    return Object.keys(urlFilters).length > 0 ? urlFilters : (initialFilters || {});
+    return Object.keys(urlFilters).length > 0
+      ? urlFilters
+      : initialFilters || {};
   });
   const [filters, setFilters] = useState(() => {
     const urlFilters = {};
@@ -124,13 +134,19 @@ export const ListPage = ({
         urlFilters[key] = value;
       }
     });
-    return Object.keys(urlFilters).length > 0 ? urlFilters : (initialFilters || {});
+    return Object.keys(urlFilters).length > 0
+      ? urlFilters
+      : initialFilters || {};
   });
   const [showFilters, setShowFilters] = useState(false);
 
   // Sorting State
-  const [sortBy, setSortBy] = useState(() => searchParams.get("sortBy") || null);
-  const [sortOrder, setSortOrder] = useState(() => searchParams.get("sortOrder") || "asc");
+  const [sortBy, setSortBy] = useState(
+    () => searchParams.get("sortBy") || null,
+  );
+  const [sortOrder, setSortOrder] = useState(
+    () => searchParams.get("sortOrder") || "asc",
+  );
 
   // Sync filters when parent provides a new initial set
   useEffect(() => {
@@ -165,30 +181,30 @@ export const ListPage = ({
   // Sync URL params with state
   useEffect(() => {
     const params = new URLSearchParams();
-    
+
     // Add page if not 1
     if (currentPage !== 1) {
       params.set("page", currentPage.toString());
     }
-    
+
     // Add search if exists
     if (appliedSearch) {
       params.set("search", appliedSearch);
     }
-    
+
     // Add sort params if exists
     if (sortBy) {
       params.set("sortBy", sortBy);
       params.set("sortOrder", sortOrder);
     }
-    
+
     // Add filters
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
         params.set(key, value);
       }
     });
-    
+
     setSearchParams(params, { replace: true });
   }, [currentPage, appliedSearch, sortBy, sortOrder, filters, setSearchParams]);
 
@@ -201,7 +217,6 @@ export const ListPage = ({
   const [isBulkConfirmOpen, setIsBulkConfirmOpen] = useState(false);
   const [bulkConfirmPayload, setBulkConfirmPayload] = useState(null);
   const [isBulkConfirmLoading, setIsBulkConfirmLoading] = useState(false);
-  
 
   const openHandler = ({
     type = "zip",
@@ -229,13 +244,17 @@ export const ListPage = ({
       setBulkConfirmPayload(null);
     }
   };
- 
 
   // Register global handler so pages can trigger this modal without hook ordering issues
-  useEffect(() => {
-    setBulkConfirmHandler(openHandler);
-    return () => clearBulkConfirmHandler();
-  }, [/* nothing */]);
+  useEffect(
+    () => {
+      setBulkConfirmHandler(openHandler);
+      return () => clearBulkConfirmHandler();
+    },
+    [
+      /* nothing */
+    ],
+  );
 
   // Load Data Function
   const loadData = useCallback(async () => {
@@ -319,7 +338,7 @@ export const ListPage = ({
   // Handle sorting
   const handleSort = (columnKey) => {
     if (!columnKey) return;
-    
+
     if (sortBy === columnKey) {
       // Toggle sort order if same column clicked
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -336,13 +355,13 @@ export const ListPage = ({
     const route = basePath || `/${resourceName}`;
     // Preserve current URL params when navigating to show
     const currentParams = searchParams.toString();
-    const showUrl = `${route}/show/${row.id}${currentParams ? `?returnTo=${encodeURIComponent(`${window.location.pathname}?${currentParams}`)}` : ''}`;
+    const showUrl = `${route}/show/${row.id}${currentParams ? `?returnTo=${encodeURIComponent(`${window.location.pathname}?${currentParams}`)}` : ""}`;
     navigate(showUrl);
   };
   const handleEdit = (row) => {
     // Preserve current URL params when navigating to edit
     const currentParams = searchParams.toString();
-    const editUrl = `${resolvedBase}/edit/${row.id}${currentParams ? `?returnTo=${encodeURIComponent(`${window.location.pathname}?${currentParams}`)}` : ''}`;
+    const editUrl = `${resolvedBase}/edit/${row.id}${currentParams ? `?returnTo=${encodeURIComponent(`${window.location.pathname}?${currentParams}`)}` : ""}`;
     navigate(editUrl);
   };
 
@@ -357,11 +376,16 @@ export const ListPage = ({
     if (!itemToDelete) return;
     try {
       setIsDeleting(true);
-      // Call your API
-      if (resourceName.startsWith("payments/")) {
-        await paymentsAPI.delete(itemToDelete.id);
+      // If custom onDelete callback is provided, use it
+      if (onDelete) {
+        await onDelete(itemToDelete.id);
       } else {
-        await deleteResource(resourceName, itemToDelete.id);
+        // Otherwise use default API deletion
+        if (resourceName.startsWith("payments/")) {
+          await paymentsAPI.delete(itemToDelete.id);
+        } else {
+          await deleteResource(resourceName, itemToDelete.id);
+        }
       }
 
       // Close modal and refresh
@@ -383,11 +407,11 @@ export const ListPage = ({
   const columns = showActions
     ? [
         ...baseColumns,
-        // Pass promptDelete instead of direct delete. Make edit handler optional via `showEdit` prop.
+        // Pass promptDelete only if onDelete is provided (has permission)
         createActionColumn(
           handleView,
           showEdit ? handleEdit : null,
-          showDelete ? promptDelete : null
+          onDelete ? promptDelete : null,
         ),
       ]
     : baseColumns;
@@ -425,8 +449,7 @@ export const ListPage = ({
   const endIndex = Math.min(currentPage * perPageState, total);
 
   return (
-      <div className="p-6 mt-12 animate-fade-in-up">
-
+    <div className="p-6 mt-12 animate-fade-in-up">
       {deleteError && (
         <Toast
           message={deleteError}
@@ -440,28 +463,36 @@ export const ListPage = ({
       {subtitle && (
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {title}
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {subtitle}
+            </p>
           </div>
           <div className="flex gap-2">{headerAction}</div>
         </div>
       )}
-
       {/* Shared bulk download confirmation modal (rendered once by ListPage) */}
       <ConfirmationModal
         isOpen={isBulkConfirmOpen}
         onClose={() => setIsBulkConfirmOpen(false)}
         onConfirm={handleBulkConfirm}
-        title={bulkConfirmPayload?.title || (bulkConfirmPayload?.type === "csv" ? "Export CSV" : "Download ZIP")}
+        title={
+          bulkConfirmPayload?.title ||
+          (bulkConfirmPayload?.type === "csv" ? "Export CSV" : "Download ZIP")
+        }
         message={bulkConfirmPayload?.message || "Are you sure?"}
         confirmText={bulkConfirmPayload?.confirmText || "Download"}
         cancelText="Cancel"
         isLoading={isBulkConfirmLoading}
         requireAcknowledgement={
-          resourceName && /invoices|ppis|ppi|payments|statements|deliveryorders|delivery-orders|debitnotes|debit-notes|creditnotes|credit-notes/.test(resourceName)
+          resourceName &&
+          /invoices|ppis|ppi|payments|statements|deliveryorders|delivery-orders|debitnotes|debit-notes|creditnotes|credit-notes/.test(
+            resourceName,
+          )
         }
       />
-      
       {/* Apply/Clear Filters Buttons + Search + Filter Toggle (Inline) */}
       <div className="mb-4 gap-3 flex justify-end flex-wrap">
         <div className="relative w-full max-w-md">

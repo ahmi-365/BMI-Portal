@@ -8,19 +8,17 @@ import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
 import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
+import { canAccess } from "../../lib/permissionHelper";
 import { paymentsAPI } from "../../services/api";
-
 
 // ---------- PDF RENDER BUTTON ----------
 const PdfButton = ({ label, file, id, endpoint, path = "download-proof" }) =>
-  file ? (
+  file && canAccess("view-payments") ? (
     <FileDownloadButton file={file} id={id} endpoint={endpoint} path={path} />
   ) : (
     "-"
   );
 const PAID_COLUMNS = [
-  
-
   {
     header: "Customer No.",
     accessor: "invoice",
@@ -50,7 +48,12 @@ const PAID_COLUMNS = [
     accessor: "proof",
     sortable: false,
     render: (row) => (
-      <PdfButton file={row.proof} id={row.id} endpoint="payments" path="download-proof" />
+      <PdfButton
+        file={row.proof}
+        id={row.id}
+        endpoint="payments"
+        path="download-proof"
+      />
     ),
   },
 
@@ -72,7 +75,12 @@ const PAID_COLUMNS = [
     header: "DO Doc",
     accessor: "do_doc",
     render: (row) => (
-      <PdfButton file={row.do_doc} id={row.id} endpoint="payments" path="download-do" />
+      <PdfButton
+        file={row.do_doc}
+        id={row.id}
+        endpoint="payments"
+        path="download-do"
+      />
     ),
   },
 
@@ -105,10 +113,11 @@ const PAID_COLUMNS = [
     disableFilter: true,
     render: (row) => (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 0
-          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-          }`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          row.status === 0
+            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+        }`}
       >
         {row.status === 0 ? "Pending" : "Approved"}
       </span>
@@ -134,7 +143,6 @@ const createNotAcknowledgedColumns = (onApprove) => [
     render: (row) => row.user?.company ?? "-",
   },
 
-  
   // {
   //   header: "Outstanding",
   //   accessor: "outstanding",
@@ -153,7 +161,12 @@ const createNotAcknowledgedColumns = (onApprove) => [
     header: "Proof Of Payment",
     accessor: "proof",
     render: (row) => (
-      <PdfButton file={row.proof} id={row.id} endpoint="payments" path="download-proof" />
+      <PdfButton
+        file={row.proof}
+        id={row.id}
+        endpoint="payments"
+        path="download-proof"
+      />
     ),
   },
 
@@ -167,7 +180,12 @@ const createNotAcknowledgedColumns = (onApprove) => [
     header: "DO DOC",
     accessor: "doDoc",
     render: (row) => (
-      <PdfButton file={row.do_doc} id={row.id} endpoint="payments" path="download-do" />
+      <PdfButton
+        file={row.do_doc}
+        id={row.id}
+        endpoint="payments"
+        path="download-do"
+      />
     ),
   },
 
@@ -199,10 +217,11 @@ const createNotAcknowledgedColumns = (onApprove) => [
     disableFilter: true,
     render: (row) => (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 0
-          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-          }`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          row.status === 0
+            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+        }`}
       >
         {row.status === 0 ? "Pending" : "Approved"}
       </span>
@@ -243,8 +262,6 @@ export default function PaymentRecordsView() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
-
-
 
   const handleBulkDeleteClick = () => {
     if (selectedIds.length === 0) {
@@ -312,8 +329,17 @@ export default function PaymentRecordsView() {
     }
   };
 
-
-
+  const handleSingleDelete = async (id) => {
+    try {
+      await paymentsAPI.delete(id);
+      setToastType("success");
+      setToastMessage("Payment deleted successfully");
+      setRefreshKey((prev) => prev + 1);
+    } catch (error) {
+      setToastType("error");
+      setToastMessage(error?.message || "Failed to delete payment");
+    }
+  };
 
   const handleBulkDelete = async () => {
     try {
@@ -345,7 +371,7 @@ export default function PaymentRecordsView() {
       console.error("Approval failed:", error);
       setToastType("error");
       setToastMessage(
-        error.message || "Failed to approve payment. Please try again."
+        error.message || "Failed to approve payment. Please try again.",
       );
     }
   };
@@ -373,20 +399,22 @@ export default function PaymentRecordsView() {
         <div className="flex gap-4">
           <button
             onClick={() => setActiveTab("paid")}
-            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "paid"
-              ? "border-brand-500 text-brand-500"
-              : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
-              }`}
+            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "paid"
+                ? "border-brand-500 text-brand-500"
+                : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
+            }`}
           >
             Paid Invoices
           </button>
 
           <button
             onClick={() => setActiveTab("not-acknowledged")}
-            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "not-acknowledged"
-              ? "border-brand-500 text-brand-500"
-              : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
-              }`}
+            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "not-acknowledged"
+                ? "border-brand-500 text-brand-500"
+                : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
+            }`}
           >
             Not Acknowledged
           </button>
@@ -400,24 +428,28 @@ export default function PaymentRecordsView() {
           columns={PAID_COLUMNS}
           title="Paid Invoices"
           subtitle="View all paid and processed invoices"
-          showEdit={false}
+          showEdit={canAccess("edit-payments")}
+          addButtonText={canAccess("create-payments") ? "New Payment" : null}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
+          onDelete={canAccess("delete-payments") ? handleSingleDelete : null}
           refreshKey={refreshKey}
           basePath="/payments"
           headerAction={
             selectedIds.length > 0 && (
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <button
-                    onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download ({selectedIds.length})
-                  </button>
+                  {canAccess("export-payments") && (
+                    <button
+                      onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download ({selectedIds.length})
+                    </button>
+                  )}
 
-                  {isDownloadMenuOpen && (
+                  {isDownloadMenuOpen && canAccess("export-payments") && (
                     <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20">
                       {/* <button
                         onClick={() =>
@@ -440,21 +472,22 @@ export default function PaymentRecordsView() {
                       >
                         Export CSV
                       </button>
-
                     </div>
                   )}
                 </div>
 
-                <button
-                  onClick={handleBulkDeleteClick}
-                  disabled={isDeleting}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  {isDeleting
-                    ? "Deleting..."
-                    : `Delete (${selectedIds.length})`}
-                </button>
+                {canAccess("delete-payments") && (
+                  <button
+                    onClick={handleBulkDeleteClick}
+                    disabled={isDeleting}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {isDeleting
+                      ? "Deleting..."
+                      : `Delete (${selectedIds.length})`}
+                  </button>
+                )}
               </div>
             )
           }
@@ -469,22 +502,23 @@ export default function PaymentRecordsView() {
           subtitle="View pending payment acknowledgments"
           showEdit={false}
           selectedIds={selectedIds}
-          
-          onSelectionChange={setSelectedIds}
+          onDelete={canAccess("delete-payments") ? handleSingleDelete : null}
           refreshKey={refreshKey}
           headerAction={
             selectedIds.length > 0 && (
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <button
-                    onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download ({selectedIds.length})
-                  </button>
+                  {canAccess("export-payments") && (
+                    <button
+                      onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download ({selectedIds.length})
+                    </button>
+                  )}
 
-                  {isDownloadMenuOpen && (
+                  {isDownloadMenuOpen && canAccess("export-payments") && (
                     <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20">
                       {/* <button
                         onClick={() =>
@@ -507,21 +541,22 @@ export default function PaymentRecordsView() {
                       >
                         Export CSV
                       </button>
-
                     </div>
                   )}
                 </div>
 
-                <button
-                  onClick={handleBulkDeleteClick} //   OPEN MODAL
-                  disabled={isDeleting}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  {isDeleting
-                    ? "Deleting..."
-                    : `Delete (${selectedIds.length})`}
-                </button>
+                {canAccess("delete-payments") && (
+                  <button
+                    onClick={handleBulkDeleteClick} //   OPEN MODAL
+                    disabled={isDeleting}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {isDeleting
+                      ? "Deleting..."
+                      : `Delete (${selectedIds.length})`}
+                  </button>
+                )}
               </div>
             )
           }

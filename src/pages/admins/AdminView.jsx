@@ -2,6 +2,7 @@ import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import { formatDate } from "../../lib/dateUtils";
 import { formatAmount } from "../../lib/currencyUtils";
+import { canAccess } from "../../lib/permissionHelper";
 
 const COLUMNS = [
   {
@@ -57,6 +58,8 @@ export default function AdminView() {
         columns={COLUMNS}
         title="Admin Users"
         subtitle="Manage and track all system administrators"
+        showEdit={canAccess("edit-admins")}
+        onDelete={canAccess("delete-admins") ? (id) => console.log("Delete", id) : null}
       />
     </div>
   );

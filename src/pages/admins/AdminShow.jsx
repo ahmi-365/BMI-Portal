@@ -10,7 +10,7 @@ const AdminShow = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const returnTo = searchParams.get('returnTo');
+  const returnTo = searchParams.get("returnTo");
   const [admin, setAdmin] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,8 +21,10 @@ const AdminShow = () => {
         setIsLoading(true);
         setError(null);
         const response = await adminUsersAPI.show(id);
-        // Handle both wrapped and unwrapped responses
-        const adminData = response.data || response;
+        // The API returns { status: true, data: { admin: {...}, roles: [...], permissions: [...] } }
+        const responseData = response.data || response;
+        const adminData = responseData.admin || responseData;
+        console.log("Admin data:", adminData);
         setAdmin(adminData);
       } catch (err) {
         console.error("Error loading admin:", err);
@@ -164,7 +166,7 @@ const AdminShow = () => {
               Mailable Status
             </label>
             <p className="text-black dark:text-white">
-              {admin.mailable ? "Yes" : "No"}
+              {admin.is_mailable ? "Yes" : "No"}
             </p>
           </div>
 
@@ -174,7 +176,7 @@ const AdminShow = () => {
             </label>
             <p className="text-black dark:text-white">
               {/* CHANGE: Use formatDateTime (shows date & time) */}
-              {formatDateTime(admin.created_at)}
+              {admin.created_at ? formatDateTime(admin.created_at) : "—"}
             </p>
           </div>
 
@@ -184,10 +186,34 @@ const AdminShow = () => {
             </label>
             <p className="text-black dark:text-white">
               {/* CHANGE: Use formatDateTime (shows date & time) */}
-              {formatDateTime(admin.updated_at)}
+              {admin.updated_at ? formatDateTime(admin.updated_at) : "—"}
             </p>
           </div>
         </div>
+
+        {/* Roles Section */}
+        {admin.roles && admin.roles.length > 0 && (
+          <>
+            <div className="border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+              <h3 className="font-medium text-black dark:text-white">
+                Assigned Roles
+              </h3>
+            </div>
+
+            <div className="p-6">
+              <div className="flex flex-wrap gap-2">
+                {admin.roles.map((role) => (
+                  <span
+                    key={role.id}
+                    className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                  >
+                    {role.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="mt-6 flex justify-end gap-4">

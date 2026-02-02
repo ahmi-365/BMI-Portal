@@ -6,8 +6,8 @@ import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
 import { formatDate } from "../../lib/dateUtils";
+import { canAccess } from "../../lib/permissionHelper";
 import { deliveryOrdersAPI } from "../../services/api";
-
 
 const COLUMNS = [
   {
@@ -36,14 +36,15 @@ const COLUMNS = [
     accessor: "do_doc",
     filterKey: "do_doc",
     sortable: false,
-    render: (row) => (
-      <FileDownloadButton
-        file={row.do_doc}
-        id={row.id}
-        endpoint="deliveryorders"
-        path="download"
-      />
-    ),
+    render: (row) =>
+      canAccess("view-delivery-orders") && (
+        <FileDownloadButton
+          file={row.do_doc}
+          id={row.id}
+          endpoint="deliveryorders"
+          path="download"
+        />
+      ),
   },
   {
     header: "Invoice No.",
@@ -96,9 +97,22 @@ export default function DeliveryOrdersView() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  const handleSingleDelete = async (id) => {
+    try {
+      await deliveryOrdersAPI.delete(id);
+      setToast({
+        message: "Delivery order deleted successfully",
+        type: "success",
+      });
+    } catch (error) {
+      setToast({
+        message: error.message || "Failed to delete delivery order",
+        type: "error",
+      });
+    }
+  };
 
   const handleBulkDeleteClick = () => {
     if (selectedIds.length === 0) {
@@ -132,7 +146,6 @@ export default function DeliveryOrdersView() {
     }
   };
 
-
   const handleBulkDelete = async () => {
     try {
       setIsDeleting(true);
@@ -140,7 +153,6 @@ export default function DeliveryOrdersView() {
       setToast({ message: "Items deleted successfully", type: "success" });
       setSelectedIds([]);
       setIsDeleteModalOpen(false);
-      window.location.reload();
     } catch (error) {
       console.error("Bulk delete failed:", error);
       setToast({
@@ -176,7 +188,6 @@ export default function DeliveryOrdersView() {
     }
   };
 
-
   return (
     <div>
       {toast.message && (
@@ -195,57 +206,64 @@ export default function DeliveryOrdersView() {
         columns={COLUMNS}
         title="Delivery Orders"
         subtitle="View and manage all delivery orders"
+        addButtonText={
+          canAccess("create-delivery-orders") ? "New Delivery Order" : null
+        }
+        showEdit={canAccess("edit-delivery-orders")}
+        onDelete={
+          canAccess("delete-delivery-orders") ? handleSingleDelete : null
+        }
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         headerAction={
           selectedIds.length > 0 ? (
             <div className="flex items-center gap-3 relative">
-
               {/* DOWNLOAD DROPDOWN */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsDownloadOpen(!isDownloadOpen)}
-                  disabled={isDownloading}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                >
-                  <Download className="w-4 h-4" />
-                  Download ({selectedIds.length})
-                </button>
+              {canAccess("export-delivery-orders") && (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDownloadOpen(!isDownloadOpen)}
+                    disabled={isDownloading}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download ({selectedIds.length})
+                  </button>
 
-                {isDownloadOpen && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
-                    <button
-                      onClick={handleBulkDownload}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
-                    >
-                      Download ZIP
-                    </button>
+                  {isDownloadOpen && (
+                    <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
+                      <button
+                        onClick={handleBulkDownload}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                      >
+                        Download ZIP
+                      </button>
 
-                    <button
-                      onClick={handleCSVDownload}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
-                    >
-                      Export CSV
-                    </button>
-                  </div>
-                )}
-              </div>
+                      <button
+                        onClick={handleCSVDownload}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                      >
+                        Export CSV
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* BULK DELETE */}
-              <button
-                onClick={handleBulkDeleteClick}
-                disabled={isDeleting}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete ({selectedIds.length})
-              </button>
-
+              {canAccess("delete-delivery-orders") && (
+                <button
+                  onClick={handleBulkDeleteClick}
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete ({selectedIds.length})
+                </button>
+              )}
             </div>
           ) : null
         }
-
-
       />
       <BulkDeleteConfirmationModal
         isOpen={isDeleteModalOpen}
@@ -257,4 +275,3 @@ export default function DeliveryOrdersView() {
     </div>
   );
 }
-

@@ -53,7 +53,7 @@ const apiCall = async (endpoint, options = {}) => {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) {}
+      } catch (e) { }
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -240,6 +240,14 @@ export const listResource = async (
     ...(search ? { search } : {}),
     ...rest,
   });
+  if (resource === "roles") {
+    // Roles index returns { status: 'success', data: { roles: {...}, permissions: {...} } }
+    // We want to normalize data.roles
+    const res = await apiCall(`/${resource}${qs}`);
+    const rolesData = res?.data?.roles || res?.data || res;
+    return normalizePagination(rolesData, page, perPage);
+  }
+
   const res = await apiCall(`/${resource}${qs}`);
   return normalizePagination(res, page, perPage);
 };
@@ -268,7 +276,7 @@ export const apiCallFormData = async (endpoint, formData, method = "POST") => {
     mode: "cors",
     credentials: "include",
     headers: {
-      "Accept": "application/json", 
+      "Accept": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: formData,
@@ -279,7 +287,7 @@ export const apiCallFormData = async (endpoint, formData, method = "POST") => {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) {}
+      } catch (e) { }
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -330,7 +338,7 @@ export const userApiCall = async (endpoint, options = {}) => {
       if (endpoint !== "/user/login") {
         try {
           userAuth.clear();
-        } catch (e) {}
+        } catch (e) { }
         if (typeof window !== "undefined") window.location.href = "/user/login";
         throw new Error("Unauthorized");
       }
@@ -371,7 +379,7 @@ export const userApiCallFormData = async (
     if (response.status === 401) {
       try {
         userAuth.clear();
-      } catch (e) {}
+      } catch (e) { }
       if (typeof window !== "undefined") window.location.href = "/user/login";
       throw new Error("Unauthorized");
     }
@@ -412,7 +420,7 @@ export const userDownloadBlob = async (endpoint, data = null) => {
     if (response.status === 401) {
       try {
         userAuth.clear();
-      } catch (e) {}
+      } catch (e) { }
       if (typeof window !== "undefined") window.location.href = "/user/login";
       throw new Error("Unauthorized");
     }
@@ -442,6 +450,29 @@ export const getResourceById = async (resourceName, id) => {
     }
   }
 
+  if (resource === "roles") {
+    const res = await apiCall(`/roles/show/${id}`);
+    const data = res?.data || res;
+    // Transform API response to flat format for ResourceForm
+    // API returns { role: {id, name}, permissions: [{name, selected}, ...] }
+    const role = data.role || {};
+    const perms = data.permissions || [];
+    // If permissions is object (grouped), flatten it
+    const flatPerms = Array.isArray(perms)
+      ? perms
+      : Object.values(perms).flat();
+
+    // Extract selected permissions
+    const selected = flatPerms
+      .filter(p => p.selected)
+      .map(p => p.name);
+
+    return {
+      ...role,
+      permissions: selected
+    };
+  }
+
   try {
     const res = await apiCall(`/${resource}/show/${id}`);
     return res?.data ?? res;
@@ -469,6 +500,8 @@ export const updateResource = async (resourceName, id, data) => {
   });
   return res?.data ?? res;
 };
+
+
 
 export const getPaginatedData = async (
   resourceName,
@@ -843,7 +876,7 @@ export const reportsAPI = {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) {}
+      } catch (e) { }
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -896,7 +929,7 @@ export const reportsAPI = {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) {}
+      } catch (e) { }
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -941,7 +974,7 @@ export const reportsAPI = {
     if (response.status === 401) {
       try {
         userAuth.clear();
-      } catch (e) {}
+      } catch (e) { }
       if (typeof window !== "undefined") window.location.href = "/user/login";
       throw new Error("Unauthorized");
     }
@@ -971,7 +1004,7 @@ export const downloadBlob = async (endpoint) => {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) {}
+      } catch (e) { }
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -1005,7 +1038,7 @@ export const downloadBlobPost = async (endpoint, data) => {
     if (response.status === 401) {
       try {
         auth.clear();
-      } catch (e) {}
+      } catch (e) { }
       if (typeof window !== "undefined") window.location.href = "/signin";
       throw new Error("Unauthorized");
     }
@@ -1270,4 +1303,53 @@ export const userPpisAPI = {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
+};
+
+// Roles APIs
+// Roles APIs - matching provided PHP Controller
+export const rolesAPI = {
+  list: (params) => listResource("roles", params),
+
+  // Route::post('roles/create', ...)
+  create: (data) =>
+    apiCall("/roles/create", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  // Route::post('roles/update/{id}', ...)
+  update: (id, data) =>
+    apiCall(`/roles/update/${id}`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  // Route::delete('roles/delete/{id}', ...)
+  delete: (id) =>
+    apiCall(`/roles/delete/${id}`, {
+      method: "DELETE",
+    }),
+
+  // Route::get('roles/show/{id}', ...)
+  show: (id) => apiCall(`/roles/show/${id}`),
+
+  // Route::post('roles/add-permissions/{roleId}', ...)
+  addPermissions: (roleId, permissions) =>
+    apiCall(`/roles/add-permissions/${roleId}`, {
+      method: "POST",
+      body: JSON.stringify({ permissions })
+    }),
+
+  // Route::post('roles/remove-permissions/{roleId}', ...)
+  removePermissions: (roleId, permissions) =>
+    apiCall(`/roles/remove-permissions/${roleId}`, {
+      method: "POST",
+      body: JSON.stringify({ permissions })
+    }),
+};
+
+// Permissions APIs
+export const permissionsAPI = {
+  // Route::get('permissions', ...)
+  list: () => apiCall("/permissions"),
 };

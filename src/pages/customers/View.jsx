@@ -3,6 +3,7 @@ import { ListPage } from "../../components/common/ListPage";
 // CHANGE: Import formatDate utility
 import { toast } from "react-toastify";
 import { formatDate } from "../../lib/dateUtils";
+import { canAccess } from "../../lib/permissionHelper";
 import { customersAPI } from "../../services/api";
 
 const APPROVED_COLUMNS = [
@@ -66,89 +67,105 @@ const APPROVED_COLUMNS = [
   },
 ];
 
-const PENDING_COLUMNS = [
-  {
-    header: "Business Contact Name",
-    accessor: "name",
-    filterKey: "name",
-    sortable: true,
-    render: (row) => row.name || "-",
-  },
-  {
-    header: "Customer No.",
-    accessor: "customer_no",
-    filterKey: "customer_no",
-    sortable: true,
-    render: (row) => row.customer_no || "-",
-  },
-  {
-    header: "Company/Business Name",
-    accessor: "company",
-    filterKey: "company",
-    sortable: true,
-    render: (row) => row.company || "-",
-  },
-  {
-    header: "Status",
-    accessor: "form_status",
-    filterKey: "form_status",
-    sortable: true,
-    disableFilter: true,
-    render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
-  },
-  {
-    header: "Created At",
-    accessor: "created_at",
-    filterKey: "uploaded",
-    filterType: "date-range",
-    sortable: true,
-    render: (row) => formatDate(row.created_at || row.createdAt),
-  },
-  {
-    header: "Approve",
-    accessor: "id",
-    disableFilter: true,
-    render: (row) => (
-      <div className="flex items-center gap-2">
-        {/* Approve Button */}
-        <button
-          onClick={async (e) => {
-            e.stopPropagation();
-            try {
-              await customersAPI.approve(row.id);
-              toast.success("Customer approved successfully");
-              setTimeout(() => {
-                window.location.reload();
-              }, 2000);
-            } catch (error) {
-              toast.error("Failed to approve customer");
-              console.error(error);
-            }
-          }}
-          className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
-          title="Approve Customer"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-        </button>
-      </div>
-    ),
-  },
-];
-
 export default function CustomersView() {
   const [activeTab, setActiveTab] = useState("approved");
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleSingleDelete = async (id) => {
+    try {
+      await customersAPI.delete(id);
+      toast.success("Customer deleted successfully");
+      setRefreshKey((prev) => prev + 1);
+    } catch (error) {
+      toast.error(error?.message || "Failed to delete customer");
+      console.error(error);
+    }
+  };
+
+  const handleApprove = async (id) => {
+    try {
+      await customersAPI.approve(id);
+      toast.success("Customer approved successfully");
+      setRefreshKey((prev) => prev + 1);
+    } catch (error) {
+      toast.error("Failed to approve customer");
+      console.error(error);
+    }
+  };
+
+  const PENDING_COLUMNS = [
+    {
+      header: "Business Contact Name",
+      accessor: "name",
+      filterKey: "name",
+      sortable: true,
+      render: (row) => row.name || "-",
+    },
+    {
+      header: "Customer No.",
+      accessor: "customer_no",
+      filterKey: "customer_no",
+      sortable: true,
+      render: (row) => row.customer_no || "-",
+    },
+    {
+      header: "Company/Business Name",
+      accessor: "company",
+      filterKey: "company",
+      sortable: true,
+      render: (row) => row.company || "-",
+    },
+    {
+      header: "Status",
+      accessor: "form_status",
+      filterKey: "form_status",
+      sortable: true,
+      disableFilter: true,
+      render: (row) => (row.form_status === 2 ? "Inactive" : "Active"),
+    },
+    {
+      header: "Created At",
+      accessor: "created_at",
+      filterKey: "uploaded",
+      filterType: "date-range",
+      sortable: true,
+      render: (row) => formatDate(row.created_at || row.createdAt),
+    },
+    {
+      header: "Approve",
+      accessor: "id",
+      disableFilter: true,
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          {/* Approve Button */}
+          {canAccess("approve-customers") && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleApprove(row.id);
+              }}
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
+              title="Approve Customer"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -157,19 +174,21 @@ export default function CustomersView() {
         <nav className="flex -mb-px space-x-6" aria-label="Tabs">
           <button
             onClick={() => setActiveTab("approved")}
-            className={`pb-3 text-sm font-medium ${activeTab === "approved"
+            className={`pb-3 text-sm font-medium ${
+              activeTab === "approved"
                 ? "border-b-2 border-brand-500 text-brand-600"
                 : "text-gray-600 hover:text-gray-900"
-              }`}
+            }`}
           >
             Approved
           </button>
           <button
             onClick={() => setActiveTab("pending")}
-            className={`pb-3 text-sm font-medium ${activeTab === "pending"
+            className={`pb-3 text-sm font-medium ${
+              activeTab === "pending"
                 ? "border-b-2 border-brand-500 text-brand-600"
                 : "text-gray-600 hover:text-gray-900"
-              }`}
+            }`}
           >
             Pending
           </button>
@@ -184,6 +203,9 @@ export default function CustomersView() {
             title="Approved Customers"
             subtitle="View and manage all approved customers"
             basePath="/customers"
+            showEdit={canAccess("edit-customers")}
+            onDelete={canAccess("delete-customers") ? handleSingleDelete : null}
+            refreshKey={refreshKey}
           />
         )}
 
@@ -194,6 +216,9 @@ export default function CustomersView() {
             title="Pending Customers"
             subtitle="Review and manage pending customer approvals"
             basePath="/customers"
+            showEdit={canAccess("edit-customers")}
+            onDelete={canAccess("delete-customers") ? handleSingleDelete : null}
+            refreshKey={refreshKey}
           />
         )}
 

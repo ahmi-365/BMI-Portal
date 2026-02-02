@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Form from "../../components/common/Form";
-import Toast from "../../components/common/Toast";
 import Loader from "../../components/common/Loader";
-import { adminUsersAPI } from "../../services/api";
+import Toast from "../../components/common/Toast";
+import { adminUsersAPI, rolesAPI } from "../../services/api";
 
 const AdminCreate = () => {
   const navigate = useNavigate();
@@ -16,6 +16,38 @@ const AdminCreate = () => {
   const [success, setSuccess] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [admin, setAdmin] = useState(null);
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
+
+  // Load roles on component mount
+  useEffect(() => {
+    const loadRoles = async () => {
+      try {
+        setRolesLoading(true);
+        const response = await rolesAPI.list();
+        console.log("API Response:", response);
+
+        // rolesAPI.list() returns { rows: [...], page, perPage, total, lastPage, ... }
+        // We need to extract the rows array
+        let rolesList = [];
+        if (response.rows && Array.isArray(response.rows)) {
+          rolesList = response.rows;
+        } else if (Array.isArray(response)) {
+          rolesList = response;
+        } else if (response.data && Array.isArray(response.data)) {
+          rolesList = response.data;
+        }
+
+        console.log("Loaded roles:", rolesList);
+        setRoles(rolesList);
+      } catch (err) {
+        console.error("Error loading roles:", err);
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+    loadRoles();
+  }, []);
 
   // Load admin data if editing
   useEffect(() => {
@@ -83,6 +115,7 @@ const AdminCreate = () => {
     const payload = {
       name: data.name,
       email: data.email,
+      role: data.role,
       // Ensure API always receives 'on' or 'off'
       is_mailable: normalizeIsMailable(data.is_mailable),
     };
@@ -140,6 +173,21 @@ const AdminCreate = () => {
       type: "email",
       placeholder: "Enter email address",
       required: true,
+    },
+    {
+      name: "role",
+      label: "Role",
+      type: "select",
+      placeholder: "Select a role",
+      required: true,
+      options:
+        roles && roles.length > 0
+          ? roles.map((role) => ({
+              label: role.name,
+              value: role.name,
+            }))
+          : [],
+      disabled: rolesLoading,
     },
     ...(isEditing
       ? []

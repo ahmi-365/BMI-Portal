@@ -3,6 +3,7 @@ import TabbedResource from "../../components/common/TabbedResource";
 import ExportReport from "../reports/ExportReport";
 import ActivityLogs from "./ActivityLogs";
 import ChangePassword from "./ChangePassword";
+import RolesIndex from "./roles/Index";
 
 export default function AdministrationIndex() {
   const tabs = [
@@ -22,6 +23,12 @@ export default function AdministrationIndex() {
       key: "exportreports",
       label: "Export Reports",
       component: ExportReport,
+      permission: "list-roles",
+    },
+    {
+      key: "roles",
+      label: "Roles & Permissions",
+      component: RolesIndex,
       permission: "list-roles",
     },
   ];

@@ -10,6 +10,7 @@ import {
   getResourceById,
   updateResource,
 } from "../../services/api";
+import MultiSelect from "./MultiSelect";
 import PageBreadcrumb from "./PageBreadCrumb";
 import SearchableSelect from "./SearchableSelect";
 
@@ -21,6 +22,7 @@ export const ResourceForm = ({
   title = "Add Record",
   forceEdit = false,
   extraActions = null,
+  redirectPath,
 }) => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -136,7 +138,10 @@ export const ResourceForm = ({
             pickedData[field.name] !== undefined &&
             pickedData[field.name] !== null
           ) {
-            pickedData[field.name] = String(pickedData[field.name]);
+            // Only convert to string if it's NOT a multiple select
+            if (!field.multiple) {
+              pickedData[field.name] = String(pickedData[field.name]);
+            }
           }
         });
 
@@ -350,7 +355,9 @@ export const ResourceForm = ({
         setTimeout(() => {
           const returnTo = searchParams.get("returnTo");
           navigate(
-            returnTo ? decodeURIComponent(returnTo) : `/${resourceName}/view`,
+            returnTo
+              ? decodeURIComponent(returnTo)
+              : redirectPath || `/${resourceName}/view`,
           );
         }, 1500);
       }
@@ -674,7 +681,32 @@ export const ResourceForm = ({
                       }`}
                     />
                   ) : field.type === "select" ? (
-                    field.searchable ? (
+                    field.multiple ? (
+                      <MultiSelect
+                        options={field.options || []}
+                        value={formData[field.name] || []}
+                        onChange={(v) => {
+                          if (field.onChange) {
+                            field.onChange(v, setFormData);
+                          } else {
+                            setFormData((prev) => ({
+                              ...prev,
+                              [field.name]: v,
+                            }));
+                          }
+                          if (errors[field.name]) {
+                            setErrors((prev) => ({
+                              ...prev,
+                              [field.name]: "",
+                            }));
+                          }
+                        }}
+                        placeholder={
+                          field.placeholder || `Select ${field.label}`
+                        }
+                        disabled={field.disabled}
+                      />
+                    ) : field.searchable ? (
                       <SearchableSelect
                         id={`select-${field.name}`}
                         options={field.options || []}
@@ -779,6 +811,9 @@ export const ResourceForm = ({
                       }`}
                     />
                   )}
+
+                  {field.customActions &&
+                    field.customActions(formData, setFormData)}
 
                   {errors[field.name] && (
                     <p className="mt-1 text-xs font-medium text-red-500 animate-pulse">

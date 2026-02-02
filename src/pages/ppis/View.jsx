@@ -5,6 +5,7 @@ import FileDownloadButton from "../../components/common/FileDownloadButton";
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
+import { canAccess } from "../../lib/permissionHelper";
 import { ppisAPI } from "../../services/api";
 // CHANGE: Import formatDate utility
 import { formatAmount } from "../../lib/currencyUtils";
@@ -18,10 +19,26 @@ const COLUMNS = [
     sortable: true,
     render: (row) => row.user?.company || "-",
   },
-  { header: "Customer No.", accessor: "customer_no", filterKey: "customer_no", sortable: true },
+  {
+    header: "Customer No.",
+    accessor: "customer_no",
+    filterKey: "customer_no",
+    sortable: true,
+  },
   { header: "PO No.", accessor: "po_no", filterKey: "po_no", sortable: true },
-  { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no", sortable: true },
-  { header: "Amount", accessor: "amount", filterKey: "amount", sortable: true, render: (row) => formatAmount(row.amount) },
+  {
+    header: "Ref No.",
+    accessor: "ref_no",
+    filterKey: "ref_no",
+    sortable: true,
+  },
+  {
+    header: "Amount",
+    accessor: "amount",
+    filterKey: "amount",
+    sortable: true,
+    render: (row) => formatAmount(row.amount),
+  },
   // { header: "Remarks", accessor: "remarks", filterKey: "remarks",disableFilter: true, },
   {
     header: "PPI Date",
@@ -46,14 +63,15 @@ const COLUMNS = [
     header: "PPI Doc",
     accessor: "ppi_doc",
     filterKey: "ppi_doc",
-    render: (row) => (
-      <FileDownloadButton
-        file={row.ppi_doc}
-        id={row.id}
-        endpoint="ppis"
-        path="download"
-      />
-    ),
+    render: (row) =>
+      canAccess("view-ppis") && (
+        <FileDownloadButton
+          file={row.ppi_doc}
+          id={row.id}
+          endpoint="ppis"
+          path="download"
+        />
+      ),
   },
   {
     header: "Uploaded By",
@@ -79,6 +97,18 @@ export default function PpisView() {
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
   const [toast, setToast] = useState({ message: null, type: "success" });
 
+  const handleSingleDelete = async (id) => {
+    try {
+      await ppisAPI.delete(id);
+      setToast({ message: "PPI deleted successfully", type: "success" });
+    } catch (error) {
+      setToast({
+        message: error.message || "Failed to delete PPI",
+        type: "error",
+      });
+    }
+  };
+
   const handleBulkDeleteClick = () => {
     if (selectedIds.length === 0) {
       setToast({ message: "No items selected", type: "error" });
@@ -100,8 +130,9 @@ export default function PpisView() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `ppis-${new Date().getTime()}.${type === "zip" ? "zip" : "csv"
-        }`;
+      link.download = `ppis-${new Date().getTime()}.${
+        type === "zip" ? "zip" : "csv"
+      }`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -128,7 +159,6 @@ export default function PpisView() {
         type: "success",
       });
       setSelectedIds([]);
-      window.location.reload();
     } catch (error) {
       setToast({
         message: error.message || "Failed to delete records",
@@ -158,6 +188,9 @@ export default function PpisView() {
         columns={COLUMNS}
         title="PPI"
         subtitle="View and manage PPI records"
+        addButtonText={canAccess("create-ppis") ? "New PPI" : null}
+        showEdit={canAccess("edit-ppis")}
+        onDelete={canAccess("delete-ppis") ? handleSingleDelete : null}
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         headerAction={
@@ -165,35 +198,38 @@ export default function PpisView() {
             <div className="flex items-center gap-3">
               <div className="relative inline-block text-left">
                 {/* Download Button */}
-                <button
-                  onClick={() => setIsDownloadMenuOpen(!isDownloadMenuOpen)}
-                  disabled={isDownloading}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  {isDownloading
-                    ? "Downloading..."
-                    : `Download (${selectedIds.length})`}
-                  {/* Arrow Icon */}
-                  <svg
-                    className={`w-4 h-4 ml-2 transition-transform ${isDownloadMenuOpen ? "rotate-180" : ""
-                      }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
+                {canAccess("export-ppis") && (
+                  <button
+                    onClick={() => setIsDownloadMenuOpen(!isDownloadMenuOpen)}
+                    disabled={isDownloading}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    ></path>
-                  </svg>
-                </button>
+                    <Download className="w-4 h-4" />
+                    {isDownloading
+                      ? "Downloading..."
+                      : `Download (${selectedIds.length})`}
+                    {/* Arrow Icon */}
+                    <svg
+                      className={`w-4 h-4 ml-2 transition-transform ${
+                        isDownloadMenuOpen ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
+                    </svg>
+                  </button>
+                )}
 
                 {/* Dropdown Menu */}
-                {isDownloadMenuOpen && (
+                {isDownloadMenuOpen && canAccess("export-ppis") && (
                   <ul className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-10 divide-y divide-gray-100">
                     <li>
                       <button
@@ -220,14 +256,18 @@ export default function PpisView() {
                   </ul>
                 )}
               </div>
-              <button
-                onClick={handleBulkDeleteClick}
-                disabled={isDeleting}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-                {isDeleting ? "Deleting..." : `Delete (${selectedIds.length})`}
-              </button>
+              {canAccess("delete-ppis") && (
+                <button
+                  onClick={handleBulkDeleteClick}
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {isDeleting
+                    ? "Deleting..."
+                    : `Delete (${selectedIds.length})`}
+                </button>
+              )}
             </div>
           )
         }

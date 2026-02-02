@@ -1,5 +1,6 @@
 import { Download, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { canAccess } from "../../lib/permissionHelper";
 
 import BulkDeleteConfirmationModal from "../../components/common/BulkDeleteConfirmationModal";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
@@ -28,15 +29,17 @@ const COLUMNS = [
     filterKey: "invoice_doc",
     sortable: false,
     render: (row) => (
-      <FileDownloadButton
-        file={row.invoice_doc}
-        id={row.id}
-        endpoint="invoices"
-        path="download"
-      />
+      canAccess("view-invoices") && (
+        <FileDownloadButton
+          file={row.invoice_doc}
+          id={row.id}
+          endpoint="invoices"
+          path="download"
+        />
+      )
     ),
   },
-{
+  {
     header: "Invoice Date",
     accessor: "invoice_date",
     filterKey: "invoice_date",
@@ -85,7 +88,7 @@ const COLUMNS = [
   //     return formatAmount(outstandingValue);
   //   },
   // },
-{
+  {
     header: "Due Date",
     accessor: "date",
     filterKey: "due_date",
@@ -94,7 +97,7 @@ const COLUMNS = [
     // Use formatDate for consistent DMY format
     render: (row) => formatDate(row.date),
   },
-{
+  {
     header: "Uploaded At",
     accessor: "created_at",
     filterKey: "uploaded",
@@ -117,7 +120,7 @@ export default function InvoicesView() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
+
 
   const handleBulkDeleteClick = () => {
     if (selectedIds.length === 0) {
@@ -156,7 +159,6 @@ export default function InvoicesView() {
       setIsDeleting(true);
       await invoicesAPI.delete(id);
       setToast({ message: "Invoice deleted successfully", type: "success" });
-      window.location.reload();
     } catch (error) {
       setToast({
         message: error.message || "Failed to delete invoice",
@@ -174,7 +176,6 @@ export default function InvoicesView() {
       setToast({ message: "Items deleted successfully", type: "success" });
       setSelectedIds([]);
       setIsDeleteModalOpen(false);
-      window.location.reload();
     } catch (error) {
       console.error("Bulk delete failed:", error);
       setToast({
@@ -255,53 +256,57 @@ export default function InvoicesView() {
         title="Invoices"
         subtitle="View and manage all invoices"
         basePath="/invoices"
-        showEdit={true}
+        showEdit={canAccess("edit-invoices")}
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
-        onDelete={handleSingleDelete}
+        onDelete={canAccess("delete-invoices") ? handleSingleDelete : null}
         headerAction={
           selectedIds.length > 0 ? (
             <div className="flex items-center gap-3 relative">
 
               {/* DOWNLOAD BUTTON */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsDownloadOpen(!isDownloadOpen)}
-                  disabled={isDownloading}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  <Download className="w-4 h-4" />
-                  Download ({selectedIds.length})
-                </button>
+              {canAccess("export-invoices") && (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDownloadOpen(!isDownloadOpen)}
+                    disabled={isDownloading}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download ({selectedIds.length})
+                  </button>
 
-                {isDownloadOpen && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
-                    <button
-                      onClick={handleZipDownload}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
-                    >
-                      Download ZIP
-                    </button>
+                  {isDownloadOpen && (
+                    <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
+                      <button
+                        onClick={handleZipDownload}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                      >
+                        Download ZIP
+                      </button>
 
-                    <button
-                      onClick={handleCSVDownload}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
-                    >
-                      Export CSV
-                    </button>
-                  </div>
-                )}
-              </div>
+                      <button
+                        onClick={handleCSVDownload}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                      >
+                        Export CSV
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* 🔥 BULK DELETE BUTTON (THIS WAS MISSING) */}
-              <button
-                onClick={handleBulkDeleteClick}
-                disabled={isDeleting}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete ({selectedIds.length})
-              </button>
+              {canAccess("delete-invoices") && (
+                <button
+                  onClick={handleBulkDeleteClick}
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete ({selectedIds.length})
+                </button>
+              )}
 
             </div>
           ) : null
@@ -315,7 +320,7 @@ export default function InvoicesView() {
         isLoading={isDeleting}
         count={selectedIds.length}
       />
-      
+
     </div>
   );
 }

@@ -1,12 +1,12 @@
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
-import Label from "../form/Label";
-import Input from "../form/input/InputField";
-import Checkbox from "../form/input/Checkbox";
-import Button from "../ui/button/Button";
+import { useNavigate } from "react-router-dom";
+import { getFirstAccessiblePath } from "../../lib/permissionHelper";
 import { auth } from "../../services/auth";
-import { ChevronLeft, Eye, EyeOff } from "lucide-react";
+import Label from "../form/Label";
+import Checkbox from "../form/input/Checkbox";
+import Input from "../form/input/InputField";
+import Button from "../ui/button/Button";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +23,7 @@ export default function SignInForm() {
     setLoading(true);
     try {
       await auth.login(email, password);
-      navigate("/");
+      navigate(getFirstAccessiblePath("/"), { replace: true });
     } catch (err) {
       // Extract error message from different formats
       let errorMessage = err.message || "Login failed";

@@ -6,10 +6,16 @@ import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
 import { formatDate } from "../../lib/dateUtils";
+import { canAccess } from "../../lib/permissionHelper";
 import { statementsAPI } from "../../services/api";
 
 const COLUMNS = [
-  { header: "Customer No", accessor: "customer_no", filterKey: "customer_no", sortable: true },
+  {
+    header: "Customer No",
+    accessor: "customer_no",
+    filterKey: "customer_no",
+    sortable: true,
+  },
   {
     header: "Company Name",
     accessor: "company_name",
@@ -23,7 +29,7 @@ const COLUMNS = [
     filterKey: "statement_doc",
     sortable: false,
     render: (row) =>
-      row.statement_doc ? (
+      row.statement_doc && canAccess("view-statements") ? (
         <FileDownloadButton
           file={row.statement_doc}
           id={row.id}
@@ -47,17 +53,15 @@ const COLUMNS = [
     accessor: "updated_at",
     filterKey: "uploaded",
     filterType: "date-range",
-    sortable: true, 
-        render: (row) => formatDate(row.updated_at),
-
+    sortable: true,
+    render: (row) => formatDate(row.updated_at),
   },
   {
     header: "Uploaded By",
     accessor: "uploaded_by",
     filterKey: "uploaded_by",
     sortable: true,
-    render: (row) =>
-      row.admin?.name || "-",
+    render: (row) => row.admin?.name || "-",
   },
 ];
 
@@ -67,9 +71,21 @@ export default function AccountStatementsView() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
-
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState({ message: null, type: "success" });
+
+  const handleSingleDelete = async (id) => {
+    try {
+      await statementsAPI.delete(id);
+      setToast({ message: "Statement deleted successfully", type: "success" });
+      setRefreshKey((prev) => prev + 1);
+    } catch (error) {
+      setToast({
+        message: error.message || "Failed to delete statement",
+        type: "error",
+      });
+    }
+  };
 
   const handleBulkDeleteClick = () => {
     if (selectedIds.length === 0) {
@@ -107,14 +123,14 @@ export default function AccountStatementsView() {
       setToast({ message: "Download started successfully", type: "success" });
     } catch (error) {
       console.error("Bulk download failed:", error);
-      setToast({ message: error.message || "Failed to download statements", type: "error" });
+      setToast({
+        message: error.message || "Failed to download statements",
+        type: "error",
+      });
     } finally {
       setIsDownloading(false);
     }
   };
-
-
-
 
   const handleBulkDelete = async () => {
     try {
@@ -155,7 +171,11 @@ export default function AccountStatementsView() {
         columns={COLUMNS}
         title="Account Statements"
         subtitle="View and manage all account statements"
-        addButtonText="New Account Statement"
+        addButtonText={
+          canAccess("create-statements") ? "New Account Statement" : null
+        }
+        showEdit={canAccess("edit-statements")}
+        onDelete={canAccess("delete-statements") ? handleSingleDelete : null}
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         refreshKey={refreshKey}
@@ -164,26 +184,36 @@ export default function AccountStatementsView() {
             <div className="flex items-center gap-3 relative">
               {/* Bulk Download Dropdown */}
               <div className="relative">
-                <button
-                  onClick={() => setIsDownloadMenuOpen(!isDownloadMenuOpen)}
-                  disabled={isDownloading}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  {isDownloading ? "Downloading..." : `Download (${selectedIds.length})`}
-                  <svg
-                    className={`w-4 h-4 ml-1 transition-transform duration-300 ${isDownloadMenuOpen ? "rotate-180" : ""
-                      }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                {canAccess("export-statements") && (
+                  <button
+                    onClick={() => setIsDownloadMenuOpen(!isDownloadMenuOpen)}
+                    disabled={isDownloading}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                    <Download className="w-4 h-4" />
+                    {isDownloading
+                      ? "Downloading..."
+                      : `Download (${selectedIds.length})`}
+                    <svg
+                      className={`w-4 h-4 ml-1 transition-transform duration-300 ${
+                        isDownloadMenuOpen ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                )}
 
                 {/* Dropdown Menu */}
-                {isDownloadMenuOpen && (
+                {isDownloadMenuOpen && canAccess("export-statements") && (
                   <ul className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-20 divide-y divide-gray-100">
                     <li>
                       <button
@@ -212,18 +242,19 @@ export default function AccountStatementsView() {
               </div>
 
               {/* Bulk Delete Button */}
-              <button
-                onClick={handleBulkDeleteClick}
-                disabled={isDeleting}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-                {isDeleting ? "Deleting..." : `Delete (${selectedIds.length})`}
-              </button>
+              {canAccess("delete-statements") && (
+                <button
+                  onClick={handleBulkDeleteClick}
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {isDeleting
+                    ? "Deleting..."
+                    : `Delete (${selectedIds.length})`}
+                </button>
+              )}
             </div>
-
-
-
           )
         }
       />

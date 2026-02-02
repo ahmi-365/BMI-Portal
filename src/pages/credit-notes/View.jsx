@@ -7,6 +7,7 @@ import PageMeta from "../../components/common/PageMeta";
 import Toast from "../../components/common/Toast";
 import { formatAmount } from "../../lib/currencyUtils";
 import { formatDate } from "../../lib/dateUtils";
+import { canAccess } from "../../lib/permissionHelper";
 import { creditNotesAPI } from "../../services/api";
 
 const COLUMNS = [
@@ -43,28 +44,30 @@ const COLUMNS = [
     accessor: "cn_doc",
     filterKey: "cn_doc",
     sortable: false,
-    render: (row) => (
-      <FileDownloadButton
-        file={row.cn_doc}
-        id={row.id}
-        endpoint="creditnotes"
-        path="download"
-      />
-    ),
+    render: (row) =>
+      canAccess("view-credit-notes") && (
+        <FileDownloadButton
+          file={row.cn_doc}
+          id={row.id}
+          endpoint="creditnotes"
+          path="download"
+        />
+      ),
   },
   {
     header: "Do Document",
     accessor: "do_doc",
     filterKey: "do_doc",
     sortable: false,
-    render: (row) => (
-      <FileDownloadButton
-        file={row.deliveryorder?.do_doc}
-        id={row.id}
-        endpoint="creditnotes"
-        path="download"
-      />
-    ),
+    render: (row) =>
+      canAccess("view-credit-notes") && (
+        <FileDownloadButton
+          file={row.deliveryorder?.do_doc}
+          id={row.id}
+          endpoint="creditnotes"
+          path="download"
+        />
+      ),
   },
   {
     header: "CN Date",
@@ -119,6 +122,22 @@ export default function CreditNotesView() {
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
 
   const [toast, setToast] = useState({ message: null, type: "success" });
+
+  const handleSingleDelete = async (id) => {
+    try {
+      await creditNotesAPI.delete(id);
+      setToast({
+        message: "Credit note deleted successfully",
+        type: "success",
+      });
+      setRefreshKey((prev) => prev + 1);
+    } catch (error) {
+      setToast({
+        message: error.message || "Failed to delete credit note",
+        type: "error",
+      });
+    }
+  };
 
   const handleBulkDeleteClick = () => {
     if (selectedIds.length === 0) {
@@ -216,7 +235,6 @@ export default function CreditNotesView() {
     }
   };
 
-
   return (
     <>
       {toast.message && (
@@ -235,7 +253,11 @@ export default function CreditNotesView() {
         columns={COLUMNS}
         title="Credit Notes"
         subtitle="View and manage all credit notes"
-        addButtonText="New Credit Note"
+        addButtonText={
+          canAccess("create-credit-notes") ? "New Credit Note" : null
+        }
+        showEdit={canAccess("edit-credit-notes")}
+        onDelete={canAccess("delete-credit-notes") ? handleSingleDelete : null}
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         refreshKey={refreshKey}
@@ -243,54 +265,57 @@ export default function CreditNotesView() {
           selectedIds.length > 0 && (
             <div className="relative flex items-center gap-3">
               {/* DOWNLOAD DROPDOWN */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsDownloadOpen(!isDownloadOpen)}
-                  disabled={isDownloading}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                >
-                  <Download className="w-4 h-4" />
-                  Download ({selectedIds.length})
-                </button>
+              {canAccess("export-credit-notes") && (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDownloadOpen(!isDownloadOpen)}
+                    disabled={isDownloading}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download ({selectedIds.length})
+                  </button>
 
-                {isDownloadOpen && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
-                    <button
-                      onClick={() => {
-                        setIsDownloadOpen(false);
-                        handleZipDownload();
-                      }}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
-                    >
-                      Download ZIP
-                    </button>
+                  {isDownloadOpen && (
+                    <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
+                      <button
+                        onClick={() => {
+                          setIsDownloadOpen(false);
+                          handleZipDownload();
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                      >
+                        Download ZIP
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        setIsDownloadOpen(false);
-                        handleCSVDownload();
-                      }}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100"
-                    >
-                      Export CSV
-                    </button>
-                  </div>
-                )}
-              </div>
+                      <button
+                        onClick={() => {
+                          setIsDownloadOpen(false);
+                          handleCSVDownload();
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                      >
+                        Export CSV
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* DELETE BUTTON */}
-              <button
-                onClick={handleBulkDeleteClick}
-                disabled={isDeleting}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete ({selectedIds.length})
-              </button>
+              {canAccess("delete-credit-notes") && (
+                <button
+                  onClick={handleBulkDeleteClick}
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete ({selectedIds.length})
+                </button>
+              )}
             </div>
           )
         }
-
       />
       <BulkDeleteConfirmationModal
         isOpen={isDeleteModalOpen}

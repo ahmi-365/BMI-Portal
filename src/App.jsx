@@ -1,11 +1,19 @@
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  BrowserRouter as Router,
+  Routes,
+} from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Forbidden from "./components/common/Forbidden";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import RouteGuard from "./components/common/RouteGuard";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import UserProtectedRoute from "./components/common/UserProtectedRoute";
 import AppLayout from "./layout/AppLayout";
 import UserLayout from "./layout/UserLayout";
+import { canAccess, getFirstAccessiblePath } from "./lib/permissionHelper";
 import AdminCreate from "./pages/admins/AdminCreate";
 import AdminProfile from "./pages/admins/AdminProfile";
 import AdminShow from "./pages/admins/AdminShow";
@@ -58,6 +66,9 @@ import UserLogin from "./pages/UserPages/UserLogin";
 
 // User Panel Pages
 import AdministrationIndex from "./pages/administration/Index";
+import RolesAdd from "./pages/administration/roles/Add";
+import RolesEdit from "./pages/administration/roles/Edit";
+import RolesShow from "./pages/administration/roles/Show";
 import ExportReport from "./pages/reports/ExportReport";
 import UserCreditNotes from "./pages/UserPages/UserCreditNotes";
 import UserCreditNoteShow from "./pages/UserPages/UserCreditNoteShow";
@@ -66,6 +77,7 @@ import UserDebitNotes from "./pages/UserPages/UserDebitNotes";
 import UserDebitNoteShow from "./pages/UserPages/UserDebitNoteShow";
 import UserDeliveryOrders from "./pages/UserPages/UserDeliveryOrders";
 import UserDeliveryOrderShow from "./pages/UserPages/UserDeliveryOrderShow";
+import UserExportReport from "./pages/UserPages/UserExportreport";
 import UserInvoices from "./pages/UserPages/UserInvoices";
 import UserInvoiceShow from "./pages/UserPages/UserInvoiceShow";
 import UserPaymentAdd from "./pages/UserPages/UserPaymentAdd";
@@ -74,7 +86,6 @@ import UserPaymentShow from "./pages/UserPages/UserPaymentShow";
 import UserProfileEdit from "./pages/UserPages/UserProfileEdit";
 import UserStatements from "./pages/UserPages/UserStatements";
 import UserStatementShow from "./pages/UserPages/UserStatementShow";
-import UserExportReport from "./pages/UserPages/UserExportreport";
 // CN PPI
 import PpisEdit from "./pages/ppis/Edit";
 import PpisIndex from "./pages/ppis/Index";
@@ -83,6 +94,19 @@ import UserPPIs from "./pages/UserPages/UserPpis";
 import UserPpiShow from "./pages/UserPages/UserPpiShow";
 
 export default function App() {
+  const DashboardEntry = () => {
+    if (canAccess("view-dashboard")) {
+      return <Home />;
+    }
+
+    const redirectTo = getFirstAccessiblePath(null);
+    if (redirectTo && redirectTo !== "/") {
+      return <Navigate to={redirectTo} replace />;
+    }
+
+    return <Forbidden />;
+  };
+
   return (
     <>
       <Router>
@@ -96,94 +120,341 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index path="/" element={<Home />} />
+            <Route index path="/" element={<DashboardEntry />} />
             <Route path="/profile" element={<AdminProfile />} />
-            {/* Admin Users (wildcard so TabbedResource routes work) */}
-            <Route path="/admin-users/*" element={<AdminUsersIndex />} />
-            <Route path="/admins/show/:id" element={<AdminShow />} />
-            <Route path="/admins/edit/:id" element={<AdminCreate />} />
+            {/* Admin Users */}
+            <Route
+              path="/admin-users/*"
+              element={
+                <RouteGuard permission="view-admins">
+                  <AdminUsersIndex />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/admins/show/:id"
+              element={
+                <RouteGuard permission="view-admins">
+                  <AdminShow />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/admins/edit/:id"
+              element={
+                <RouteGuard permission="create-admins">
+                  <AdminCreate />
+                </RouteGuard>
+              }
+            />
             {/* Payment Records */}
-            <Route path="/payments/view" element={<PaymentRecordsView />} />
-            <Route path="/payments/add" element={<PaymentRecordsAdd />} />
-            <Route path="/payments" element={<PaymentRecordsView />} />
-            <Route path="/payments/edit/:id" element={<PaymentRecordsAdd />} />
-            <Route path="/payments/show/:id" element={<PaymentRecordsShow />} />
+            <Route
+              path="/payments/view"
+              element={
+                <RouteGuard permission="view-payments">
+                  <PaymentRecordsView />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/payments/add"
+              element={
+                <RouteGuard permission="create-payments">
+                  <PaymentRecordsAdd />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/payments"
+              element={
+                <RouteGuard permission="view-payments">
+                  <PaymentRecordsView />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/payments/edit/:id"
+              element={
+                <RouteGuard permission="edit-payments">
+                  <PaymentRecordsAdd />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/payments/show/:id"
+              element={
+                <RouteGuard permission="view-payments">
+                  <PaymentRecordsShow />
+                </RouteGuard>
+              }
+            />
             <Route
               path="/payments/approved/show/:id"
-              element={<PaymentRecordsShow />}
+              element={
+                <RouteGuard permission="view-payments">
+                  <PaymentRecordsShow />
+                </RouteGuard>
+              }
             />
             <Route
               path="/payments/pending/show/:id"
-              element={<PaymentRecordsShow />}
+              element={
+                <RouteGuard permission="view-payments">
+                  <PaymentRecordsShow />
+                </RouteGuard>
+              }
             />
             <Route
               path="/payments/batch-upload"
-              element={<PaymentRecordsBatchUpload />}
+              element={
+                <RouteGuard permission="create-payments">
+                  <PaymentRecordsBatchUpload />
+                </RouteGuard>
+              }
             />
-            {/* Invoices (wildcard so TabbedResource routes work) */}
-            <Route path="/invoices/*" element={<InvoicesIndex />} />
-            <Route path="/invoices/edit/:id" element={<InvoicesEdit />} />
-            <Route path="/invoices/index/show/:id" element={<InvoicesShow />} />
-            {/* Delivery Orders (wildcard so TabbedResource routes work) */}
-            <Route path="/deliveryorders/*" element={<DeliveryOrdersIndex />} />
+            {/* Invoices */}
+            <Route
+              path="/invoices/*"
+              element={
+                <RouteGuard permission="view-invoices">
+                  <InvoicesIndex />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/invoices/edit/:id"
+              element={
+                <RouteGuard permission="edit-invoices">
+                  <InvoicesEdit />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/invoices/index/show/:id"
+              element={
+                <RouteGuard permission="view-invoices">
+                  <InvoicesShow />
+                </RouteGuard>
+              }
+            />
+            {/* Delivery Orders */}
+            <Route
+              path="/deliveryorders/*"
+              element={
+                <RouteGuard permission="view-delivery-orders">
+                  <DeliveryOrdersIndex />
+                </RouteGuard>
+              }
+            />
             <Route
               path="/deliveryorders/edit/:id"
-              element={<DeliveryOrdersEdit />}
+              element={
+                <RouteGuard permission="edit-delivery-orders">
+                  <DeliveryOrdersEdit />
+                </RouteGuard>
+              }
             />
             <Route
               path="/deliveryorders/show/:id"
-              element={<DeliveryOrdersShow />}
+              element={
+                <RouteGuard permission="view-delivery-orders">
+                  <DeliveryOrdersShow />
+                </RouteGuard>
+              }
             />
-            {/* Debit Notes (wildcard so TabbedResource routes work) */}
-            <Route path="/debitnotes/*" element={<DebitNotesIndex />} />
-            <Route path="/debitnotes/edit/:id" element={<DebitNotesEdit />} />
-            <Route path="/debitnotes/show/:id" element={<DebitNotesShow />} />
-            {/* Credit Notes (wildcard so TabbedResource routes work) */}
-            <Route path="/creditnotes/*" element={<CreditNotesIndex />} />
-            <Route path="/creditnotes/edit/:id" element={<CreditNotesEdit />} />
-            <Route path="/creditnotes/show/:id" element={<CreditNotesShow />} />
+            {/* Debit Notes */}
+            <Route
+              path="/debitnotes/*"
+              element={
+                <RouteGuard permission="view-debit-notes">
+                  <DebitNotesIndex />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/debitnotes/edit/:id"
+              element={
+                <RouteGuard permission="edit-debit-notes">
+                  <DebitNotesEdit />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/debitnotes/show/:id"
+              element={
+                <RouteGuard permission="view-debit-notes">
+                  <DebitNotesShow />
+                </RouteGuard>
+              }
+            />
+            {/* Credit Notes */}
+            <Route
+              path="/creditnotes/*"
+              element={
+                <RouteGuard permission="view-credit-notes">
+                  <CreditNotesIndex />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/creditnotes/edit/:id"
+              element={
+                <RouteGuard permission="edit-credit-notes">
+                  <CreditNotesEdit />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/creditnotes/show/:id"
+              element={
+                <RouteGuard permission="view-credit-notes">
+                  <CreditNotesShow />
+                </RouteGuard>
+              }
+            />
             {/* Account Statements (use wildcard so TabbedResource routes work)
                 - The Index component contains the TabbedResource and will render
                   correct tab based on the subpath (e.g. /account-statements/add).
                 - Show/Edit routes remain defined below to render full-page views. */}
-            <Route path="/statements/*" element={<AccountStatementsIndex />} />
+            {/* Account Statements */}
+            <Route
+              path="/statements/*"
+              element={
+                <RouteGuard permission="view-statements">
+                  <AccountStatementsIndex />
+                </RouteGuard>
+              }
+            />
             <Route
               path="/statements/edit/:id"
-              element={<AccountStatementsEdit />}
+              element={
+                <RouteGuard permission="edit-statements">
+                  <AccountStatementsEdit />
+                </RouteGuard>
+              }
             />
             <Route
               path="/statements/show/:id"
-              element={<AccountStatementsShow />}
+              element={
+                <RouteGuard permission="view-statements">
+                  <AccountStatementsShow />
+                </RouteGuard>
+              }
             />
-            {/* Also accept direct /statements routes because DataTable and other
-                  components navigate using the resource name (e.g. /statements/show/:id) */}
-            <Route path="/statements/*" element={<AccountStatementsIndex />} />
+            {/* Customers */}
             <Route
-              path="/statements/edit/:id"
-              element={<AccountStatementsEdit />}
+              path="/customers/*"
+              element={
+                <RouteGuard permission="view-customers">
+                  <CustomersIndex />
+                </RouteGuard>
+              }
             />
             <Route
-              path="/statements/show/:id"
-              element={<AccountStatementsShow />}
+              path="/customers/edit/:id"
+              element={
+                <RouteGuard permission="edit-customers">
+                  <CustomersEdit />
+                </RouteGuard>
+              }
             />
-            {/* Customers (wildcard so TabbedResource routes work) */}
-            <Route path="/customers/*" element={<CustomersIndex />} />
-            <Route path="/customers/edit/:id" element={<CustomersEdit />} />
-            <Route path="/customers/show/:id" element={<CustomersShow />} />
+            <Route
+              path="/customers/show/:id"
+              element={
+                <RouteGuard permission="view-customers">
+                  <CustomersShow />
+                </RouteGuard>
+              }
+            />
             {/* Support direct show routes for filtered resource aliases */}
             <Route
               path="/approved-customers/show/:id"
-              element={<CustomersShow />}
+              element={
+                <RouteGuard permission="view-customers">
+                  <CustomersShow />
+                </RouteGuard>
+              }
             />
             <Route
               path="/pending-customers/show/:id"
-              element={<CustomersShow />}
+              element={
+                <RouteGuard permission="view-customers">
+                  <CustomersShow />
+                </RouteGuard>
+              }
             />
-            <Route path="/administration/*" element={<AdministrationIndex />} />
-            <Route path="/reports/export" element={<ExportReport />} />
-            <Route path="/ppis/*" element={<PpisIndex />} />
-            <Route path="/ppis/show/:id" element={<PpisShow />} />
-            <Route path="/ppis/edit/:id" element={<PpisEdit />} />
+            <Route
+              path="/administration/roles/add"
+              element={
+                <RouteGuard permission="create-roles">
+                  <RolesAdd />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/administration/roles/edit/:id"
+              element={
+                <RouteGuard permission="edit-roles">
+                  <RolesEdit />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/administration/roles/show/:id"
+              element={
+                <RouteGuard permission="view-roles">
+                  <RolesShow />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/roles/show/:id"
+              element={
+                <RouteGuard permission="view-roles">
+                  <RolesShow />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/administration/*"
+              element={
+                <RouteGuard permission="list-roles">
+                  <AdministrationIndex />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/reports/export"
+              element={
+                <RouteGuard permission="view-reports">
+                  <ExportReport />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/ppis/*"
+              element={
+                <RouteGuard permission="view-ppis">
+                  <PpisIndex />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/ppis/show/:id"
+              element={
+                <RouteGuard permission="view-ppis">
+                  <PpisShow />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/ppis/edit/:id"
+              element={
+                <RouteGuard permission="edit-ppis">
+                  <PpisEdit />
+                </RouteGuard>
+              }
+            />
           </Route>
 
           {/* Auth Layout */}
