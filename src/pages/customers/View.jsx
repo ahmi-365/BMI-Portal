@@ -174,21 +174,19 @@ export default function CustomersView() {
         <nav className="flex -mb-px space-x-6" aria-label="Tabs">
           <button
             onClick={() => setActiveTab("approved")}
-            className={`pb-3 text-sm font-medium ${
-              activeTab === "approved"
+            className={`pb-3 text-sm font-medium ${activeTab === "approved"
                 ? "border-b-2 border-brand-500 text-brand-600"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
+                : "text-gray-600 "
+              }`}
           >
             Approved
           </button>
           <button
             onClick={() => setActiveTab("pending")}
-            className={`pb-3 text-sm font-medium ${
-              activeTab === "pending"
+            className={`pb-3 text-sm font-medium ${activeTab === "pending"
                 ? "border-b-2 border-brand-500 text-brand-600"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
+                : "text-gray-600 "
+              }`}
           >
             Pending
           </button>
