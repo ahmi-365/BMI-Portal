@@ -11,25 +11,25 @@ export default function AdministrationIndex() {
       key: "changepassword",
       label: "Change Password",
       component: ChangePassword,
-      permission: "list-roles",
+      // permission: "list-roles",
     },
     {
       key: "activitylogs",
       label: "Activity Logs",
       component: ActivityLogs,
-      permission: "list-roles",
+      permissions: ["log-view"],
     },
     {
       key: "exportreports",
       label: "Export Reports",
       component: ExportReport,
-      permission: "list-roles",
+      permissions: ["bulk-reports-exports"],
     },
     {
       key: "roles",
       label: "Roles & Permissions",
       component: RolesIndex,
-      permission: "list-roles",
+      permissions: ["list-roles"],
     },
   ];
 

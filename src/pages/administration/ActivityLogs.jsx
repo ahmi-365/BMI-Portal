@@ -214,7 +214,7 @@ export default function SystemLogsViewer() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-slate-50 dark:bg-slate-950 transition-colors duration-200 font-sans text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen p-4 md:p-8  transition-colors duration-200 font-sans text-slate-900 dark:text-slate-100">
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header */}

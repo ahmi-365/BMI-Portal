@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import PageMeta from "../../components/common/PageMeta";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import Toast from "../../components/common/Toast";
 import Loader from "../../components/common/Loader";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import PageMeta from "../../components/common/PageMeta";
+import Toast from "../../components/common/Toast";
 import Input from "../../components/form/input/InputField";
 import Label from "../../components/form/Label";
 import Button from "../../components/ui/button/Button";
-import { adminProfileAPI } from "../../services/api";
 import { formatDateTime } from "../../lib/dateUtils";
+import { adminProfileAPI } from "../../services/api";
 
 export default function AdminProfile() {
   const [profile, setProfile] = useState(null);
@@ -19,10 +19,26 @@ export default function AdminProfile() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [isEditing, setIsEditing] = useState(false); // New state for toggle
+  const [isEditing, setIsEditing] = useState(false);
   const [toast, setToast] = useState({ message: null, type: "success" });
 
-  const normalizeProfile = (res) => res?.data || res?.user || res || {};
+  // --- FIX START: Improved Normalization Logic ---
+  const normalizeProfile = (res) => {
+    // 1. Target the 'admin' object specifically based on your JSON structure
+    const userData = res?.admin || res?.data || res || {};
+
+    // 2. Extract roles/permissions from the root if available (usually flat arrays),
+    //    otherwise fallback to the nested object.
+    const roles = res?.roles || userData?.roles || [];
+    const permissions = res?.permissions || userData?.permissions || [];
+
+    return {
+      ...userData, // Spreads id, name, email, phone, etc.
+      roles, // Overwrites with the correctly extracted arrays
+      permissions,
+    };
+  };
+  // --- FIX END ---
 
   const loadProfile = async () => {
     try {
@@ -30,7 +46,7 @@ export default function AdminProfile() {
       const res = await adminProfileAPI.profile();
       const data = normalizeProfile(res);
       setProfile(data);
-      resetForm(data); // Helper to reset form to current data
+      resetForm(data);
     } catch (err) {
       console.error("Failed to load profile", err);
       setToast({
@@ -62,7 +78,7 @@ export default function AdminProfile() {
 
   const handleCancel = () => {
     setIsEditing(false);
-    resetForm(profile); // Revert changes if cancelled
+    resetForm(profile);
   };
 
   const handleSubmit = async (e) => {
@@ -72,7 +88,7 @@ export default function AdminProfile() {
       await adminProfileAPI.update(form);
       setToast({ message: "Profile updated successfully", type: "success" });
       setProfile((prev) => ({ ...prev, ...form }));
-      setIsEditing(false); // Exit edit mode on success
+      setIsEditing(false);
     } catch (err) {
       console.error("Failed to update profile", err);
       setToast({
@@ -88,7 +104,6 @@ export default function AdminProfile() {
     return <Loader />;
   }
 
-  // Helper to get initials for the avatar
   const getInitials = (name) => {
     return name ? name.charAt(0).toUpperCase() : "U";
   };
@@ -108,7 +123,6 @@ export default function AdminProfile() {
 
       <div className="mx-auto max-w-4xl space-y-6">
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          
           {/* Header Section with Toggle Button */}
           <div className="mb-6 flex items-center justify-between border-b border-gray-100 pb-6 dark:border-gray-800">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -125,7 +139,6 @@ export default function AdminProfile() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-12">
-            
             {/* Left Column: Avatar & Basic Info */}
             <div className="md:col-span-4 flex flex-col items-center text-center">
               <div className="relative mb-4 flex h-32 w-32 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/20">
@@ -134,16 +147,16 @@ export default function AdminProfile() {
                 </span>
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                {profile?.name}
+                {profile?.name || "Admin"}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Administrator
               </p>
               <div className="mt-4 rounded-lg bg-gray-50 px-4 py-2 dark:bg-white/[0.03]">
-                 <p className="text-xs text-gray-500">Last updated</p>
-                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                   {formatDateTime(profile?.updated_at) || "N/A"}
-                 </p>
+                <p className="text-xs text-gray-500">Last updated</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {formatDateTime(profile?.updated_at) || "N/A"}
+                </p>
               </div>
             </div>
 
@@ -181,7 +194,10 @@ export default function AdminProfile() {
                 </div>
               ) : (
                 /* EDIT MODE */
-                <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in duration-300">
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-5 animate-in fade-in duration-300"
+                >
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div>
                       <Label htmlFor="name">Full Name</Label>
@@ -249,7 +265,69 @@ export default function AdminProfile() {
             </div>
           </div>
         </div>
+
+        {/* Roles & Permissions Section */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+            Roles & Permissions
+          </h2>
+
+          <div className="space-y-3">
+            {/* Roles */}
+            <div className="flex items-start gap-3">
+              <span className="min-w-[120px] font-semibold text-gray-700 dark:text-gray-300 pt-0.5">
+                Roles:
+              </span>
+              <div className="flex-1">
+                {profile?.roles && profile.roles.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {profile.roles.map((role, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-900/30 dark:text-blue-400"
+                      >
+                        {/* Handle both string ["role"] and object [{name: "role"}] formats */}
+                        {typeof role === "object" ? role.name : role}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    No roles assigned
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Permissions */}
+            <div className="flex items-start gap-3">
+              <span className="min-w-[120px] font-semibold text-gray-700 dark:text-gray-300 pt-0.5">
+                Permissions:
+              </span>
+              <div className="flex-1">
+                {profile?.permissions && profile.permissions.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {/* Using Map instead of Join for cleaner tags */}
+                    {profile.permissions.map((perm, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-gray-800 dark:text-gray-300"
+                      >
+                        {typeof perm === "object" ? perm.name : perm}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    No permissions assigned
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
 }
+  

@@ -51,8 +51,10 @@ export const DataTable = ({
   };
 
   const handleEdit = (row) => {
-    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-    const editResource = resourceName.replace('/index', '');
+    const returnTo = encodeURIComponent(
+      window.location.pathname + window.location.search,
+    );
+    const editResource = resourceName.replace("/index", "");
     navigate(`/${editResource}/edit/${row.id}?returnTo=${returnTo}`);
   };
 
@@ -107,7 +109,8 @@ export const DataTable = ({
                   </th>
                 )}
                 {columns.map((column, index) => {
-                  const columnKey = column.filterKey || column.accessor || column.accessorKey;
+                  const columnKey =
+                    column.filterKey || column.accessor || column.accessorKey;
                   const isSortable = column.sortable !== false && columnKey;
                   const isSorted = sortBy === columnKey;
 
@@ -116,13 +119,15 @@ export const DataTable = ({
                       key={index}
                       onClick={() => isSortable && onSort?.(columnKey)}
                       className={`px-5 py-4 font-semibold text-gray-700 text-xs uppercase tracking-wider dark:text-gray-300 whitespace-nowrap first:rounded-tl-2xl last:rounded-tr-2xl border-b-2 border-gray-200 dark:border-gray-700 ${
-                        isSortable ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" : ""
+                        isSortable
+                          ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          : ""
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         <span>{column.header}</span>
-                        {isSortable && (
-                          isSorted ? (
+                        {isSortable &&
+                          (isSorted ? (
                             sortOrder === "asc" ? (
                               <ArrowUp className="w-4 h-4 text-brand-500" />
                             ) : (
@@ -130,8 +135,7 @@ export const DataTable = ({
                             )
                           ) : (
                             <ArrowUp className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-                          )
-                        )}
+                          ))}
                       </div>
                     </th>
                   );
@@ -339,36 +343,48 @@ export const DataTable = ({
 };
 
 // Helper function to create action column
-export const createActionColumn = (onView, onEdit, onDelete) => ({
+export const createActionColumn = (
+  onView,
+  onEdit,
+  onDelete,
+  rowEditCondition = null,
+  rowDeleteCondition = null,
+) => ({
   header: "Actions",
   // No 'accessor' means no filter input will be rendered for this column
-  render: (row) => (
-    <div className="flex items-center gap-2">
-      {onEdit && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(row);
-          }}
-          className="group/btn relative inline-flex items-center justify-center rounded-lg bg-brand-50 px-3 py-2 text-brand-700 transition-all duration-200 hover:bg-brand-100 hover:shadow-md hover:-translate-y-0.5 dark:bg-brand-900/30 dark:text-brand-200 dark:hover:bg-brand-900/50"
-          title="Edit"
-        >
-          <Pencil className="w-4 h-4 transition-transform duration-200 group-hover/btn:scale-110" />
-        </button>
-      )}
+  render: (row) => {
+    const canEdit = onEdit && (!rowEditCondition || rowEditCondition(row));
+    const canDelete =
+      onDelete && (!rowDeleteCondition || rowDeleteCondition(row));
 
-      {onDelete && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(row);
-          }}
-          className="group/btn relative inline-flex items-center justify-center rounded-lg bg-red-50 px-3 py-2 text-red-600 transition-all duration-200 hover:bg-red-100 hover:shadow-md hover:-translate-y-0.5 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
-          title="Delete"
-        >
-          <Trash2 className="w-4 h-4 transition-transform duration-200 group-hover/btn:scale-110" />
-        </button>
-      )}
-    </div>
-  ),
+    return (
+      <div className="flex items-center gap-2">
+        {canEdit && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(row);
+            }}
+            className="group/btn relative inline-flex items-center justify-center rounded-lg bg-brand-50 px-3 py-2 text-brand-700 transition-all duration-200 hover:bg-brand-100 hover:shadow-md hover:-translate-y-0.5 dark:bg-brand-900/30 dark:text-brand-200 dark:hover:bg-brand-900/50"
+            title="Edit"
+          >
+            <Pencil className="w-4 h-4 transition-transform duration-200 group-hover/btn:scale-110" />
+          </button>
+        )}
+
+        {canDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(row);
+            }}
+            className="group/btn relative inline-flex items-center justify-center rounded-lg bg-red-50 px-3 py-2 text-red-600 transition-all duration-200 hover:bg-red-100 hover:shadow-md hover:-translate-y-0.5 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4 transition-transform duration-200 group-hover/btn:scale-110" />
+          </button>
+        )}
+      </div>
+    );
+  },
 });

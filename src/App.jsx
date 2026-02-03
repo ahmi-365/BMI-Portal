@@ -418,7 +418,13 @@ export default function App() {
             <Route
               path="/administration/*"
               element={
-                <RouteGuard permission="list-roles">
+                <RouteGuard
+                  permissions={[
+                    "list-roles",
+                    "bulk-reports-exports",
+                    "log-view",
+                  ]}
+                >
                   <AdministrationIndex />
                 </RouteGuard>
               }
@@ -426,7 +432,7 @@ export default function App() {
             <Route
               path="/reports/export"
               element={
-                <RouteGuard permission="view-reports">
+                <RouteGuard permission="bulk-reports-exports">
                   <ExportReport />
                 </RouteGuard>
               }

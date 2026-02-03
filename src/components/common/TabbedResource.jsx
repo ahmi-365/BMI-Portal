@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { canAccess } from "../../lib/permissionHelper";
+import { canAccess, canAccessAny } from "../../lib/permissionHelper";
 
 export default function TabbedResource({
   tabs = [],
@@ -10,7 +10,15 @@ export default function TabbedResource({
   const location = useLocation();
   const navigate = useNavigate();
   const allowedTabs = useMemo(
-    () => tabs.filter((t) => canAccess(t.permission)),
+    () =>
+      tabs.filter((t) => {
+        // If tab has multiple permissions, check if user has any of them
+        if (t.permissions && Array.isArray(t.permissions)) {
+          return canAccessAny(t.permissions);
+        }
+        // Otherwise, check single permission
+        return canAccess(t.permission);
+      }),
     [tabs],
   );
 

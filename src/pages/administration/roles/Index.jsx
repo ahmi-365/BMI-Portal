@@ -5,6 +5,7 @@ import { ListPage } from "../../../components/common/ListPage";
 import Toast from "../../../components/common/Toast";
 import { canAccess } from "../../../lib/permissionHelper";
 import { rolesAPI } from "../../../services/api";
+import { auth } from "../../../services/auth";
 
 const COLUMNS = [
   {
@@ -30,13 +31,39 @@ export default function RolesIndex() {
   const [toast, setToast] = useState({ message: null, type: "success" });
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this role?")) return;
     try {
       await rolesAPI.delete(id);
       setToast({ message: "Role deleted successfully", type: "success" });
     } catch (error) {
       setToast({ message: error.message, type: "error" });
     }
+  };
+
+  // Function to check if a role can be edited or deleted
+  const canModifyRole = (row) => {
+    const roleName = row.name?.toLowerCase();
+
+    // Get current user's roles from localStorage
+    const currentUserRoles = auth.getRoles();
+    const currentUserRoleNames = currentUserRoles.map((r) => r.toLowerCase());
+    const isSuperAdmin = currentUserRoleNames.includes("super-admin");
+
+    // super-admin role cannot be edited or deleted by anyone
+    if (roleName === "super-admin") {
+      return false;
+    }
+
+    // Only super-admin can edit/delete the admin role
+    if (roleName === "admin" && !isSuperAdmin) {
+      return false;
+    }
+
+    // Cannot modify the role that the current user has
+    if (currentUserRoleNames.includes(roleName)) {
+      return false;
+    }
+
+    return true;
   };
 
   return (
@@ -75,6 +102,8 @@ export default function RolesIndex() {
           onDelete={canAccess("delete-roles") ? handleDelete : null}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
+          rowEditCondition={canModifyRole}
+          rowDeleteCondition={canModifyRole}
         />
       </div>
     </>

@@ -18,7 +18,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
-import { canAccess } from "../lib/permissionHelper";
+import { canAccess, canAccessAny } from "../lib/permissionHelper";
 
 const navItems = [
   {
@@ -88,7 +88,7 @@ const othersItems = [
     name: "Administration",
     icon: <MoreHorizontal className="w-5 h-5" />,
     path: "/administration",
-    permission: "list-roles",
+    permissions: ["list-roles", "bulk-reports-exports", "log-view"],
   },
 ];
 
@@ -96,7 +96,15 @@ const AppSidebar = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
   const filterNavItems = useCallback(
-    (items) => items.filter((item) => canAccess(item.permission)),
+    (items) =>
+      items.filter((item) => {
+        // If item has multiple permissions, check if user has any of them
+        if (item.permissions && Array.isArray(item.permissions)) {
+          return canAccessAny(item.permissions);
+        }
+        // Otherwise, check single permission
+        return canAccess(item.permission);
+      }),
     [],
   );
 

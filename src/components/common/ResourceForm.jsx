@@ -839,7 +839,7 @@ export const ResourceForm = ({
                   navigate(
                     returnTo
                       ? decodeURIComponent(returnTo)
-                      : `/${resourceName}/view`,
+                      : redirectPath || `/${resourceName}`,
                   );
                 }}
                 className="px-6 py-3 rounded-xl border-2 border-gray-300 font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:border-gray-500 transition-all duration-200"

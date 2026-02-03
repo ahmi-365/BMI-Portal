@@ -93,6 +93,8 @@ export const ListPage = ({
   additionalParams = {},
   initialFilters = null,
   onDelete = null,
+  rowEditCondition = null,
+  rowDeleteCondition = null,
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -412,6 +414,8 @@ export const ListPage = ({
           handleView,
           showEdit ? handleEdit : null,
           onDelete ? promptDelete : null,
+          rowEditCondition,
+          rowDeleteCondition,
         ),
       ]
     : baseColumns;

@@ -99,15 +99,17 @@ const RolesShow = () => {
         <h2 className="text-title-md2 font-bold text-black dark:text-white">
           Role Details
         </h2>
-        <PermissionGuard permission="edit-roles">
-          <button
-            onClick={() => navigate(`/administration/roles/edit/${id}`)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Edit className="w-4 h-4" />
-            Edit Role
-          </button>
-        </PermissionGuard>
+        {role?.name?.toLowerCase() !== "super-admin" && (
+          <PermissionGuard permission="edit-roles">
+            <button
+              onClick={() => navigate(`/administration/roles/edit/${id}`)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Edit className="w-4 h-4" />
+              Edit Role
+            </button>
+          </PermissionGuard>
+        )}
       </div>
 
       {/* Role Info Card */}

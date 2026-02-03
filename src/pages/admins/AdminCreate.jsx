@@ -57,8 +57,21 @@ const AdminCreate = () => {
           setIsLoading(true);
           setError(null);
           const response = await adminUsersAPI.show(id);
-          const adminData = response.data || response;
-          setAdmin(adminData);
+          // Handle both wrapped and unwrapped responses
+          const data = response.data || response;
+          // Check if admin data is nested (e.g., { data: { admin: {...} } })
+          const adminData = data.admin || data;
+
+          // Transform the admin data to match form field names
+          const transformedAdmin = {
+            ...adminData,
+            // Map is_mailable to boolean for the toggle field
+            is_mailable: toBooleanIsMailable(adminData.is_mailable),
+            // Extract first role name if roles array exists
+            role: adminData.roles?.[0]?.name || "",
+          };
+
+          setAdmin(transformedAdmin);
         } catch (err) {
           console.error("Error loading admin:", err);
           setError(err.message);
