@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { Dropdown } from "../ui/dropdown/Dropdown";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../../services/auth";
 import { adminProfileAPI } from "../../services/api";
+import { auth } from "../../services/auth";
+import { Dropdown } from "../ui/dropdown/Dropdown";
+import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +14,8 @@ export default function UserDropdown() {
     const fetchProfile = async () => {
       try {
         const res = await adminProfileAPI.profile();
-        const data = res?.data || res?.user || res || {};
+        const data =
+          res?.admin || res?.data?.admin || res?.data || res?.user || res || {};
         setProfile({
           name: data?.name || "Admin",
           email: data?.email || "",

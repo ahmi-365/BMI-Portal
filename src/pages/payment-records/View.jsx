@@ -502,6 +502,7 @@ export default function PaymentRecordsView() {
           subtitle="View pending payment acknowledgments"
           showEdit={false}
           selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
           onDelete={canAccess("delete-payments") ? handleSingleDelete : null}
           refreshKey={refreshKey}
           headerAction={
