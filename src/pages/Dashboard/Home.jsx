@@ -233,8 +233,6 @@ export default function AdminDashboard() {
       </span>
     );
   };
-
-  /* -------------------- ERROR STATE -------------------- */
   if (error) {
     return (
       <div className="flex h-[80vh] flex-col items-center justify-center gap-4 text-center">
@@ -268,7 +266,6 @@ export default function AdminDashboard() {
 
       <div className="min-h-screen ">
         <div className="mx-auto max-w-7xl space-y-8">
-          {/* Top Header Section */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <PageBreadcrumb

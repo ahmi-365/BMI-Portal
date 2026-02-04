@@ -21,12 +21,12 @@ export default function DeliveryOrdersAdd() {
       const dataMap = {};
       const opts = Array.isArray(list)
         ? list.map((inv) => {
-            dataMap[inv.do_no] = inv; // Key by do_no instead of id
-            return {
-              value: inv.do_no, // Send do_no to backend
-              label: inv.do_no || `DO #${inv.id}`,
-            };
-          })
+          dataMap[inv.do_no] = inv; // Key by do_no instead of id
+          return {
+            value: inv.do_no, // Send do_no to backend
+            label: inv.do_no || `DO #${inv.id}`,
+          };
+        })
         : [];
 
       setInvoiceData(dataMap);
@@ -92,16 +92,16 @@ export default function DeliveryOrdersAdd() {
 
   const handleSubmit = async (formData) => {
     const fd = new FormData();
-    
-    // Only send do_no, remarks, and file to backend
+
+
     if (formData.do_no) fd.append("do_no", formData.do_no);
     if (formData.remarks) fd.append("remarks", formData.remarks);
-    
+
     // Handle file upload
     if (formData.do_doc instanceof File) {
       fd.append("file", formData.do_doc, formData.do_doc.name);
     }
-    
+
     if (isEditMode) {
       return await deliveryOrdersAPI.update(id, fd);
     }

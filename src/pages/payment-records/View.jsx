@@ -113,11 +113,10 @@ const PAID_COLUMNS = [
     disableFilter: true,
     render: (row) => (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          row.status === 0
-            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-        }`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 0
+          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+          }`}
       >
         {row.status === 0 ? "Pending" : "Approved"}
       </span>
@@ -217,11 +216,10 @@ const createNotAcknowledgedColumns = (onApprove) => [
     disableFilter: true,
     render: (row) => (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          row.status === 0
-            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-        }`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === 0
+          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+          }`}
       >
         {row.status === 0 ? "Pending" : "Approved"}
       </span>
@@ -275,25 +273,36 @@ export default function PaymentRecordsView() {
   const handleBulkDownload = async () => {
     try {
       setIsDownloading(true);
+
       const blob = await paymentsAPI.bulkDownload(selectedIds);
+
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = blobUrl;
-      link.download = `payment-records-${new Date().getTime()}.zip`;
+      link.download = `payment-records-${Date.now()}.zip`;
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
+
       setToastType("success");
       setToastMessage("Download started successfully");
     } catch (error) {
       console.error("Bulk download failed:", error);
       setToastType("error");
-      setToastMessage(error.message || "Failed to download items");
+      const apiMessage =
+        error?.response?.data?.message ||
+        "No Files found for the selected payments";
+
+      setToastMessage(apiMessage);
+
     } finally {
       setIsDownloading(false);
     }
   };
+
+
   const handleExportCSV = async () => {
     if (selectedIds.length === 0) {
       setToastType("error");
@@ -399,22 +408,20 @@ export default function PaymentRecordsView() {
         <div className="flex gap-4">
           <button
             onClick={() => setActiveTab("paid")}
-            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "paid"
-                ? "border-brand-500 text-brand-500"
-                : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
-            }`}
+            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "paid"
+              ? "border-brand-500 text-brand-500"
+              : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
+              }`}
           >
             Paid Invoices
           </button>
 
           <button
             onClick={() => setActiveTab("not-acknowledged")}
-            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "not-acknowledged"
-                ? "border-brand-500 text-brand-500"
-                : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
-            }`}
+            className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "not-acknowledged"
+              ? "border-brand-500 text-brand-500"
+              : "border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-400"
+              }`}
           >
             Not Acknowledged
           </button>
@@ -451,24 +458,23 @@ export default function PaymentRecordsView() {
 
                   {isDownloadMenuOpen && canAccess("export-payments") && (
                     <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20">
-                      {/* <button
-                        onClick={() =>
-                          openBulkConfirm({
-                            type: "zip",
-                            title: "Download ZIP",
-                            message: `Download ${selectedIds.length} payment record(s) as ZIP?`,
-                            confirmText: "Download ZIP",
-                            onConfirm: handleBulkDownload,
-                          })
-                        }
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                      <button
+                        onClick={handleBulkDownload}
+                        disabled={isDownloading || selectedIds.length === 0}
+                        className={`w-full px-4 py-2 text-left text-sm
+                            ${isDownloading || selectedIds.length === 0
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-gray-100"
+                          }`}
                       >
-                        Download ZIP
-                      </button> */}
+                        {isDownloading ? "Downloading..." : "Download ZIP"}
+                      </button>
+
+
 
                       <button
                         onClick={handleExportCSV}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 text-sm"
                       >
                         Export CSV
                       </button>
@@ -521,24 +527,22 @@ export default function PaymentRecordsView() {
 
                   {isDownloadMenuOpen && canAccess("export-payments") && (
                     <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20">
-                      {/* <button
-                        onClick={() =>
-                          openBulkConfirm({
-                            type: "zip",
-                            title: "Download ZIP",
-                            message: `Download ${selectedIds.length} payment record(s) as ZIP?`,
-                            confirmText: "Download ZIP",
-                            onConfirm: handleBulkDownload,
-                          })
-                        }
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                      <button
+                        onClick={handleBulkDownload}
+                        disabled={isDownloading || selectedIds.length === 0}
+                        className={`w-full px-4 py-2 text-left text-sm
+                           ${isDownloading || selectedIds.length === 0
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-gray-100 "
+                          }`}
                       >
-                        Download ZIP
-                      </button> */}
+                        {isDownloading ? "Downloading..." : "Download ZIP"}
+                      </button>
+
 
                       <button
                         onClick={handleExportCSV}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 text-sm"
                       >
                         Export CSV
                       </button>

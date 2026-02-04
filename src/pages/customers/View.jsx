@@ -175,8 +175,8 @@ export default function CustomersView() {
           <button
             onClick={() => setActiveTab("approved")}
             className={`pb-3 text-sm font-medium ${activeTab === "approved"
-                ? "border-b-2 border-brand-500 text-brand-600"
-                : "text-gray-600 "
+              ? "border-b-2 border-brand-500 text-brand-600"
+              : "text-gray-600 "
               }`}
           >
             Approved
@@ -184,8 +184,8 @@ export default function CustomersView() {
           <button
             onClick={() => setActiveTab("pending")}
             className={`pb-3 text-sm font-medium ${activeTab === "pending"
-                ? "border-b-2 border-brand-500 text-brand-600"
-                : "text-gray-600 "
+              ? "border-b-2 border-brand-500 text-brand-600"
+              : "text-gray-600 "
               }`}
           >
             Pending

@@ -1104,7 +1104,8 @@ export const paymentsAPI = {
   download: (id) => apiCall(`/statements/download/${id}`),
 
   bulkDownload: (ids) =>
-    downloadBlobPost("/payment-records/bulk-download", { ids }),
+    downloadBlobPost("/payments/bulk-download", { ids }),
+
 
   exportApprovedCSV: (ids) =>
     downloadBlobPost("/payments/export/approved", { ids }),
