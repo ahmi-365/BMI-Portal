@@ -151,7 +151,7 @@ export default function App() {
             <Route
               path="/payments/view"
               element={
-                <RouteGuard permission="view-payments">
+                <RouteGuard permission="list-payments">
                   <PaymentRecordsView />
                 </RouteGuard>
               }
@@ -167,7 +167,7 @@ export default function App() {
             <Route
               path="/payments"
               element={
-                <RouteGuard permission="view-payments">
+                <RouteGuard permission="list-payments">
                   <PaymentRecordsView />
                 </RouteGuard>
               }
@@ -216,7 +216,7 @@ export default function App() {
             <Route
               path="/invoices/*"
               element={
-                <RouteGuard permission="view-invoices">
+                <RouteGuard permission="list-invoices">
                   <InvoicesIndex />
                 </RouteGuard>
               }
@@ -241,7 +241,7 @@ export default function App() {
             <Route
               path="/deliveryorders/*"
               element={
-                <RouteGuard permission="view-delivery-orders">
+                <RouteGuard permission="list-delivery-orders">
                   <DeliveryOrdersIndex />
                 </RouteGuard>
               }
@@ -266,7 +266,7 @@ export default function App() {
             <Route
               path="/debitnotes/*"
               element={
-                <RouteGuard permission="view-debit-notes">
+                <RouteGuard permission="list-debit-notes">
                   <DebitNotesIndex />
                 </RouteGuard>
               }
@@ -291,7 +291,7 @@ export default function App() {
             <Route
               path="/creditnotes/*"
               element={
-                <RouteGuard permission="view-credit-notes">
+                <RouteGuard permission="list-credit-notes">
                   <CreditNotesIndex />
                 </RouteGuard>
               }
@@ -320,7 +320,7 @@ export default function App() {
             <Route
               path="/statements/*"
               element={
-                <RouteGuard permission="view-statements">
+                <RouteGuard permission="list-statements">
                   <AccountStatementsIndex />
                 </RouteGuard>
               }
@@ -345,7 +345,7 @@ export default function App() {
             <Route
               path="/customers/*"
               element={
-                <RouteGuard permission="view-customers">
+                <RouteGuard permission="list-customers">
                   <CustomersIndex />
                 </RouteGuard>
               }
@@ -427,7 +427,7 @@ export default function App() {
             <Route
               path="/ppis/*"
               element={
-                <RouteGuard permission="view-ppis">
+                <RouteGuard permission="list-ppis">
                   <PpisIndex />
                 </RouteGuard>
               }
