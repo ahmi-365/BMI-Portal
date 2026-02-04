@@ -13,14 +13,16 @@ const COLUMNS = [
     accessor: "name",
     sortable: true,
   },
-  {
-    header: "Guard Name",
-    accessor: "guard_name",
-    sortable: true,
-  },
+  // {
+  //   header: "Guard Name",
+  //   accessor: "guard_name",
+  //   sortable: true,
+  // },
   {
     header: "Created At",
-    accessor: "created_at",
+    accessor: "created",
+    filterType: "date-range",
+
     sortable: true,
     render: (row) => new Date(row.created_at).toLocaleDateString(),
   },

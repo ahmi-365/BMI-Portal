@@ -295,8 +295,6 @@ export default function InvoicesView() {
                   )}
                 </div>
               )}
-
-              {/* 🔥 BULK DELETE BUTTON (THIS WAS MISSING) */}
               {canAccess("delete-invoices") && (
                 <button
                   onClick={handleBulkDeleteClick}

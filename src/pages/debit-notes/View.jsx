@@ -279,8 +279,6 @@ export default function DebitNotesView() {
                   )}
                 </div>
               )}
-
-              {/* Delete */}
               {canAccess("delete-debit-notes") && (
                 <button
                   onClick={handleBulkDeleteClick}
