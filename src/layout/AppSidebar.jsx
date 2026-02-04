@@ -88,6 +88,7 @@ const othersItems = [
     name: "Administration",
     icon: <MoreHorizontal className="w-5 h-5" />,
     path: "/administration",
+    alwaysVisible: true,
     permissions: ["list-roles", "bulk-reports-exports", "log-view"],
   },
 ];
@@ -98,6 +99,9 @@ const AppSidebar = () => {
   const filterNavItems = useCallback(
     (items) =>
       items.filter((item) => {
+        if (item.alwaysVisible) {
+          return true;
+        }
         // If item has multiple permissions, check if user has any of them
         if (item.permissions && Array.isArray(item.permissions)) {
           return canAccessAny(item.permissions);
