@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { downloadBlob, userDownloadBlob } from "../../services/api";
+import { toast } from "react-toastify";
 
 export default function FileDownloadButton({
   file,
@@ -38,14 +39,56 @@ export default function FileDownloadButton({
       }
 
       setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      
+      // Success toast
+      toast.success("File downloaded successfully!");
+      
     } catch (err) {
       console.error("Download failed:", err);
-      alert("Failed to download document. Please try again.");
+
+      let backendMessage = "";
+
+      try {
+        let errorData = err?.response?.data || err?.data;
+
+        // If it's a Blob, convert to text first
+        if (errorData instanceof Blob) {
+          const text = await errorData.text();
+          errorData = text;
+        }
+
+        // If it's a string, try to parse it as JSON
+        if (typeof errorData === "string") {
+          try {
+            errorData = JSON.parse(errorData);
+          } catch {
+            // If parsing fails, check if the string itself contains the pattern
+            const match = errorData.match(/"message"\s*:\s*"([^"]*)"/);
+            if (match) {
+              backendMessage = match[1];
+            } else {
+              backendMessage = errorData;
+            }
+          }
+        }
+
+        // Now extract message from the object
+        if (typeof errorData === "object" && errorData !== null) {
+          backendMessage = errorData.message || "";
+        }
+
+      } catch (e) {
+        console.warn("Failed to parse backend error", e);
+      }
+
+      // Display error toast
+      toast.error(backendMessage || "File missing on server");
+      
     } finally {
       setIsDownloading(false);
     }
   };
-
+  
   const handleClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -57,8 +100,9 @@ export default function FileDownloadButton({
       onClick={handleClick}
       className="text-brand-500 hover:underline focus:outline-none"
       title={`Download ${file}`}
+      disabled={isDownloading}
     >
-      {children || file}
+      {isDownloading ? "Downloading..." : (children || file)}
     </button>
   );
 }
