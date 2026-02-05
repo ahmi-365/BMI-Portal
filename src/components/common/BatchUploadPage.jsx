@@ -223,6 +223,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
   // Load invoices for delivery orders dropdown
   const [invoiceData, setInvoiceData] = useState({});
   const [invoiceSearchQuery, setInvoiceSearchQuery] = useState("");
+  const [doNoSearchQuery, setDoNoSearchQuery] = useState({}); // Track DO No. per record index
 
   const loadInvoices = useCallback(async (search = "") => {
     // Don't load invoices if search is empty
@@ -269,6 +270,27 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     }, 300);
     return () => clearTimeout(timeout);
   }, [invoiceSearchQuery, resourceName, loadInvoices]);
+
+  // Debounced DO No. search per record
+  useEffect(() => {
+    if (resourceName !== "deliveryorders") return;
+    const timeouts = {};
+
+    Object.entries(doNoSearchQuery).forEach(([indexStr, doNo]) => {
+      if (!doNo || doNo.trim() === "") return;
+
+      const timeout = setTimeout(() => {
+        const index = parseInt(indexStr, 10);
+        handleDoNoBlur(index, doNo);
+      }, 500);
+
+      timeouts[indexStr] = timeout;
+    });
+
+    return () => {
+      Object.values(timeouts).forEach((timeout) => clearTimeout(timeout));
+    };
+  }, [doNoSearchQuery, resourceName]);
 
   const handleFilesSelected = (files) => {
     setUploadedFiles(files);
@@ -633,7 +655,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         // Clear invoice match if user cleared the DO No
         handleFormChange(index, "invoice_id", "");
         handleFormChange(index, "invoice_no", "");
-        handleFormChange(index, "remarks", "No invoice found for this DO No");
+        handleFormChange(index, "remarks", "");
         return;
       }
       // Try API search; be flexible matching on do_no, invoice_no or invoiceId
@@ -690,7 +712,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       console.error("DO No blur search failed:", err);
       handleFormChange(index, "invoice_id", "");
       handleFormChange(index, "invoice_no", "");
-      handleFormChange(index, "remarks", "No invoice found for this DO No");
+      handleFormChange(index, "remarks", "");
     }
   };
 
@@ -2461,12 +2483,17 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                 <input
                                   type="text"
                                   value={form.do_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "do_no",
-                                      e.target.value,
-                                    )
+                                  onChange={(e) => {
+                                    const newValue = e.target.value;
+                                    handleFormChange(idx, "do_no", newValue);
+                                    // Trigger debounced search
+                                    setDoNoSearchQuery((prev) => ({
+                                      ...prev,
+                                      [idx]: newValue,
+                                    }));
+                                  }}
+                                  onBlur={(e) =>
+                                    handleDoNoBlur(idx, e.target.value)
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white ${errorClass(
