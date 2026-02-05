@@ -138,7 +138,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     if (!shouldLoadCompanies) return;
     const load = async () => {
       try {
-        console.debug("BatchUploadPage: attempting to load companies for", resourceName);
+        console.debug(
+          "BatchUploadPage: attempting to load companies for",
+          resourceName,
+        );
         const res = await companiesAPI.list();
         console.debug("BatchUploadPage: companiesAPI.list() response:", res);
         const list = res?.data ?? res ?? [];
@@ -151,7 +154,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         if (Array.isArray(list)) {
           list.forEach((c) => {
             const key = c?.customer_no;
-            if (key !== undefined && key !== null && String(key).trim() !== "") {
+            if (
+              key !== undefined &&
+              key !== null &&
+              String(key).trim() !== ""
+            ) {
               map[String(key).trim().toLowerCase()] = c.id;
             }
           });
@@ -161,7 +168,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         console.error("Error loading companies:", e);
         // Log responseData if available to help debugging network vs parse errors
         try {
-          console.debug("Company load error responseData:", e?.responseData || e?.response || null);
+          console.debug(
+            "Company load error responseData:",
+            e?.responseData || e?.response || null,
+          );
         } catch (_) {}
         setCompanyOptions([]);
       }
@@ -185,7 +195,9 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const next = formData.map((f) => {
         const cust = f?.customer_no;
         if (!cust) return f;
-        const key = String(cust ?? "").trim().toLowerCase();
+        const key = String(cust ?? "")
+          .trim()
+          .toLowerCase();
         const matched = companyMapByCustomer[key];
         if (matched && (!f.user_id || f.user_id === "")) {
           changed = true;
@@ -193,7 +205,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             "BatchUploadPage: auto-matching customer_no",
             cust,
             "-> company id",
-            matched
+            matched,
           );
           return { ...f, user_id: matched };
         }
@@ -265,7 +277,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     setError(null);
 
     try {
-    // ... inside handleParse ...
+      // ... inside handleParse ...
 
       // Delivery orders: Run OCR and Search API for Invoice
       if (resourceName === "deliveryorders") {
@@ -293,7 +305,9 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             // 2. If OCR found a number, Ask the API to find the invoice
             if (extractedDoNo) {
               const cleanDoNo = String(extractedDoNo).trim();
-              console.log(`[File ${idx + 1}] Searching API for DO: ${cleanDoNo}`);
+              console.log(
+                `[File ${idx + 1}] Searching API for DO: ${cleanDoNo}`,
+              );
 
               try {
                 // Call API explicitly for this DO number to bypass pagination issues
@@ -301,24 +315,37 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                 const results = res?.data ?? res ?? [];
 
                 // Find exact match in results
-                const foundInvoice = results.find(inv => 
-                  String(inv.do_no || "").trim() === cleanDoNo
+                const foundInvoice = results.find(
+                  (inv) => String(inv.do_no || "").trim() === cleanDoNo,
                 );
 
                 if (foundInvoice) {
-                  console.log(`[File ${idx + 1}]   Match Found: Invoice #${foundInvoice.invoice_no}`);
+                  console.log(
+                    `[File ${idx + 1}]   Match Found: Invoice #${foundInvoice.invoice_no}`,
+                  );
                   matchedInvoiceId = foundInvoice.id;
-                  matchedInvoiceNo = foundInvoice.invoiceId || foundInvoice.invoice_no;
+                  matchedInvoiceNo =
+                    foundInvoice.invoiceId || foundInvoice.invoice_no;
                   remarkText = "Auto-matched via OCR";
 
                   // OPTIONAL: Add this invoice to your local list so the dropdown shows it correctly
-                  setInvoiceOptions(prev => {
-                    const exists = prev.some(opt => opt.value === foundInvoice.id);
+                  setInvoiceOptions((prev) => {
+                    const exists = prev.some(
+                      (opt) => opt.value === foundInvoice.id,
+                    );
                     if (exists) return prev;
-                    return [...prev, { value: foundInvoice.id, label: foundInvoice.do_no || foundInvoice.invoice_no }];
+                    return [
+                      ...prev,
+                      {
+                        value: foundInvoice.id,
+                        label: foundInvoice.do_no || foundInvoice.invoice_no,
+                      },
+                    ];
                   });
-                  setInvoiceData(prev => ({ ...prev, [foundInvoice.id]: foundInvoice }));
-
+                  setInvoiceData((prev) => ({
+                    ...prev,
+                    [foundInvoice.id]: foundInvoice,
+                  }));
                 } else {
                   remarkText = ``;
                 }
@@ -330,14 +357,14 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
             return {
               index: idx,
-              invoice_id: matchedInvoiceId, 
-              invoice_no: matchedInvoiceNo, 
-              do_no: extractedDoNo || "", 
+              invoice_id: matchedInvoiceId,
+              invoice_no: matchedInvoiceNo,
+              do_no: extractedDoNo || "",
               do_doc: file.name,
               remarks: null,
-              _file: file 
+              _file: file,
             };
-          })
+          }),
         );
 
         setFormData(manualForms);
@@ -385,8 +412,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         typeof parseData.files === "number"
           ? parseData.files
           : Array.isArray(parseData.files)
-          ? parseData.files.length
-          : uploadedFiles.length;
+            ? parseData.files.length
+            : uploadedFiles.length;
       console.log("File count:", fileCount, "ParseData:", parseData);
 
       const initialForms = Array(fileCount)
@@ -456,7 +483,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.cn_no = parseData.cn_no?.[idx] ?? "";
             // Map cn_date from backend to ppi_date for the form (as yyyy-mm-dd)
             form.ppi_date = toISODate(
-              parseData.ppi_date?.[idx] ?? parseData.cn_date?.[idx] ?? ""
+              parseData.ppi_date?.[idx] ?? parseData.cn_date?.[idx] ?? "",
             );
             form.payment_term = parseData.payment_term?.[idx] ?? "";
             // Show only the numeric part of ppi_percentage, remove percent sign and whitespace
@@ -474,7 +501,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           if (resourceName === "debitnotes") {
             console.log(
               "Debit note form BEFORE mapping:",
-              JSON.stringify(form, null, 2)
+              JSON.stringify(form, null, 2),
             );
 
             const pickValue = (key) => {
@@ -502,7 +529,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.user_id = pickValueStrict("user_id", form.user_id ?? ""); // company dropdown value
             form.customer_no = pickValueStrict(
               "customer_no",
-              form.customer_no ?? ""
+              form.customer_no ?? "",
             );
             const rawAmount = pickValueStrict("amount", form.amount ?? "");
             form.amount = extractAmount(rawAmount);
@@ -513,7 +540,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.dn_date = toISODate(rawDnDate) || rawDnDate || "";
             const rawTerm = pickValueStrict(
               "payment_term",
-              form.payment_term ?? ""
+              form.payment_term ?? "",
             );
             const dueFromTermDN = dueDateFromTerm(rawTerm);
             form.payment_term = dueFromTermDN || toISODate(rawTerm) || "";
@@ -522,7 +549,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.dn_doc = parsedDoc || "";
             console.log(
               "Debit note form AFTER mapping:",
-              JSON.stringify(form, null, 2)
+              JSON.stringify(form, null, 2),
             );
           }
           if (resourceName === "invoices") {
@@ -604,7 +631,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const res = await invoicesAPI.allInvoices(clean);
       const list = res?.data ?? res ?? [];
 
-      const normalize = (v) => (v === undefined || v === null ? "" : String(v).trim());
+      const normalize = (v) =>
+        v === undefined || v === null ? "" : String(v).trim();
       const found = Array.isArray(list)
         ? list.find((inv) => {
             const d = normalize(inv.do_no);
@@ -612,21 +640,37 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             // exact match first
             if (d === clean || ino === clean) return true;
             // partial contains fallback
-            if (d.includes(clean) || ino.includes(clean) || clean.includes(d) || clean.includes(ino)) return true;
+            if (
+              d.includes(clean) ||
+              ino.includes(clean) ||
+              clean.includes(d) ||
+              clean.includes(ino)
+            )
+              return true;
             return false;
           })
         : null;
 
       if (found) {
         handleFormChange(index, "invoice_id", found.id);
-        handleFormChange(index, "invoice_no", found.invoiceId || found.invoice_no || "");
+        handleFormChange(
+          index,
+          "invoice_no",
+          found.invoiceId || found.invoice_no || "",
+        );
         handleFormChange(index, "remarks", "");
         // Ensure this invoice is present in local invoiceData/options
         setInvoiceData((prev) => ({ ...prev, [found.id]: found }));
         setInvoiceOptions((prev) => {
           const exists = prev.some((p) => p.value === found.id);
           if (exists) return prev;
-          return [...prev, { value: found.id, label: found.do_no || found.invoice_no || `#${found.id}` }];
+          return [
+            ...prev,
+            {
+              value: found.id,
+              label: found.do_no || found.invoice_no || `#${found.id}`,
+            },
+          ];
         });
       } else {
         handleFormChange(index, "invoice_id", "");
@@ -644,7 +688,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
   // Normalize backend validation messages for delivery orders
   const normalizeDoErrorMessage = (msg) => {
     if (!msg) return "";
-    const cleaned = String(msg).replace(/delivery_orders\.\d+\.do_no/gi, "DO number");
+    const cleaned = String(msg).replace(
+      /delivery_orders\.\d+\.do_no/gi,
+      "DO number",
+    );
     if (/The given data was invalid\.?/i.test(cleaned)) {
       return "The selected DO number is invalid.";
     }
@@ -652,13 +699,45 @@ export const BatchUploadPage = ({ resourceName, title }) => {
   };
 
   // Parse validation errors into per-row field map so we can highlight the record card
-  const parseValidationErrors = (errorsObj, backendMessage = "") => {
+  const parseValidationErrors = (
+    errorsObj,
+    backendMessage = "",
+    errorString = "",
+  ) => {
     const validationMap = {};
     const messages = [];
 
+    // Try to parse error string like "Validation failed at index 0: {\"cn_no\":[\"The selected cn no is invalid.\"]}"
+    if (errorString && typeof errorString === "string") {
+      const indexMatch = errorString.match(/at index (\d+):/i);
+      const jsonMatch = errorString.match(/:\s*(\{.*\})\s*$/);
+
+      if (indexMatch && jsonMatch) {
+        const idx = parseInt(indexMatch[1], 10);
+        try {
+          const errorDetails = JSON.parse(jsonMatch[1]);
+          validationMap[idx] = [];
+
+          Object.entries(errorDetails).forEach(([field, msgs]) => {
+            validationMap[idx].push(field);
+            if (Array.isArray(msgs)) {
+              msgs.forEach((m) => messages.push(m));
+            } else if (typeof msgs === "string") {
+              messages.push(msgs);
+            }
+          });
+        } catch (parseError) {
+          console.error("Failed to parse error details:", parseError);
+        }
+      }
+    }
+
     if (!errorsObj || typeof errorsObj !== "object") {
       // Check if backend message contains duplicate DO error
-      if (backendMessage && /Delivery Order already exists/i.test(backendMessage)) {
+      if (
+        backendMessage &&
+        /Delivery Order already exists/i.test(backendMessage)
+      ) {
         // Extract DO number from error message: "Delivery Order already exists for invoice 5100610760"
         const doMatch = backendMessage.match(/for\s+(?:invoice\s+)?(\d+)/i);
         if (doMatch) {
@@ -721,13 +800,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       if (resourceName === "ppis") {
         const required = [
           "user_id",
-          "cn_no", // ADDED: Required by backend validator
+          "cn_no",
           "ppi_date",
-          "payment_term",
           "amount",
-          "ppi_percentage", // ADDED: Required by backend validator
-          "ppi_doc", // ADDED: Required by backend validator
-          "folder", // ADDED: Required by backend validator
+          "ppi_percentage",
+          "ppi_doc",
         ];
         missing = required.filter((f) => isFieldEmpty(form[f]));
       } else if (resourceName === "deliveryorders") {
@@ -768,25 +845,32 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             // do_no (send extracted/edited DO number)
             fd.append(
               `delivery_orders[${idx}][do_no]`,
-              String(form.do_no || "")
+              String(form.do_no || ""),
             );
             // remarks
             fd.append(
               `delivery_orders[${idx}][remarks]`,
-              String(form.remarks || "")
+              String(form.remarks || ""),
             );
             // do_doc file: use original uploaded file if available
-            const fileObj = form._file || uploadedFiles[idx]?.file || uploadedFiles[idx];
+            const fileObj =
+              form._file || uploadedFiles[idx]?.file || uploadedFiles[idx];
             if (fileObj instanceof File) {
-              fd.append(`delivery_orders[${idx}][do_doc]`, fileObj, fileObj.name);
+              fd.append(
+                `delivery_orders[${idx}][do_doc]`,
+                fileObj,
+                fileObj.name,
+              );
             } else {
-              fd.append(`delivery_orders[${idx}][do_doc]`, String(form.do_doc || ""));
+              fd.append(
+                `delivery_orders[${idx}][do_doc]`,
+                String(form.do_doc || ""),
+              );
             }
           } catch (err) {
             console.error(`Error preparing delivery order row ${idx}:`, err);
           }
         }
-        
 
         // Log FormData contents for debugging before sending
         try {
@@ -829,8 +913,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           const fullErrorMessage = normalizedText
             ? normalizedText
             : /The given data was invalid\.?/i.test(backendMessage)
-            ? "The selected DO number is invalid."
-            : backendMessage;
+              ? "The selected DO number is invalid."
+              : backendMessage;
 
           setError(fullErrorMessage);
           setToastMessage(null);
@@ -910,19 +994,19 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const duplicateCN = result?.duplicate_cn;
       const duplicates = result?.duplicates;
       const backendMessage = result?.message || "Upload failed.";
-      
+
       if (status === "error" || status === "fail" || status === "false") {
         const dupList = Array.isArray(duplicateInvoices)
           ? duplicateInvoices.map((d) => String(d))
           : Array.isArray(duplicateCN)
-          ? duplicateCN.map((d) => String(d))
-          : Array.isArray(duplicates)
-          ? duplicates.map((d) => String(d))
-          : [];
+            ? duplicateCN.map((d) => String(d))
+            : Array.isArray(duplicates)
+              ? duplicates.map((d) => String(d))
+              : [];
 
         // Parse validation errors from the errors object and extract index
         const { validationMap, messages: normalizedMessages } =
-          parseValidationErrors(result?.errors, backendMessage);
+          parseValidationErrors(result?.errors, backendMessage, result?.error);
 
         // Set validation errors to highlight the correct record card and fields
         if (Object.keys(validationMap).length > 0) {
@@ -932,8 +1016,24 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
         // Prefer normalized validation messages; fall back to backend message
         const messageList = normalizedMessages.filter(Boolean);
-        if (!messageList.length && result?.errors) {
-          messageList.push("The selected DO number is invalid.");
+
+        // If error field exists and wasn't parsed as validation error, add it to messages
+        if (
+          result?.error &&
+          typeof result.error === "string" &&
+          !messageList.length
+        ) {
+          // Check if it's not a validation error (which would have been parsed already)
+          if (!/at index \d+:/i.test(result.error)) {
+            messageList.push(result.error);
+          }
+        }
+
+        if (!messageList.length && (result?.errors || result?.error)) {
+          // Don't add default DO message for other resources
+          if (resourceName === "deliveryorders") {
+            messageList.push("The selected DO number is invalid.");
+          }
         }
         const normalizedText = messageList.length
           ? Array.from(new Set(messageList)).join("\n")
@@ -941,8 +1041,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         const fullErrorMessage = normalizedText
           ? normalizedText
           : /The given data was invalid\.?/i.test(backendMessage)
-          ? "The selected DO number is invalid."
-          : backendMessage;
+            ? resourceName === "deliveryorders"
+              ? "The selected DO number is invalid."
+              : "Validation failed. Please check the highlighted fields."
+            : backendMessage;
         const messageWithDup = dupList.length
           ? `${fullErrorMessage} (${dupList.join(", ")})`
           : fullErrorMessage;
@@ -1008,14 +1110,18 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         const dupList = Array.isArray(errorData?.duplicate_invoices)
           ? errorData.duplicate_invoices.map((d) => String(d))
           : Array.isArray(errorData?.duplicate_cn)
-          ? errorData.duplicate_cn.map((d) => String(d))
-          : Array.isArray(errorData?.duplicates)
-          ? errorData.duplicates.map((d) => String(d))
-          : [];
+            ? errorData.duplicate_cn.map((d) => String(d))
+            : Array.isArray(errorData?.duplicates)
+              ? errorData.duplicates.map((d) => String(d))
+              : [];
 
         // Parse validation errors from the errors object and extract index
         const { validationMap, messages: normalizedMessages } =
-          parseValidationErrors(errorData?.errors);
+          parseValidationErrors(
+            errorData?.errors,
+            errorData?.message,
+            errorData?.error,
+          );
 
         // Set validation errors to highlight the correct record card and fields
         if (Object.keys(validationMap).length > 0) {
@@ -1024,8 +1130,24 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         }
 
         const messageList = normalizedMessages.filter(Boolean);
-        if (!messageList.length && errorData?.errors) {
-          messageList.push("The selected DO number is invalid.");
+
+        // If error field exists and wasn't parsed as validation error, add it to messages
+        if (
+          errorData?.error &&
+          typeof errorData.error === "string" &&
+          !messageList.length
+        ) {
+          // Check if it's not a validation error (which would have been parsed already)
+          if (!/at index \d+:/i.test(errorData.error)) {
+            messageList.push(errorData.error);
+          }
+        }
+
+        if (!messageList.length && (errorData?.errors || errorData?.error)) {
+          // Don't add default DO message for other resources
+          if (resourceName === "deliveryorders") {
+            messageList.push("The selected DO number is invalid.");
+          }
         }
         const normalizedText = messageList.length
           ? Array.from(new Set(messageList)).join("\n")
@@ -1034,8 +1156,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         const fullErrorMessage = normalizedText
           ? normalizedText
           : /The given data was invalid\.?/i.test(backendMessage)
-          ? "The selected DO number is invalid."
-          : backendMessage;
+            ? resourceName === "deliveryorders"
+              ? "The selected DO number is invalid."
+              : "Validation failed. Please check the highlighted fields."
+            : backendMessage;
         const messageWithDup = dupList.length
           ? `${fullErrorMessage} (${dupList.join(", ")})`
           : fullErrorMessage;
@@ -1301,8 +1425,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                       resourceName === "creditnotes"
                         ? form.cn_no
                         : resourceName === "debitnotes"
-                        ? form.dn_no
-                        : null;
+                          ? form.dn_no
+                          : null;
 
                     // Check for duplicates by record number or document filename
                     const docName =
@@ -1316,7 +1440,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                       (recordNumber &&
                         duplicateList.includes(String(recordNumber))) ||
                       duplicateList.some(
-                        (dup) => docName.includes(dup) || dup.includes(docName)
+                        (dup) => docName.includes(dup) || dup.includes(docName),
                       );
                     return (
                       <div
@@ -1325,8 +1449,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                           validationErrors[idx]
                             ? "border-red-500 bg-red-50/60 dark:border-red-600 dark:bg-red-900/20"
                             : isDuplicate
-                            ? "border-red-400 bg-red-50/60 dark:border-red-700 dark:bg-red-900/20"
-                            : "border-gray-200 hover:border-brand-300 dark:border-gray-700 dark:hover:border-brand-600"
+                              ? "border-red-400 bg-red-50/60 dark:border-red-700 dark:bg-red-900/20"
+                              : "border-gray-200 hover:border-brand-300 dark:border-gray-700 dark:hover:border-brand-600"
                         }`}
                         style={{ animationDelay: `${idx * 50}ms` }}
                       >
@@ -1394,13 +1518,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "cn_no",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "cn_no"
+                                    "cn_no",
                                   )}`}
                                 />
                               </div>
@@ -1416,13 +1540,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "ppi_date",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "ppi_date"
+                                    "ppi_date",
                                   )}`}
                                 />
                               </div>
@@ -1460,13 +1584,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "amount",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "amount"
+                                    "amount",
                                   )}`}
                                 />
                               </div>
@@ -1482,7 +1606,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "ppi_percentage",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
@@ -1499,11 +1623,12 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   onChange={(e) => {
                                     const val = e.target.value;
                                     handleFormChange(idx, "customer_no", val);
-                                    const matched = companyMapByCustomer[String(
-                                      val ?? ""
-                                    )
-                                      .trim()
-                                      .toLowerCase()];
+                                    const matched =
+                                      companyMapByCustomer[
+                                        String(val ?? "")
+                                          .trim()
+                                          .toLowerCase()
+                                      ];
                                     if (matched) {
                                       handleFormChange(idx, "user_id", matched);
                                     }
@@ -1523,13 +1648,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "ppi_doc",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
                                     idx,
-                                    "ppi_doc"
+                                    "ppi_doc",
                                   )}`}
                                   placeholder="Auto from parsed file"
                                 />
@@ -1545,7 +1670,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "remarks",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   rows={3}
@@ -1582,11 +1707,12 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   onChange={(e) => {
                                     const val = e.target.value;
                                     handleFormChange(idx, "customer_no", val);
-                                    const matched = companyMapByCustomer[String(
-                                      val ?? ""
-                                    )
-                                      .trim()
-                                      .toLowerCase()];
+                                    const matched =
+                                      companyMapByCustomer[
+                                        String(val ?? "")
+                                          .trim()
+                                          .toLowerCase()
+                                      ];
                                     if (matched) {
                                       handleFormChange(idx, "user_id", matched);
                                     }
@@ -1594,7 +1720,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "customer_no"
+                                    "customer_no",
                                   )}`}
                                 />
                               </div>
@@ -1609,13 +1735,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "amount",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "amount"
+                                    "amount",
                                   )}`}
                                 />
                               </div>
@@ -1630,13 +1756,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "po_no",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "po_no"
+                                    "po_no",
                                   )}`}
                                 />
                               </div>
@@ -1651,13 +1777,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "ref_no",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "ref_no"
+                                    "ref_no",
                                   )}`}
                                 />
                               </div>
@@ -1672,13 +1798,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "cn_no",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "cn_no"
+                                    "cn_no",
                                   )}`}
                                 />
                               </div>
@@ -1693,13 +1819,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "cn_date",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "cn_date"
+                                    "cn_date",
                                   )}`}
                                 />
                               </div>
@@ -1714,13 +1840,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "cn_doc",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
                                     idx,
-                                    "cn_doc"
+                                    "cn_doc",
                                   )}`}
                                   placeholder="Auto from parsed file"
                                 />
@@ -1736,13 +1862,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "payment_term",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "payment_term"
+                                    "payment_term",
                                   )}`}
                                 />
                               </div>
@@ -1756,7 +1882,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "remarks",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   rows={3}
@@ -1793,11 +1919,12 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   onChange={(e) => {
                                     const val = e.target.value;
                                     handleFormChange(idx, "customer_no", val);
-                                    const matched = companyMapByCustomer[String(
-                                      val ?? ""
-                                    )
-                                      .trim()
-                                      .toLowerCase()];
+                                    const matched =
+                                      companyMapByCustomer[
+                                        String(val ?? "")
+                                          .trim()
+                                          .toLowerCase()
+                                      ];
                                     if (matched) {
                                       handleFormChange(idx, "user_id", matched);
                                     }
@@ -1805,7 +1932,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "customer_no"
+                                    "customer_no",
                                   )}`}
                                 />
                               </div>
@@ -1820,13 +1947,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "amount",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "amount"
+                                    "amount",
                                   )}`}
                                 />
                               </div>
@@ -1841,13 +1968,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "po_no",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "po_no"
+                                    "po_no",
                                   )}`}
                                 />
                               </div>
@@ -1862,13 +1989,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "ref_no",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "ref_no"
+                                    "ref_no",
                                   )}`}
                                 />
                               </div>
@@ -1883,13 +2010,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "dn_no",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "dn_no"
+                                    "dn_no",
                                   )}`}
                                 />
                               </div>
@@ -1904,13 +2031,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "dn_date",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "dn_date"
+                                    "dn_date",
                                   )}`}
                                 />
                               </div>
@@ -1925,13 +2052,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "dn_doc",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
                                     idx,
-                                    "dn_doc"
+                                    "dn_doc",
                                   )}`}
                                   placeholder="Auto from parsed file"
                                 />
@@ -1947,13 +2074,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "payment_term",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "payment_term"
+                                    "payment_term",
                                   )}`}
                                 />
                               </div>
@@ -1967,7 +2094,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "remarks",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   rows={3}
@@ -2004,11 +2131,12 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   onChange={(e) => {
                                     const val = e.target.value;
                                     handleFormChange(idx, "customer_no", val);
-                                    const matched = companyMapByCustomer[String(
-                                      val ?? ""
-                                    )
-                                      .trim()
-                                      .toLowerCase()];
+                                    const matched =
+                                      companyMapByCustomer[
+                                        String(val ?? "")
+                                          .trim()
+                                          .toLowerCase()
+                                      ];
                                     if (matched) {
                                       handleFormChange(idx, "user_id", matched);
                                     }
@@ -2016,7 +2144,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "customer_no"
+                                    "customer_no",
                                   )}`}
                                 />
                               </div>
@@ -2031,13 +2159,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "as_doc",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
                                     idx,
-                                    "as_doc"
+                                    "as_doc",
                                   )}`}
                                   placeholder="Auto from parsed file"
                                 />
@@ -2053,13 +2181,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "as_date",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "as_date"
+                                    "as_date",
                                   )}`}
                                 />
                               </div>
@@ -2073,8 +2201,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "remarks",
-                                      e.target.value
-                                    )   
+                                      e.target.value,
+                                    )
                                   }
                                   rows={3}
                                   className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
@@ -2105,17 +2233,17 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   Customer No.
                                 </label>
                                 <input
-                                
                                   type="text"
                                   value={form.customer_no ?? ""}
                                   onChange={(e) => {
                                     const val = e.target.value;
                                     handleFormChange(idx, "customer_no", val);
-                                    const matched = companyMapByCustomer[String(
-                                      val ?? ""
-                                    )
-                                      .trim()
-                                      .toLowerCase()];
+                                    const matched =
+                                      companyMapByCustomer[
+                                        String(val ?? "")
+                                          .trim()
+                                          .toLowerCase()
+                                      ];
                                     if (matched) {
                                       handleFormChange(idx, "user_id", matched);
                                     }
@@ -2123,7 +2251,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "customer_no"
+                                    "customer_no",
                                   )}`}
                                 />
                               </div>
@@ -2138,13 +2266,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "po_no",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "po_no"
+                                    "po_no",
                                   )}`}
                                 />
                               </div>
@@ -2159,13 +2287,20 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     const val = e.target.value;
                                     handleFormChange(idx, "invoice_no", val);
                                     try {
-                                      const found = Object.values(invoiceData).find(
+                                      const found = Object.values(
+                                        invoiceData,
+                                      ).find(
                                         (inv) =>
-                                          String(inv?.invoiceId || inv?.invoice_no) ===
-                                          String(val)
+                                          String(
+                                            inv?.invoiceId || inv?.invoice_no,
+                                          ) === String(val),
                                       );
                                       if (found) {
-                                        handleFormChange(idx, "invoice_id", found.id);
+                                        handleFormChange(
+                                          idx,
+                                          "invoice_id",
+                                          found.id,
+                                        );
                                       } else {
                                         handleFormChange(idx, "invoice_id", "");
                                       }
@@ -2176,12 +2311,12 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "invoice_no"
+                                    "invoice_no",
                                   )}`}
                                   placeholder="Auto-filled from invoice (editable)"
                                 />
                               </div>
-                                   
+
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
                                   Invoice Date
@@ -2193,13 +2328,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "invoice_date",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "invoice_date"
+                                    "invoice_date",
                                   )}`}
                                 />
                               </div>
@@ -2214,19 +2349,19 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "do_no",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "do_no"
+                                    "do_no",
                                   )}`}
                                 />
                               </div>
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                   Date
+                                  Date
                                 </label>
                                 <input
                                   type="date"
@@ -2235,13 +2370,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "date",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "date"
+                                    "date",
                                   )}`}
                                 />
                               </div>
@@ -2256,13 +2391,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "amount",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "amount"
+                                    "amount",
                                   )}`}
                                 />
                               </div>
@@ -2277,7 +2412,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
                                     idx,
-                                    "file"
+                                    "file",
                                   )}`}
                                   placeholder="Parsed file name"
                                 />
@@ -2292,7 +2427,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "remarks",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   rows={3}
@@ -2305,18 +2440,22 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                               {/* Extracted DO Number (from OCR) - display/editable text field */}
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                   DO No.
+                                  DO No.
                                 </label>
                                 <input
                                   type="text"
                                   value={form.do_no ?? ""}
                                   onChange={(e) =>
-                                    handleFormChange(idx, "do_no", e.target.value)
+                                    handleFormChange(
+                                      idx,
+                                      "do_no",
+                                      e.target.value,
+                                    )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white ${errorClass(
                                     idx,
-                                    "do_no"
+                                    "do_no",
                                   )}`}
                                   placeholder="Auto-extracted DO No."
                                 />
@@ -2332,7 +2471,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   disabled
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white ${errorClass(
                                     idx,
-                                    "invoice_no"
+                                    "invoice_no",
                                   )}`}
                                   placeholder="Invoice number (read-only)"
                                 />
@@ -2361,7 +2500,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
                                     idx,
-                                    "do_doc"
+                                    "do_doc",
                                   )}`}
                                   placeholder="Uploaded document"
                                 />
@@ -2376,7 +2515,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     handleFormChange(
                                       idx,
                                       "remarks",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   rows={3}
@@ -2388,7 +2527,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                             // Default: render all parsed keys as text inputs
                             Object.entries(form)
                               .filter(
-                                ([key]) => key !== "index" && key !== "folder"
+                                ([key]) => key !== "index" && key !== "folder",
                               )
                               .map(([key, value]) => (
                                 <div key={`${idx}-${key}`} className="relative">
@@ -2404,7 +2543,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
                                     placeholder={`Enter ${key.replace(
                                       /_/g,
-                                      " "
+                                      " ",
                                     )}`}
                                   />
                                 </div>
@@ -2413,7 +2552,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                         </div>
                       </div>
                     );
-                  })()
+                  })(),
                 )}
               </div>
 
