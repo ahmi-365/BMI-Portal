@@ -34,13 +34,13 @@ const queryOCRSpace = async (imageBlob) => {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000);
-
+const timeoutId = setTimeout(() => controller.abort(), 190000);
     console.log("🚀 Sending to OCR...");
     const response = await fetch("https://api.ocr.space/parse/image", {
       method: "POST",
       body: formData,
-      signal: controller.signal
+      signal: controller.signal,
+      priority: 'high'
     });
 
     clearTimeout(timeoutId);
