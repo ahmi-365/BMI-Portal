@@ -11,6 +11,8 @@ const COLUMNS = [
   {
     header: "Statement Doc",
     accessor: "statement_doc",
+    sortable: false,
+
     render: (row) => (
       <FileDownloadButton
         file={row.statement_doc}

@@ -62,6 +62,8 @@ const COLUMNS = [
   {
     header: "PPI Doc",
     accessor: "ppi_doc",
+    sortable: false,
+    
     filterKey: "ppi_doc",
     render: (row) =>
       canAccess("view-ppis") && (

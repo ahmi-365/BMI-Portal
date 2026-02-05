@@ -167,6 +167,8 @@ const createNotAcknowledgedColumns = (onApprove) => [
         path="download-proof"
       />
     ),
+    sortable: false,
+
   },
 
   {
