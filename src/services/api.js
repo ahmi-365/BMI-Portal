@@ -292,8 +292,19 @@ export const apiCallFormData = async (endpoint, formData, method = "POST") => {
       throw new Error("Unauthorized");
     }
     if (!response.ok) {
-      const message = await parseErrorResponse(response);
-      throw new Error(message);
+      const text = await response.text();
+      let data = {};
+      let message = `Request failed with status ${response.status}`;
+      try {
+        data = JSON.parse(text);
+        message = data?.message || data?.error || (Array.isArray(data?.errors) ? data.errors[0] : null) || text;
+      } catch {
+        // If not JSON, just use the text as message
+        message = text || message;
+      }
+      const error = new Error(message);
+      error.responseData = data;
+      throw error;
     }
     const contentType = response.headers.get("content-type") || "";
     if (contentType.includes("application/json")) return await response.json();

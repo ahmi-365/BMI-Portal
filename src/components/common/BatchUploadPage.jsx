@@ -225,6 +225,12 @@ export const BatchUploadPage = ({ resourceName, title }) => {
   const [invoiceSearchQuery, setInvoiceSearchQuery] = useState("");
 
   const loadInvoices = useCallback(async (search = "") => {
+    // Don't load invoices if search is empty
+    if (!search || search.trim() === "") {
+      setInvoiceOptions([]);
+      setInvoiceData({});
+      return;
+    }
     try {
       const res = await invoicesAPI.allInvoices(search);
       const list = res?.data ?? res ?? [];
@@ -249,12 +255,15 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
   useEffect(() => {
     if (resourceName !== "deliveryorders") return;
-    loadInvoices();
+    // Don't load all invoices on mount - only load when searching
+    // loadInvoices();
   }, [resourceName, loadInvoices]);
 
   // Debounced invoice search
   useEffect(() => {
     if (resourceName !== "deliveryorders") return;
+    // Only search if there's a non-empty search query
+    if (!invoiceSearchQuery || invoiceSearchQuery.trim() === "") return;
     const timeout = setTimeout(() => {
       loadInvoices(invoiceSearchQuery);
     }, 300);
@@ -733,13 +742,14 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     }
 
     if (!errorsObj || typeof errorsObj !== "object") {
-      // Check if backend message contains duplicate DO error
-      if (
-        backendMessage &&
-        /Delivery Order already exists/i.test(backendMessage)
-      ) {
+      // Check if error string or backend message contains duplicate DO error
+      const errorToCheck = errorString || backendMessage;
+      if (errorToCheck && /Delivery Order already exists/i.test(errorToCheck)) {
+        // Add the error message to the messages list
+        messages.push(errorToCheck);
+
         // Extract DO number from error message: "Delivery Order already exists for invoice 5100610760"
-        const doMatch = backendMessage.match(/for\s+(?:invoice\s+)?(\d+)/i);
+        const doMatch = errorToCheck.match(/for\s+(?:invoice\s+)?(\d+)/i);
         if (doMatch) {
           const duplicateDO = doMatch[1];
           // Find the record with matching do_no and mark it
@@ -993,6 +1003,9 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const duplicateInvoices = result?.duplicate_invoices;
       const duplicateCN = result?.duplicate_cn;
       const duplicates = result?.duplicates;
+
+      // Prioritize error field over message field
+      const displayError = result?.error || result?.message || "Upload failed.";
       const backendMessage = result?.message || "Upload failed.";
 
       if (status === "error" || status === "fail" || status === "false") {
@@ -1014,20 +1027,22 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           setSubmitted(true);
         }
 
-        // Prefer normalized validation messages; fall back to backend message
-        const messageList = normalizedMessages.filter(Boolean);
+        // Build message list - prioritize error field
+        const messageList = [];
 
-        // If error field exists and wasn't parsed as validation error, add it to messages
-        if (
-          result?.error &&
-          typeof result.error === "string" &&
-          !messageList.length
-        ) {
-          // Check if it's not a validation error (which would have been parsed already)
+        // Add error field first if it exists and isn't a validation error
+        if (result?.error && typeof result.error === "string") {
           if (!/at index \d+:/i.test(result.error)) {
             messageList.push(result.error);
           }
         }
+
+        // Add normalized validation messages
+        normalizedMessages.forEach((msg) => {
+          if (msg && !messageList.includes(msg)) {
+            messageList.push(msg);
+          }
+        });
 
         if (!messageList.length && (result?.errors || result?.error)) {
           // Don't add default DO message for other resources
@@ -1035,6 +1050,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             messageList.push("The selected DO number is invalid.");
           }
         }
+
         const normalizedText = messageList.length
           ? Array.from(new Set(messageList)).join("\n")
           : "";
