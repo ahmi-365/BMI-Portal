@@ -234,22 +234,15 @@ const createNotAcknowledgedColumns = (onApprove) => [
 
     render: (row) => (
       <button
-        onClick={() =>
-          openBulkConfirm({
-            type: "confirm",
-            title: "Approve Payment",
-            message: `Are you sure you want to approve payment for ${row.user?.company || row.user?.name || row.id}?`,
-            confirmText: "Approve",
-            onConfirm: async () => onApprove(row),
-          })
-        }
+        onClick={() => onApprove(row)}
         className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium transition-all duration-200 text-sm"
       >
         <Check className="w-4 h-4" />
         Approve
       </button>
     ),
-  },
+  }
+  ,
 ];
 
 export default function PaymentRecordsView() {
