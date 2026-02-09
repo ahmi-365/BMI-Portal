@@ -1,9 +1,7 @@
 import { ListPage } from "../../components/common/ListPage";
 import PageMeta from "../../components/common/PageMeta";
 import { formatDate } from "../../lib/dateUtils";
-import { formatAmount } from "../../lib/currencyUtils";
 import { canAccess } from "../../lib/permissionHelper";
-import { auth } from "../../services/auth";
 
 const COLUMNS = [
   {
@@ -46,33 +44,49 @@ const COLUMNS = [
 ];
 
 
-const canEditAdmin = (row) => {
-  // Get current user's roles and ID
-  const currentUserRoles = auth.getRoles();
-  const currentUserRoleNames = currentUserRoles.map((r) => r.toLowerCase());
-  const isSuperAdmin = currentUserRoleNames.includes("super-admin");
-  const currentUserId = auth.getUserId();
+const normalizeRoleName = (name) =>
+  String(name || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s]+/g, "-");
 
-  // Check if the admin being edited has super-admin role
-  const adminRoles = row?.roles || [];
-  const hasSuperAdminRole = adminRoles.some(
-    (role) => role?.name?.toLowerCase() === "super-admin"
-  );
-
-  // Super-admin users can only be edited by other super-admins (not themselves)
-  if (hasSuperAdminRole) {
-    if (!isSuperAdmin) {
-      // Regular admin cannot edit super-admin
-      return false;
-    }
-    if (isSuperAdmin && currentUserId && String(row?.id) === String(currentUserId)) {
-      // Super-admin cannot edit themselves
-      return false;
-    }
+const collectRoleNames = (value, target) => {
+  if (!value) return;
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectRoleNames(item, target));
+    return;
   }
-
-  return true;
+  if (typeof value === "string") {
+    target.push(value);
+    return;
+  }
+  if (typeof value === "object") {
+    if (value.name) target.push(value.name);
+    if (value.role) collectRoleNames(value.role, target);
+  }
 };
+
+const isSuperAdminRow = (row) => {
+  const flagValues = [
+    row?.is_super_admin,
+    row?.is_superadmin,
+    row?.super_admin,
+    row?.superAdmin,
+  ];
+  if (flagValues.some(Boolean)) return true;
+
+  const roleNames = [];
+  collectRoleNames(row?.roles, roleNames);
+  collectRoleNames(row?.role, roleNames);
+  collectRoleNames(row?.role_name, roleNames);
+  collectRoleNames(row?.roleName, roleNames);
+
+  return roleNames.some((name) => normalizeRoleName(name) === "super-admin");
+};
+
+const canEditAdmin = (row) => !isSuperAdminRow(row);
+
+const canDeleteAdmin = (row) => !isSuperAdminRow(row);
 
 export default function AdminView() {
   return (
@@ -90,6 +104,7 @@ export default function AdminView() {
         showEdit={canAccess("edit-admins")}
         onDelete={canAccess("delete-admins") ? (id) => console.log("Delete", id) : null}
         rowEditCondition={canEditAdmin}
+        rowDeleteCondition={canDeleteAdmin}
       />
     </div>
   );

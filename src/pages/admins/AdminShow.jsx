@@ -29,27 +29,15 @@ const AdminShow = () => {
         console.log("Admin data:", adminData);
         setAdmin(adminData);
 
-        // Check if current user can edit this admin
-        const currentUserRoles = auth.getRoles();
-        const currentUserRoleNames = currentUserRoles.map((r) => r.toLowerCase());
-        const isSuperAdmin = currentUserRoleNames.includes("super-admin");
-        const currentUserId = auth.getUserId();
-
         // Check if the admin being viewed has super-admin role
         const adminRoles = adminData.roles || [];
         const hasSuperAdminRole = adminRoles.some(
           (role) => role.name?.toLowerCase() === "super-admin"
         );
 
-        // Super-admin users can only be edited by other super-admins (not themselves)
+        // Super-admin accounts cannot be edited by anyone
         if (hasSuperAdminRole) {
-          if (!isSuperAdmin) {
-            // Regular admin cannot edit super-admin
-            setCanEdit(false);
-          } else if (String(adminData.id) === String(currentUserId)) {
-            // Super-admin cannot edit themselves
-            setCanEdit(false);
-          }
+          setCanEdit(false);
         }
       } catch (err) {
         console.error("Error loading admin:", err);

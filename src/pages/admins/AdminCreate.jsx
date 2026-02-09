@@ -88,28 +88,15 @@ const AdminCreate = () => {
   // Check if current user can edit this admin
   useEffect(() => {
     if (admin && isEditing) {
-      const currentUserRoles = auth.getRoles();
-      const currentUserRoleNames = currentUserRoles.map((r) => r.toLowerCase());
-      const isSuperAdmin = currentUserRoleNames.includes("super-admin");
-      const currentUserId = auth.getUserId();
-
       // Check if the admin being edited has super-admin role
       const adminRoles = admin.roles || [];
       const hasSuperAdminRole = adminRoles.some(
         (role) => role.name?.toLowerCase() === "super-admin"
       );
 
-      // Super-admin users can only be edited by other super-admins (not themselves)
+      // Super-admin accounts cannot be edited by anyone
       if (hasSuperAdminRole) {
-        if (!isSuperAdmin) {
-          // Regular admin cannot edit super-admin
-          setCanEdit(false);
-          setError("You do not have permission to edit this admin. Only super-admins can edit super-admin users.");
-        } else if (String(admin.id) === String(currentUserId)) {
-          // Super-admin cannot edit themselves
-          setCanEdit(false);
-          setError("You cannot edit your own account. Contact another super-admin to make changes to your account.");
-        }
+       
       }
     }
   }, [admin, isEditing]);
