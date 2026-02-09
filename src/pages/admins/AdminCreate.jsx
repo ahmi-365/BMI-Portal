@@ -4,6 +4,7 @@ import Form from "../../components/common/Form";
 import Loader from "../../components/common/Loader";
 import Toast from "../../components/common/Toast";
 import { adminUsersAPI, rolesAPI } from "../../services/api";
+import { auth } from "../../services/auth";
 
 const AdminCreate = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const AdminCreate = () => {
   const [admin, setAdmin] = useState(null);
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(true);
+  const [canEdit, setCanEdit] = useState(true);
 
   // Load roles on component mount
   useEffect(() => {
@@ -83,6 +85,35 @@ const AdminCreate = () => {
     }
   }, [id, isEditing]);
 
+  // Check if current user can edit this admin
+  useEffect(() => {
+    if (admin && isEditing) {
+      const currentUserRoles = auth.getRoles();
+      const currentUserRoleNames = currentUserRoles.map((r) => r.toLowerCase());
+      const isSuperAdmin = currentUserRoleNames.includes("super-admin");
+      const currentUserId = auth.getUserId();
+
+      // Check if the admin being edited has super-admin role
+      const adminRoles = admin.roles || [];
+      const hasSuperAdminRole = adminRoles.some(
+        (role) => role.name?.toLowerCase() === "super-admin"
+      );
+
+      // Super-admin users can only be edited by other super-admins (not themselves)
+      if (hasSuperAdminRole) {
+        if (!isSuperAdmin) {
+          // Regular admin cannot edit super-admin
+          setCanEdit(false);
+          setError("You do not have permission to edit this admin. Only super-admins can edit super-admin users.");
+        } else if (String(admin.id) === String(currentUserId)) {
+          // Super-admin cannot edit themselves
+          setCanEdit(false);
+          setError("You cannot edit your own account. Contact another super-admin to make changes to your account.");
+        }
+      }
+    }
+  }, [admin, isEditing]);
+
   // Navigate on success
   useEffect(() => {
     if (success) {
@@ -124,6 +155,12 @@ const AdminCreate = () => {
   };
 
   const handleSubmit = async (data) => {
+    // Prevent editing if user doesn't have permission
+    if (isEditing && !canEdit) {
+      setError("You cannot edit your own account. Please contact another super-admin to make changes.");
+      return;
+    }
+
     // Clean payload - only send necessary fields
     const payload = {
       name: data.name,
@@ -274,6 +311,17 @@ const AdminCreate = () => {
           >
             Dismiss
           </button>
+        </div>
+      )}
+
+      {!canEdit && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-900/20">
+          <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-2">
+            Info: Cannot Edit Self
+          </h3>
+          <p className="text-sm text-amber-700 dark:text-amber-400">
+            You cannot edit your own account. Please contact another super-admin to make changes to your account.
+          </p>
         </div>
       )}
 

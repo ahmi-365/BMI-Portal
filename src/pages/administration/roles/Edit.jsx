@@ -1,14 +1,22 @@
 import { CheckSquare, Square } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import Loader from "../../../components/common/Loader";
 import { ResourceForm } from "../../../components/common/ResourceForm";
-import { permissionsAPI } from "../../../services/api";
+import { permissionsAPI, rolesAPI } from "../../../services/api";
+import { auth } from "../../../services/auth";
 
 export default function RolesEdit() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [permissionOptions, setPermissionOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [canEdit, setCanEdit] = useState(true);
 
   useEffect(() => {
+    checkRoleEditability();
     loadPermissions();
-  }, []);
+  }, [id]);
 
   const loadPermissions = async () => {
     try {
@@ -25,6 +33,35 @@ export default function RolesEdit() {
       setPermissionOptions(options);
     } catch (err) {
       console.error("Failed to load permissions", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const checkRoleEditability = async () => {
+    try {
+      if (id) {
+        const role = await rolesAPI.show(id);
+        const data = role.data || role;
+        const roleName = data.role?.name || data.name;
+
+        // Get current user's roles from localStorage
+        const currentUserRoles = auth.getRoles();
+        const currentUserRoleNames = currentUserRoles.map((r) => r.toLowerCase());
+        const isSuperAdmin = currentUserRoleNames.includes("super-admin");
+
+        // super-admin role can only be edited by super-admin users
+        if (roleName?.toLowerCase() === "super-admin" && !isSuperAdmin) {
+          setCanEdit(false);
+        }
+
+        // Only super-admin can edit the admin role
+        if (roleName?.toLowerCase() === "admin" && !isSuperAdmin) {
+          setCanEdit(false);
+        }
+      }
+    } catch (err) {
+      console.error("Error checking role editability:", err);
     }
   };
 
@@ -76,6 +113,31 @@ export default function RolesEdit() {
       ),
     },
   ];
+
+  if (isLoading) {
+    return <Loader />;
+  }
+
+  if (!canEdit) {
+    return (
+      <div className="p-6">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-900/20">
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-300 mb-2">
+            Permission Denied
+          </h3>
+          <p className="text-red-700 dark:text-red-400 mb-4">
+            You do not have permission to edit this role. Only super admins can modify this role.
+          </p>
+          <button
+            onClick={() => navigate("/administration/roles")}
+            className="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ResourceForm

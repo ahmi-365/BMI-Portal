@@ -430,7 +430,7 @@ export default function PaymentRecordsView() {
           columns={PAID_COLUMNS}
           title="Paid Invoices"
           subtitle="View all paid and processed invoices"
-          showEdit={canAccess("edit-payments")}
+          showEdit={false}
           addButtonText={canAccess("create-payments") ? "New Payment" : null}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}

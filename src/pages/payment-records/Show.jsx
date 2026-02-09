@@ -121,6 +121,11 @@ const FIELDS = [
   //   label: "Updated At",
   //   render: (value) => (value ? String(value).split("T")[0] : "-"),
   // },
+  {
+    name: "remarks",
+    label: "Remarks",
+    render: (_v, row) => row.remarks || "-",
+  },
 ];
 
 export default function PaymentRecordsShow() {

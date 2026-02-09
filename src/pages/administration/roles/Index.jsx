@@ -50,8 +50,8 @@ export default function RolesIndex() {
     const currentUserRoleNames = currentUserRoles.map((r) => r.toLowerCase());
     const isSuperAdmin = currentUserRoleNames.includes("super-admin");
 
-    // super-admin role cannot be edited or deleted by anyone
-    if (roleName === "super-admin") {
+    // super-admin role can only be edited by super-admin users
+    if (roleName === "super-admin" && !isSuperAdmin) {
       return false;
     }
 

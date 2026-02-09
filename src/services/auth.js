@@ -2,6 +2,7 @@
 const TOKEN_KEY = "bmi_admin_token";
 const ROLES_KEY = "bmi_admin_roles";
 const PERMISSIONS_KEY = "bmi_admin_permissions";
+const USER_ID_KEY = "bmi_admin_user_id";
 const USER_TOKEN_KEY = "bmi_user_token";
 const API_BASE_URL = import.meta.env.VITE_API_BASE;
 
@@ -35,10 +36,17 @@ export const auth = {
       JSON.stringify(permissions || [])
     );
   },
+  getUserId() {
+    return localStorage.getItem(USER_ID_KEY);
+  },
+  setUserId(id) {
+    localStorage.setItem(USER_ID_KEY, id);
+  },
   clear() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(ROLES_KEY);
     localStorage.removeItem(PERMISSIONS_KEY);
+    localStorage.removeItem(USER_ID_KEY);
   },
   async login(email, password) {
     const url = `${API_BASE_URL}/login`;
@@ -55,9 +63,14 @@ export const auth = {
     const token = json?.token || json?.data?.token;
     const roles = json?.roles || json?.data?.roles || [];
     const permissions = json?.permissions || json?.data?.permissions || [];
+    const userId = json?.user?.id || json?.data?.user?.id || json?.admin?.id || json?.data?.admin?.id || json?.id;
+    
     if (token) this.setToken(token);
     this.setRoles(roles);
     this.setPermissions(permissions);
+    if (userId) {
+      this.setUserId(String(userId));
+    }
     return json;
   },
   async logout() {

@@ -5,6 +5,7 @@ import Loader from "../../../components/common/Loader";
 import PermissionGuard from "../../../components/common/PermissionGuard";
 import { formatDateTime } from "../../../lib/dateUtils";
 import { rolesAPI } from "../../../services/api";
+import { auth } from "../../../services/auth";
 
 const RolesShow = () => {
   const { id } = useParams();
@@ -99,7 +100,9 @@ const RolesShow = () => {
         <h2 className="text-title-md2 font-bold text-black dark:text-white">
           Role Details
         </h2>
-        {role?.name?.toLowerCase() !== "super-admin" && (
+        {/* Show edit button for all roles except super-admin for non-super-admin users */}
+        {(role?.name?.toLowerCase() !== "super-admin" || 
+          auth.getRoles().some(r => r.toLowerCase() === "super-admin")) && (
           <PermissionGuard permission="edit-roles">
             <button
               onClick={() => navigate(`/administration/roles/edit/${id}`)}

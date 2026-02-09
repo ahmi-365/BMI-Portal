@@ -51,14 +51,7 @@ const FIELDS = [
   //   },
   // },
 
-  // {
-  //   name: "amount",
-  //   label: "Amount",
-  //   render: (_v, row) => {
-  //     const amount = row.invoice?.amount;
-  //     return amount ? amount : "0";
-  //   },
-  // },
+  // L:As
   // {
   //   name: "created_at",
   //   label: "Uploaded At",
@@ -69,11 +62,11 @@ const FIELDS = [
   //   label: "Uploaded By",
   //   render: (_v, row) => row.admin?.name || "-",
   // },
-  // {
-  //   name: "remarks",
-  //   label: "Remarks",
-  //   render: (_v, row) => row.remarks || "-",
-  // },
+  {
+    name: "remarks",
+    label: "Remarks",
+    render: (_v, row) => row.remarks || "-",
+  },
 ];
 
 export default function DeliveryOrdersShow() {

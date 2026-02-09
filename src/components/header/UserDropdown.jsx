@@ -20,6 +20,11 @@ export default function UserDropdown() {
           name: data?.name || "Admin",
           email: data?.email || "",
         });
+        
+        // Store user ID for self-edit prevention
+        if (data?.id) {
+          auth.setUserId(String(data.id));
+        }
       } catch (err) {
         console.error("Failed to load admin profile", err);
       }

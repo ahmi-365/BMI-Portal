@@ -50,7 +50,11 @@ const FIELDS = [
   label: "Due Date",
   render: (value) => formatDate(value),
 }
-
+,{
+    name: "remarks",
+    label: "Remarks",
+    render: (_v, row) => row.remarks || "-",
+  },
 
 ];
 

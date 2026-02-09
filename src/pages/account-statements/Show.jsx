@@ -36,6 +36,11 @@ const FIELDS = [
   //   label: "Uploaded By",
   //   render: (user, data) => data.admin?.name || user?.name || "-",
   // },
+  {
+    name: "remarks",
+    label: "Remarks",
+    render: (_v, row) => row.remarks || "-",
+  },
 ];
 
 export default function AccountStatementsShow() {

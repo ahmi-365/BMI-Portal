@@ -5,6 +5,7 @@ import Loader from "../../components/common/Loader";
 import { adminUsersAPI } from "../../services/api";
 // CHANGE: Import formatDateTime for standardized date+time display
 import { formatDateTime } from "../../lib/dateUtils";
+import { auth } from "../../services/auth";
 
 const AdminShow = () => {
   const { id } = useParams();
@@ -14,6 +15,7 @@ const AdminShow = () => {
   const [admin, setAdmin] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [canEdit, setCanEdit] = useState(true);
 
   useEffect(() => {
     const loadAdmin = async () => {
@@ -26,6 +28,29 @@ const AdminShow = () => {
         const adminData = responseData.admin || responseData;
         console.log("Admin data:", adminData);
         setAdmin(adminData);
+
+        // Check if current user can edit this admin
+        const currentUserRoles = auth.getRoles();
+        const currentUserRoleNames = currentUserRoles.map((r) => r.toLowerCase());
+        const isSuperAdmin = currentUserRoleNames.includes("super-admin");
+        const currentUserId = auth.getUserId();
+
+        // Check if the admin being viewed has super-admin role
+        const adminRoles = adminData.roles || [];
+        const hasSuperAdminRole = adminRoles.some(
+          (role) => role.name?.toLowerCase() === "super-admin"
+        );
+
+        // Super-admin users can only be edited by other super-admins (not themselves)
+        if (hasSuperAdminRole) {
+          if (!isSuperAdmin) {
+            // Regular admin cannot edit super-admin
+            setCanEdit(false);
+          } else if (String(adminData.id) === String(currentUserId)) {
+            // Super-admin cannot edit themselves
+            setCanEdit(false);
+          }
+        }
       } catch (err) {
         console.error("Error loading admin:", err);
         setError(err.message);
@@ -99,17 +124,19 @@ const AdminShow = () => {
         <h2 className="text-title-md2 font-bold text-black dark:text-white">
           Admin Details
         </h2>
-        <button
-          onClick={() => {
-            const editUrl = returnTo
-              ? `/admins/edit/${id}?returnTo=${encodeURIComponent(returnTo)}`
-              : `/admins/edit/${id}`;
-            navigate(editUrl);
-          }}
-          className="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-6 xl:px-8"
-        >
-          Edit Admin
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => {
+              const editUrl = returnTo
+                ? `/admins/edit/${id}?returnTo=${encodeURIComponent(returnTo)}`
+                : `/admins/edit/${id}`;
+              navigate(editUrl);
+            }}
+            className="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2 text-center font-medium text-white hover:bg-opacity-90 lg:px-6 xl:px-8"
+          >
+            Edit Admin
+          </button>
+        )}
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white shadow-theme-sm dark:border-gray-800 dark:bg-gray-900">
@@ -229,17 +256,19 @@ const AdminShow = () => {
         >
           Cancel
         </button>
-        <button
-          onClick={() => {
-            const editUrl = returnTo
-              ? `/admins/edit/${id}?returnTo=${encodeURIComponent(returnTo)}`
-              : `/admins/edit/${id}`;
-            navigate(editUrl);
-          }}
-          className="flex justify-center rounded-lg bg-brand-500 px-6 py-2.5 font-medium text-white hover:bg-opacity-90"
-        >
-          Edit Admin
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => {
+              const editUrl = returnTo
+                ? `/admins/edit/${id}?returnTo=${encodeURIComponent(returnTo)}`
+                : `/admins/edit/${id}`;
+              navigate(editUrl);
+            }}
+            className="flex justify-center rounded-lg bg-brand-500 px-6 py-2.5 font-medium text-white hover:bg-opacity-90"
+          >
+            Edit Admin
+          </button>
+        )}
       </div>
     </div>
   );

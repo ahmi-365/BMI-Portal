@@ -39,7 +39,7 @@ const FIELDS = [
 
   // }
   
-  // { name: "remarks", label: "Remarks" },
+  { name: "remarks", label: "Remarks" },
   // { name: "created_at", label: "Uploaded At",
   //   render: (value) => value ? String(value).split("T")[0] : "-"
   //  },
