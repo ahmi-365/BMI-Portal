@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function SearchableSelect({
   options = [],
@@ -19,7 +19,11 @@ export default function SearchableSelect({
 
   // Map value to label for display
   const selected = options.find((o) => String(o.value) === String(value));
-  const displayLabel = selected ? selected.label : query;
+  const displayLabel = selected
+    ? selected.label
+    : value !== undefined && value !== null && value !== ""
+      ? String(value)
+      : query;
 
   // Filter options by query (client-side or rely on backend)
   const filtered =
@@ -27,7 +31,7 @@ export default function SearchableSelect({
       ? options.filter(
           (o) =>
             o.label.toLowerCase().includes(query.toLowerCase()) ||
-            String(o.value).toLowerCase().includes(query.toLowerCase())
+            String(o.value).toLowerCase().includes(query.toLowerCase()),
         )
       : options;
 

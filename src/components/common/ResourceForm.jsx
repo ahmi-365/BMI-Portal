@@ -114,7 +114,9 @@ export const ResourceForm = ({
 
         if (resourceName === "deliveryorders") {
           if (flat.do_doc && !flat.file) flat.file = flat.do_doc;
-          if (flat.invoice_id) flat.do_no = flat.invoice_id;
+          if (!flat.do_no && data.invoice && data.invoice.do_no) {
+            flat.do_no = data.invoice.do_no;
+          }
           if (data.invoice && data.invoice.invoiceId) {
             flat.invoice_id = data.invoice.invoiceId;
             flat.invoice_no = data.invoice.invoiceId;
