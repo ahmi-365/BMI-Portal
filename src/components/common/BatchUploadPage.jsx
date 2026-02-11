@@ -843,6 +843,14 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         // Delivery orders must have a DO number and document; invoice match is handled server-side
         const required = ["do_no", "do_doc"];
         missing = required.filter((f) => isFieldEmpty(form[f]));
+      } else if (resourceName === "creditnotes") {
+        // For credit notes, make 'po_no' optional
+        missing = Object.entries(form).reduce((acc, [key, value]) => {
+          if (key === "index" || key === "folder" || key === "remarks" || key === "po_no")
+            return acc;
+          if (isFieldEmpty(value)) acc.push(key);
+          return acc;
+        }, []);
       } else {
         missing = Object.entries(form).reduce((acc, [key, value]) => {
           if (key === "index" || key === "folder" || key === "remarks")
