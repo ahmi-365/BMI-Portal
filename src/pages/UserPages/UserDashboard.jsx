@@ -6,9 +6,11 @@ import {
   DollarSign,
   FileText,
   Package,
-  RefreshCw,
+  ShieldCheck,
   TrendingUp,
   User,
+  X,
+  Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import CountUp from "react-countup";
@@ -54,13 +56,13 @@ const StatCard = ({ title, value, icon: Icon, colorClass, subtitle, to }) => {
         "relative overflow-hidden rounded-2xl border border-white/20 bg-white p-6 shadow-sm transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-xl",
         "dark:border-gray-800 dark:bg-gray-900/80 dark:backdrop-blur-xl",
-        "group cursor-pointer"
+        "group cursor-pointer",
       )}
     >
       <div
         className={cn(
           "absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-2xl transition-all group-hover:opacity-20",
-          colorClass.replace("bg-", "bg-")
+          colorClass.replace("bg-", "bg-"),
         )}
       />
       <div className="relative z-10 flex items-start justify-between">
@@ -83,7 +85,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass, subtitle, to }) => {
         <div
           className={cn(
             "rounded-xl p-3 shadow-sm transition-transform group-hover:scale-110",
-            colorClass
+            colorClass,
           )}
         >
           <Icon className="h-6 w-6 text-white" />
@@ -103,8 +105,18 @@ export default function UserDashboard() {
   const [dateTo, setDateTo] = useState("");
   const [activeFilter, setActiveFilter] = useState("");
 
+  // New State for the Welcome Modal
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
   useEffect(() => {
     fetchDashboardData();
+
+    // Check local storage to see if they've seen the welcome message
+    const hasSeenWelcome = localStorage.getItem("hasSeenPortalUpgrade");
+    if (!hasSeenWelcome) {
+      // Small delay makes the animation feel smoother on initial load
+      setTimeout(() => setShowWelcomeModal(true), 500);
+    }
   }, []);
 
   useEffect(() => {
@@ -123,7 +135,6 @@ export default function UserDashboard() {
     if (type !== "clear") setActiveFilter("");
   };
 
-  // --- Quick Filter Logic ---
   const handleQuickFilter = (type) => {
     const today = new Date();
     let start = new Date();
@@ -134,7 +145,6 @@ export default function UserDashboard() {
         break; // Start/End are today
       case "week":
         const day = today.getDay();
-        // Calculate Monday (if day is 0 (Sunday), subtract 6, else subtract day - 1)
         const diff = today.getDate() - day + (day === 0 ? -6 : 1);
         start.setDate(diff);
         break;
@@ -152,7 +162,6 @@ export default function UserDashboard() {
     setDateTo(formatDate(end));
     setActiveFilter(type);
   };
-  // --------------------------
 
   const fetchDashboardData = async () => {
     try {
@@ -165,8 +174,7 @@ export default function UserDashboard() {
       const params = new URLSearchParams();
       if (dateFrom) params.append("date_from", dateFrom);
       if (dateTo) params.append("date_to", dateTo);
-      const url = `${BASE_URL}/user/dashboard${params.toString() ? `?${params.toString()}` : ""
-        }`;
+      const url = `${BASE_URL}/user/dashboard${params.toString() ? `?${params.toString()}` : ""}`;
 
       const [profileResponse, dashboardResponse] = await Promise.all([
         userAuthAPI.profile(),
@@ -198,6 +206,12 @@ export default function UserDashboard() {
     }
   };
 
+  // Close Welcome Modal Handler
+  const handleCloseWelcomeModal = () => {
+    setShowWelcomeModal(false);
+    localStorage.setItem("hasSeenPortalUpgrade", "true");
+  };
+
   if (error) {
     return (
       <div className="flex h-[80vh] flex-col items-center justify-center gap-4 text-center">
@@ -224,7 +238,6 @@ export default function UserDashboard() {
     (dashboardData?.debit_notes || 0) +
     (dashboardData?.delivery_orders || 0);
 
-  // Quick Filter Button Component
   const FilterPill = ({ label, value }) => (
     <button
       onClick={() => handleQuickFilter(value)}
@@ -232,7 +245,7 @@ export default function UserDashboard() {
         "px-3 py-2 text-xs font-medium rounded-lg transition-all border",
         activeFilter === value
           ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-          : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+          : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600",
       )}
     >
       {label}
@@ -242,6 +255,92 @@ export default function UserDashboard() {
   return (
     <>
       <PageMeta title="User Dashboard" />
+
+      {/* --- Welcome/Upgrade Modal Overlay --- */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4 backdrop-blur-sm transition-opacity duration-300">
+          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-gray-900 animate-in zoom-in-95 duration-300">
+            {/* Decorative Header */}
+            <div className=" overflow-hidden">
+              <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/20 blur-2xl"></div>
+              <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-blue-400/30 blur-2xl"></div>
+              <button
+                onClick={handleCloseWelcomeModal}
+                className="absolute top-4 right-4 rounded-full bg-white/20 p-2 text-white hover:bg-white/30 transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="px-8 pb-8 pt-6 relative">
+              {/* Floating Icon */}
+
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Welcome to our new portal!
+                </h2>
+                <p className="mt-2 text-gray-600 dark:text-gray-300">
+                  We've upgraded our system to provide you with a faster,
+                  cleaner, and more powerful experience.
+                </p>
+
+                <div className="mt-6 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-lg bg-blue-100 p-2 dark:bg-blue-900/30">
+                      <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                        Lightning Fast
+                      </h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Navigate your invoices and orders instantly.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-lg bg-emerald-100 p-2 dark:bg-emerald-900/30">
+                      <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                        Better Insights
+                      </h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Track your financials easily on your new dashboard.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-lg bg-purple-100 p-2 dark:bg-purple-900/30">
+                      <ShieldCheck className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                        Enhanced Security
+                      </h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Your documents are safer and more accessible than ever.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <button
+                    onClick={handleCloseWelcomeModal}
+                    className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3.5 px-4 font-semibold text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:from-blue-700 hover:to-indigo-700 transition-all duration-200"
+                  >
+                    Explore the New Portal
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="min-h-screen mt-12">
         <div className="mx-auto max-w-7xl space-y-8">
@@ -263,23 +362,9 @@ export default function UserDashboard() {
                 </p>
               </div>
             </div>
-
-            {/* <button
-              onClick={fetchDashboardData}
-              disabled={loading}
-              className="group flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-200 transition-all hover:bg-gray-50 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700 dark:hover:bg-gray-700"
-            >
-              <RefreshCw
-                className={cn(
-                  "h-4 w-4 transition-transform",
-                  loading && "animate-spin"
-                )}
-              />
-              {loading ? "Refreshing..." : "Refresh Data"}
-            </button> */}
           </div>
 
-          {/* Filter Section - UI SAME AS BEFORE + QUICK FILTERS */}
+          {/* Filter Section */}
           <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col md:flex-row md:items-end md:gap-4">
@@ -294,7 +379,7 @@ export default function UserDashboard() {
                   />
                 </div>
 
-                {/* Quick Filters (Added here to sit next to picker on desktop, below on mobile) */}
+                {/* Quick Filters */}
                 <div className="flex flex-wrap gap-2">
                   <FilterPill label="Today" value="today" />
                   <FilterPill label="This Week" value="week" />
@@ -316,8 +401,8 @@ export default function UserDashboard() {
                     </div>
                     <button
                       onClick={() => {
-                        setDateFrom('');
-                        setDateTo('');
+                        setDateFrom("");
+                        setDateTo("");
                       }}
                       className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium transition-colors whitespace-nowrap"
                     >

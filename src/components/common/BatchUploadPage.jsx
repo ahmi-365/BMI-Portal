@@ -369,7 +369,10 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                       ...prev,
                       {
                         value: foundInvoice.id,
-                        label: foundInvoice.do_no || foundInvoice.invoice_no || `#${foundInvoice.id}`,
+                        label:
+                          foundInvoice.do_no ||
+                          foundInvoice.invoice_no ||
+                          `#${foundInvoice.id}`,
                       },
                     ];
                   });
@@ -826,9 +829,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     setToastMessage(null);
 
     // Validate required fields
+    // Validate required fields
     const errors = {};
     formData.forEach((form, idx) => {
       let missing = [];
+
       if (resourceName === "ppis") {
         const required = [
           "user_id",
@@ -840,25 +845,70 @@ export const BatchUploadPage = ({ resourceName, title }) => {
         ];
         missing = required.filter((f) => isFieldEmpty(form[f]));
       } else if (resourceName === "deliveryorders") {
-        // Delivery orders must have a DO number and document; invoice match is handled server-side
         const required = ["do_no", "do_doc"];
         missing = required.filter((f) => isFieldEmpty(form[f]));
       } else if (resourceName === "creditnotes") {
-        // For credit notes, make 'po_no' optional
-        missing = Object.entries(form).reduce((acc, [key, value]) => {
-          if (key === "index" || key === "folder" || key === "remarks" || key === "po_no")
-            return acc;
-          if (isFieldEmpty(value)) acc.push(key);
-          return acc;
-        }, []);
+        // Explicitly check ONLY the fields present in your UI
+        const required = [
+          "user_id",
+          "customer_no",
+          "amount",
+          "ref_no",
+          "cn_no",
+          "cn_date",
+          "payment_term",
+          "cn_doc",
+        ];
+        missing = required.filter((f) => isFieldEmpty(form[f]));
+      } else if (resourceName === "debitnotes") {
+        const required = [
+          "user_id",
+          "customer_no",
+          "amount",
+          "ref_no",
+          "dn_no",
+          "dn_date",
+          "payment_term",
+          "dn_doc",
+        ];
+        missing = required.filter((f) => isFieldEmpty(form[f]));
+      } else if (resourceName === "statements") {
+        const required = ["user_id", "customer_no", "as_date", "as_doc"];
+        missing = required.filter((f) => isFieldEmpty(form[f]));
+      } else if (resourceName === "invoices") {
+        const required = [
+          "user_id",
+          "customer_no",
+          "invoice_no",
+          "invoice_date",
+          "do_no",
+          "date",
+          "amount",
+          "file",
+        ];
+        missing = required.filter((f) => isFieldEmpty(form[f]));
       } else {
+        // Safe fallback ignoring backend-only metadata
         missing = Object.entries(form).reduce((acc, [key, value]) => {
-          if (key === "index" || key === "folder" || key === "remarks")
-            return acc;
+          const ignoredKeys = [
+            "index",
+            "folder",
+            "remarks",
+            "po_no",
+            "amount_original",
+            "amount_myr",
+            "currency",
+            "exchange_rate",
+            "files",
+            "data",
+            "prev_files",
+          ];
+          if (ignoredKeys.includes(key)) return acc;
           if (isFieldEmpty(value)) acc.push(key);
           return acc;
         }, []);
       }
+
       if (missing.length) errors[idx] = missing;
     });
 
