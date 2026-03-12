@@ -519,7 +519,6 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.ppi_date = toISODate(
               parseData.ppi_date?.[idx] ?? parseData.cn_date?.[idx] ?? "",
             );
-            form.payment_term = parseData.payment_term?.[idx] ?? "";
             // Show only the numeric part of ppi_percentage, remove percent sign and whitespace
             let rawPpiPercentage = parseData.ppi_percentage?.[idx] ?? "";
             rawPpiPercentage = String(rawPpiPercentage)
@@ -1648,61 +1647,6 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  Customer PO No.
-                                </label>
-                                <input
-                                  type="text"
-                                  value={form.po_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "po_no",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
-                                />
-                              </div>
-                              <div className="relative">
-                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  Reference No.
-                                </label>
-                                <input
-                                  type="text"
-                                  value={form.ref_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "ref_no",
-                                      e.target.value,
-                                    )
-                                  }
-                                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500"
-                                />
-                              </div>
-                              <div className="relative">
-                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  CN No.
-                                </label>
-                                <input
-                                  type="text"
-                                  value={form.cn_no ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "cn_no",
-                                      e.target.value,
-                                    )
-                                  }
-                                  required
-                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
-                                    idx,
-                                    "cn_no",
-                                  )}`}
-                                />
-                              </div>
-                              <div className="relative">
-                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
                                   CN Date
                                 </label>
                                 <input
@@ -1716,55 +1660,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     )
                                   }
                                   required
-                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover;border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
                                     "cn_date",
                                   )}`}
                                 />
                               </div>
-                              <div className="relative">
-                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  CN Document
-                                </label>
-                                <input
-                                  type="text"
-                                  value={form.cn_doc ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "cn_doc",
-                                      e.target.value,
-                                    )
-                                  }
-                                  required
-                                  className={`w-full rounded-lg border-2 border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 dark:border-gray-600 dark:bg-gray-700/40 dark:text-white ${errorClass(
-                                    idx,
-                                    "cn_doc",
-                                  )}`}
-                                  placeholder="Auto from parsed file"
-                                />
-                              </div>
-                              <div className="relative">
-                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  Due Date
-                                </label>
-                                <input
-                                  type="date"
-                                  value={form.payment_term ?? ""}
-                                  onChange={(e) =>
-                                    handleFormChange(
-                                      idx,
-                                      "payment_term",
-                                      e.target.value,
-                                    )
-                                  }
-                                  required
-                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
-                                    idx,
-                                    "payment_term",
-                                  )}`}
-                                />
-                              </div>
+
                               <div className="relative md:col-span-2">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
                                   Remarks
