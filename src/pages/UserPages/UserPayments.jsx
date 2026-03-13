@@ -1,4 +1,5 @@
 import { Download, Loader2, Plus } from "lucide-react";
+import Swal from "sweetalert2";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FileDownloadButton from "../../components/common/FileDownloadButton";
@@ -110,7 +111,39 @@ export default function UserPayments() {
       setSelectedIds([]);
     } catch (err) {
       console.error("Bulk download failed:", err);
-      alert("Failed to download files. Please try again.");
+      let backendMessage = "";
+      try {
+        let errorData = err?.response?.data || err?.data;
+        if (errorData instanceof Blob) {
+          const text = await errorData.text();
+          errorData = text;
+        }
+        if (typeof errorData === "string") {
+          try {
+            errorData = JSON.parse(errorData);
+          } catch {
+            const match = errorData.match(/"message"\s*:\s*"([^"]*)"/);
+            if (match) {
+              backendMessage = match[1];
+            } else {
+              backendMessage = errorData;
+            }
+          }
+        }
+        if (typeof errorData === "object" && errorData !== null) {
+          backendMessage = errorData.message || "";
+        }
+      } catch (e) {
+        console.warn("Failed to parse backend error", e);
+      }
+      Swal.fire({
+        icon: "error",
+        title: backendMessage || "No files found for selected Payment.",
+        toast: true,
+        position: "top-end",
+        timer: 3000,
+        showConfirmButton: false,
+      });
     } finally {
       setIsDownloading(false);
     }
