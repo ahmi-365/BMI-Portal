@@ -1,9 +1,6 @@
-// API service: real HTTP client for backend endpoints
 import { auth, userAuth } from "./auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE;
-
-// Extracts a readable backend message from a failed response
 const parseErrorResponse = async (response) => {
   const fallback = `Request failed with status ${response.status}`;
   try {
@@ -38,7 +35,6 @@ const apiCall = async (endpoint, options = {}) => {
     },
   };
 
-  // Only set Content-Type if not FormData
   if (!options.isFormData) {
     config.headers["Content-Type"] = "application/json";
   }
@@ -59,7 +55,6 @@ const apiCall = async (endpoint, options = {}) => {
     }
 
     if (!response.ok) {
-      // CRITICAL FIX: Parse the full error response and attach it to the error
       const contentType = response.headers.get("content-type") || "";
       let errorData = null;
 
@@ -77,8 +72,6 @@ const apiCall = async (endpoint, options = {}) => {
           message: `Request failed with status ${response.status}`,
         };
       }
-
-      // Create error with message
       const message =
         errorData?.message ||
         errorData?.error ||
@@ -87,7 +80,6 @@ const apiCall = async (endpoint, options = {}) => {
 
       const error = new Error(message);
 
-      // IMPORTANT: Attach the full error data to the error object
       error.responseData = errorData;
       error.status = response.status;
 
@@ -106,51 +98,39 @@ const apiCall = async (endpoint, options = {}) => {
   }
 };
 
-// Generic CRUD operations
 export const apiService = {
-  // Get all records for a resource (supports query string)
   getAll: (resource, queryString = "") => apiCall(`/${resource}${queryString}`),
 
-  // Get a single record by ID
   getById: (resource, id) => apiCall(`/${resource}/${id}`),
 
-  // Create a new record
   create: (resource, data) =>
     apiCall(`/${resource}`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
-  // Update an existing record
   update: (resource, id, data) =>
     apiCall(`/${resource}/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
 
-  // Delete a record
   delete: (resource, id) =>
     apiCall(`/${resource}/${id}`, {
       method: "DELETE",
     }),
 };
-// Generic delete helper for resources (uses /<resource>/delete/:id pattern)
 export const deleteResource = async (resource, id) => {
-  // Many backend endpoints expect DELETE at /<resource>/delete/:id
-  // Accept both resourceName (eg. 'customers-approved') or raw resource ('customers')
   const { resource: parsed } = parseResourceName(resource);
   const res = await apiCall(`/${parsed}/delete/${id}`, {
     method: "DELETE",
   });
   return res?.data ?? res;
 };
-// Helper to map special resource names (eg. "payment-records-paid")
-// Helper to map special resource names (eg. "approve-customer")
 const parseResourceName = (resourceName) => {
   const params = {};
   let resource = resourceName;
 
-  // Handle generic suffixes
   if (resourceName.endsWith("-paid")) {
     resource = resourceName.replace(/-paid$/, "");
     params.status = "paid";
@@ -954,6 +934,7 @@ export const reportsAPI = {
   },
   UserbulkDownload: async ({
     model,
+    type = "zip",
     date_from = null,
     date_to = null,
   }) => {
@@ -962,6 +943,7 @@ export const reportsAPI = {
 
     const payload = {
       model,
+      type,
     };
 
     if (date_from) {
@@ -1213,6 +1195,11 @@ export const userInvoicesAPI = {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
+  export: (ids) =>
+    userApiCall("/user/invoices/export", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
 };
 
 // User Delivery Orders APIs
@@ -1225,6 +1212,11 @@ export const userDeliveryOrdersAPI = {
 
   bulkDownload: (ids) =>
     userApiCall("/user/delivery-orders/bulk-download", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+  export: (ids) =>
+    userApiCall("/user/delivery-orders/export", {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
@@ -1243,6 +1235,11 @@ export const userDebitNotesAPI = {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
+  export: (ids) =>
+    userApiCall("/user/debit-notes/export", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
 };
 
 // User Credit Notes APIs
@@ -1258,6 +1255,11 @@ export const userCreditNotesAPI = {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
+  export: (ids) =>
+    userApiCall("/user/credit-notes/export", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
 };
 
 // User Payments APIs
@@ -1270,6 +1272,16 @@ export const userPaymentsAPI = {
     userApiCallFormData("/user/payments/add", formData, "POST"),
 
   download: (id) => userDownloadBlob(`/user/payments/download/${id}`),
+  bulkDownload: (ids) =>
+    userApiCall("/user/payments/bulk-download", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+  // export: (ids) =>
+  //   userApiCall("/user/payments/export", {
+  //     method: "POST",
+  //     body: JSON.stringify({ ids }),
+  //   }),
 };
 
 // User Notifications APIs
@@ -1300,6 +1312,11 @@ export const userStatementsAPI = {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),
+  export: (ids) =>
+    userApiCall("/user/statements/export", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
 };
 
 // User PPIs APIs
@@ -1312,6 +1329,11 @@ export const userPpisAPI = {
 
   bulkDownload: (ids) =>
     userApiCall("/user/ppi/bulk-download", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+  export: (ids) =>
+    userApiCall("/user/ppi/export", {
       method: "POST",
       body: JSON.stringify({ ids }),
     }),

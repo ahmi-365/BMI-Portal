@@ -18,6 +18,7 @@ const RESOURCE_OPTIONS = [
 
 export default function UserExportReport() {
   const [resource, setResource] = useState(RESOURCE_OPTIONS[0]?.value || "");
+  const [exportType, setExportType] = useState("zip");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -53,14 +54,16 @@ export default function UserExportReport() {
       setToast({ message: null, type: "success" });
       const payload = {
         model: resource,
+        type: exportType,
       };
       
-      // Only add dates if provided (no type or user_ids sent for user bulk download)
+      // Only add dates if provided (no user_ids sent for user bulk download)
       if (dateFrom) payload.date_from = dateFrom;
       if (dateTo) payload.date_to = dateTo;
       
       const blob = await reportsAPI.UserbulkDownload(payload);
-      const filename = `report-${resource}-${new Date().getTime()}.zip`;
+      const ext = exportType === "excel" ? "xlsx" : "zip";
+      const filename = `report-${resource}-${new Date().getTime()}.${ext}`;
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
@@ -142,23 +145,37 @@ export default function UserExportReport() {
             </div>
           </div>
 
-          {/* Export Format Section (ZIP only) */}
+          {/* Export Format Section (ZIP/Excel) */}
           <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/80 p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <FileText className="w-5 h-5 text-green-500" />
               Export Format
             </h2>
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 dark:text-white">ZIP Format</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Compressed archive format for easy download and sharing
-                </p>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span className="text-xs font-medium text-green-700 dark:text-green-300">Selected</span>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setExportType("zip")}
+                className={`flex items-center gap-3 p-4 rounded-lg transition-colors border ${
+                  exportType === "zip"
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-md"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-600"
+                }`}
+              >
+                <Download className="w-5 h-5" />
+                <span className="font-medium">ZIP</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setExportType("excel")}
+                className={`flex items-center gap-3 p-4 rounded-lg transition-colors border ${
+                  exportType === "excel"
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-md"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-600"
+                }`}
+              >
+                <FileText className="w-5 h-5" />
+                <span className="font-medium">Excel</span>
+              </button>
             </div>
           </div>
 
@@ -168,14 +185,14 @@ export default function UserExportReport() {
               <Calendar className="w-5 h-5 text-blue-500" />
               Time Period
               <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
-                (Optional - Max 30 days)
+                (Optional - Max {exportType === "excel" ? "1 year" : "30 days"})
               </span>
             </h2>
             <DateRangePicker
               dateFrom={dateFrom}
               dateTo={dateTo}
               onDateChange={handleDateChange}
-              rangeRestriction="month"
+              rangeRestriction={exportType === "excel" ? "year" : "month"}
             />
           </div>
 

@@ -64,8 +64,9 @@ const COLUMNS = [
 export default function UserDeliveryOrders() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
 
-  const handleBulkDownload = async () => {
+  const handleBulkDownload = async (type = "zip") => {
     if (selectedIds.length === 0) {
       alert("Please select at least one delivery order");
       return;
@@ -73,16 +74,19 @@ export default function UserDeliveryOrders() {
 
     setIsDownloading(true);
     try {
-      const blob = await userDownloadBlob(
-        `/user/delivery-orders/bulk-download`,
-        {
-          ids: selectedIds,
-        }
-      );
+      const endpoint =
+        type === "zip"
+          ? `/user/delivery-orders/bulk-download`
+          : `/user/delivery-orders/export`;
+      const blob = await userDownloadBlob(endpoint, {
+        ids: selectedIds,
+      });
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
-      a.download = "delivery-orders.zip";
+      a.download = `delivery-orders-${new Date().getTime()}.${
+        type === "zip" ? "zip" : "xlsx"
+      }`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -114,21 +118,64 @@ export default function UserDeliveryOrders() {
         onSelectionChange={setSelectedIds}
         headerAction={
           selectedIds.length > 0 ? (
-            <button
-              onClick={handleBulkDownload}
-              disabled={isDownloading}
-              className="inline-flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isDownloading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4" />
-              )}
-              {isDownloading
-                ? "Downloading..."
-                : `Download (${selectedIds.length})`}
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setIsDownloadMenuOpen(!isDownloadMenuOpen)}
+                disabled={isDownloading}
+                className="inline-flex items-center gap-2 bg-brand-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDownloading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                {isDownloading
+                  ? "Downloading..."
+                  : `Download (${selectedIds.length})`}
+                <svg
+                  className={`w-4 h-4 ml-1 transition-transform duration-300 ${
+                    isDownloadMenuOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
 
+              {isDownloadMenuOpen && (
+                <ul className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-20 divide-y divide-gray-100">
+                  <li>
+                    <button
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors"
+                      onClick={() => {
+                        setIsDownloadMenuOpen(false);
+                        handleBulkDownload("zip");
+                      }}
+                    >
+                      Download ZIP
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors"
+                      onClick={() => {
+                        setIsDownloadMenuOpen(false);
+                        handleBulkDownload("excel");
+                      }}
+                    >
+                      Download Excel
+                    </button>
+                  </li>
+                </ul>
+              )}
+            </div>
           ) : null
         }
       />
