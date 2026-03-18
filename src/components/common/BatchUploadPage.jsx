@@ -1660,9 +1660,31 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                     )
                                   }
                                   required
-                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover;border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
                                     "cn_date",
+                                  )}`}
+                                />
+                              </div>
+
+                              <div className="relative">
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                                  PPI %
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.ppi_percentage ?? ""}
+                                  onChange={(e) =>
+                                    handleFormChange(
+                                      idx,
+                                      "ppi_percentage",
+                                      e.target.value,
+                                    )
+                                  }
+                                  required
+                                  className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
+                                    idx,
+                                    "ppi_percentage",
                                   )}`}
                                 />
                               </div>
