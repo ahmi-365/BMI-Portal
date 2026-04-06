@@ -33,6 +33,20 @@ const COLUMNS = [
     sortable: true,
   },
   {
+    header: "CN No.",
+    accessor: "cn_no",
+    filterKey: "cn_no",
+    sortable: true,
+  },
+  // {
+  //   header: "CN Date",
+  //   accessor: "cn_date",
+  //   filterKey: "cn_date",
+  //   filterType: "date-range",
+  //   sortable: true,
+  //   render: (row) => formatDate(row.cn_date),
+  // },
+  {
     header: "Amount",
     accessor: "amount",
     filterKey: "amount",
@@ -63,7 +77,7 @@ const COLUMNS = [
     header: "PPI Doc",
     accessor: "ppi_doc",
     sortable: false,
-    
+
     filterKey: "ppi_doc",
     render: (row) =>
       canAccess("view-ppis") && (

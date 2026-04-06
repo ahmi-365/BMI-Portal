@@ -519,6 +519,8 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.ppi_date = toISODate(
               parseData.ppi_date?.[idx] ?? parseData.cn_date?.[idx] ?? "",
             );
+            // Also set cn_date for the CN Date field in the form
+            form.cn_date = toISODate(parseData.cn_date?.[idx] ?? "");
             // Show only the numeric part of ppi_percentage, remove percent sign and whitespace
             let rawPpiPercentage = parseData.ppi_percentage?.[idx] ?? "";
             rawPpiPercentage = String(rawPpiPercentage)
