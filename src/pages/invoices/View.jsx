@@ -22,13 +22,18 @@ const COLUMNS = [
     accessor: "company",
     sortable: true,
   },
-  { header: "Invoice No.", accessor: "invoiceId", filterKey: "invoice_no", sortable: true },
+  {
+    header: "Invoice No.",
+    accessor: "invoiceId",
+    filterKey: "invoice_no",
+    sortable: true,
+  },
   {
     header: "Invoice Doc",
     accessor: "invoice_doc",
     filterKey: "invoice_doc",
     sortable: false,
-    render: (row) => (
+    render: (row) =>
       canAccess("view-invoices") && (
         <FileDownloadButton
           file={row.invoice_doc}
@@ -36,8 +41,7 @@ const COLUMNS = [
           endpoint="invoices"
           path="download"
         />
-      )
-    ),
+      ),
   },
   {
     header: "Invoice Date",
@@ -120,7 +124,6 @@ export default function InvoicesView() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
 
   const handleBulkDeleteClick = () => {
     if (selectedIds.length === 0) {
@@ -216,7 +219,6 @@ export default function InvoicesView() {
     }
   };
 
-
   const handleCSVDownload = async () => {
     try {
       setIsDownloading(true);
@@ -235,7 +237,6 @@ export default function InvoicesView() {
       setIsDownloadOpen(false);
     }
   };
-
 
   return (
     <div>
@@ -263,7 +264,6 @@ export default function InvoicesView() {
         headerAction={
           selectedIds.length > 0 ? (
             <div className="flex items-center gap-3 relative">
-
               {/* DOWNLOAD BUTTON */}
               {canAccess("export-invoices") && (
                 <div className="relative">
@@ -305,11 +305,9 @@ export default function InvoicesView() {
                   Delete ({selectedIds.length})
                 </button>
               )}
-
             </div>
           ) : null
         }
-
       />
       <BulkDeleteConfirmationModal
         isOpen={isDeleteModalOpen}
@@ -318,7 +316,6 @@ export default function InvoicesView() {
         isLoading={isDeleting}
         count={selectedIds.length}
       />
-
     </div>
   );
 }

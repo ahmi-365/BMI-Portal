@@ -113,6 +113,18 @@ export const DataTable = ({
                     column.filterKey || column.accessor || column.accessorKey;
                   const isSortable = column.sortable !== false && columnKey;
                   const isSorted = sortBy === columnKey;
+                  const headerText = String(column.header || "").toLowerCase();
+                  const accessorText = String(
+                    column.accessor ||
+                      column.accessorKey ||
+                      column.filterKey ||
+                      "",
+                  ).toLowerCase();
+                  const isAmountColumn =
+                    headerText.includes("amount") ||
+                    headerText.includes("ammount") ||
+                    accessorText.includes("amount") ||
+                    accessorText.includes("ammount");
 
                   return (
                     <th
@@ -124,7 +136,11 @@ export const DataTable = ({
                           : ""
                       }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <div
+                        className={`flex items-center gap-2 ${
+                          isAmountColumn ? "justify-end" : ""
+                        }`}
+                      >
                         <span>{column.header}</span>
                         {isSortable &&
                           (isSorted ? (
@@ -246,33 +262,52 @@ export const DataTable = ({
                         />
                       </td>
                     )}
-                    {columns.map((column, colIndex) => (
-                      <td
-                        key={colIndex}
-                        onClick={(e) => {
-                          // Prevent row click when clicking action buttons or interactive elements
-                          if (
-                            column.header === "Actions" ||
-                            e.target.tagName === "BUTTON" ||
-                            e.target.tagName === "A"
-                          ) {
-                            e.stopPropagation();
-                          }
-                        }}
-                        className="px-5 py-4 text-sm dark:text-gray-400 whitespace-nowrap group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200"
-                      >
-                        {column.render ? (
-                          column.render(row)
-                        ) : (
-                          <span className="text-gray-900 dark:text-white">
-                            {/* Safe access to nested properties could be added here if needed */}
-                            {row[column.accessor] !== undefined
-                              ? row[column.accessor]
-                              : row[column.accessorKey]}
-                          </span>
-                        )}
-                      </td>
-                    ))}
+                    {columns.map((column, colIndex) => {
+                      const headerText = String(
+                        column.header || "",
+                      ).toLowerCase();
+                      const accessorText = String(
+                        column.accessor ||
+                          column.accessorKey ||
+                          column.filterKey ||
+                          "",
+                      ).toLowerCase();
+                      const isAmountColumn =
+                        headerText.includes("amount") ||
+                        headerText.includes("ammount") ||
+                        accessorText.includes("amount") ||
+                        accessorText.includes("ammount");
+
+                      return (
+                        <td
+                          key={colIndex}
+                          onClick={(e) => {
+                            // Prevent row click when clicking action buttons or interactive elements
+                            if (
+                              column.header === "Actions" ||
+                              e.target.tagName === "BUTTON" ||
+                              e.target.tagName === "A"
+                            ) {
+                              e.stopPropagation();
+                            }
+                          }}
+                          className={`px-5 py-4 text-sm dark:text-gray-400 whitespace-nowrap group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-200 ${
+                            isAmountColumn ? "text-right tabular-nums" : ""
+                          }`}
+                        >
+                          {column.render ? (
+                            column.render(row)
+                          ) : (
+                            <span className="text-gray-900 dark:text-white">
+                              {/* Safe access to nested properties could be added here if needed */}
+                              {row[column.accessor] !== undefined
+                                ? row[column.accessor]
+                                : row[column.accessorKey]}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))
               ) : (

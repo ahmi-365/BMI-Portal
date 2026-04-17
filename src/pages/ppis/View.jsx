@@ -25,18 +25,12 @@ const COLUMNS = [
     filterKey: "customer_no",
     sortable: true,
   },
-  { header: "PO No.", accessor: "po_no", filterKey: "po_no", sortable: true },
   {
-    header: "Ref No.",
-    accessor: "ref_no",
-    filterKey: "ref_no",
+    header: "Document No.",
+    accessor: "document_no",
+    filterKey: "document_no",
     sortable: true,
-  },
-  {
-    header: "CN No.",
-    accessor: "cn_no",
-    filterKey: "cn_no",
-    sortable: true,
+    render: (row) => row.document_no || row.cn_no || "-",
   },
   // {
   //   header: "CN Date",

@@ -117,6 +117,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     return value === undefined || value === null || String(value).trim() === "";
   };
 
+  const isDoNoOptionalForInvoice = (invoiceNo) =>
+    String(invoiceNo ?? "")
+      .trim()
+      .startsWith("15");
+
   const fieldHasError = (index, field) =>
     submitted && Array.isArray(validationErrors[index])
       ? validationErrors[index].includes(field)
@@ -514,7 +519,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.user_id = form.user_id ?? "";
             form.customer_no = parseData.customer_no?.[idx] ?? "";
             form.amount = extractAmount(parseData.amount?.[idx] ?? "");
-            form.cn_no = parseData.cn_no?.[idx] ?? "";
+            form.document_no =
+              parseData.document_no?.[idx] ??
+              parseData.cn_no?.[idx] ??
+              form.document_no ??
+              form.cn_no ??
+              "";
+            delete form.cn_no;
             // Map cn_date from backend to ppi_date for the form (as yyyy-mm-dd)
             form.ppi_date = toISODate(
               parseData.ppi_date?.[idx] ?? parseData.cn_date?.[idx] ?? "",
@@ -594,9 +605,18 @@ export const BatchUploadPage = ({ resourceName, title }) => {
             form.customer_no = form.customer_no ?? "";
             form.po_no = form.po_no ?? "";
             form.do_no = form.do_no ?? "";
-            form.date = dueDateFromTerm(form.payment_terms, new Date());
             form.invoice_date =
               toISODate(form.invoice_date) || form.invoice_date || "";
+
+            const paymentTermsRaw = String(form.payment_terms ?? "").trim();
+            const isCreditCod = /^credit\s*\/\s*cod$/i.test(paymentTermsRaw);
+            const dueTermSource = isCreditCod
+              ? form.credit_terms || form.payment_terms
+              : form.payment_terms;
+            const dueBaseDate = form.invoice_date
+              ? new Date(form.invoice_date)
+              : new Date();
+            form.date = dueDateFromTerm(dueTermSource, dueBaseDate);
             form.amount = extractAmount(String(form.amount ?? ""));
             form.remarks = form.remarks ?? "";
             form.folder = form.folder ?? "";
@@ -746,6 +766,24 @@ export const BatchUploadPage = ({ resourceName, title }) => {
     if (errorString && typeof errorString === "string") {
       const indexMatch = errorString.match(/at index (\d+):/i);
       const jsonMatch = errorString.match(/:\s*(\{.*\})\s*$/);
+      const plainMatch = errorString.match(
+        /validation failed at index\s+(\d+):\s*(.+)$/i,
+      );
+
+      if (plainMatch && !jsonMatch) {
+        const idx = parseInt(plainMatch[1], 10);
+        const plainMessage = String(plainMatch[2] || "").trim();
+
+        if (!Number.isNaN(idx) && plainMessage) {
+          validationMap[idx] = validationMap[idx] || [];
+
+          if (/document_no/i.test(plainMessage)) {
+            validationMap[idx].push("document_no");
+          }
+
+          messages.push(plainMessage);
+        }
+      }
 
       if (indexMatch && jsonMatch) {
         const idx = parseInt(indexMatch[1], 10);
@@ -754,7 +792,11 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           validationMap[idx] = [];
 
           Object.entries(errorDetails).forEach(([field, msgs]) => {
-            validationMap[idx].push(field);
+            const normalizedField =
+              resourceName === "ppis" && field === "cn_no"
+                ? "document_no"
+                : field;
+            validationMap[idx].push(normalizedField);
             if (Array.isArray(msgs)) {
               msgs.forEach((m) => messages.push(m));
             } else if (typeof msgs === "string") {
@@ -796,13 +838,20 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       const match = field.match(/delivery_orders\.(\d+)\.(.+)/);
       if (match) {
         const idx = parseInt(match[1], 10);
-        const fieldName = match[2];
+        const fieldName =
+          resourceName === "ppis" && match[2] === "cn_no"
+            ? "document_no"
+            : match[2];
         if (!Number.isNaN(idx)) {
           validationMap[idx] = validationMap[idx] || [];
           validationMap[idx].push(fieldName);
         }
       } else {
-        const baseField = field.split(".")[0];
+        const rawBaseField = field.split(".")[0];
+        const baseField =
+          resourceName === "ppis" && rawBaseField === "cn_no"
+            ? "document_no"
+            : rawBaseField;
         if (baseField) {
           validationMap[0] = validationMap[0] || [];
           validationMap[0].push(baseField);
@@ -838,7 +887,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       if (resourceName === "ppis") {
         const required = [
           "user_id",
-          "cn_no",
+          "document_no",
           "ppi_date",
           "amount",
           "ppi_percentage",
@@ -882,11 +931,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           "customer_no",
           "invoice_no",
           "invoice_date",
-          "do_no",
           "date",
           "amount",
           "file",
         ];
+        if (!isDoNoOptionalForInvoice(form.invoice_no)) {
+          required.push("do_no");
+        }
         missing = required.filter((f) => isFieldEmpty(form[f]));
       } else {
         // Safe fallback ignoring backend-only metadata
@@ -1605,22 +1656,22 @@ export const BatchUploadPage = ({ resourceName, title }) => {
 
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                                  CN No.
+                                  Document No.
                                 </label>
                                 <input
                                   type="text"
-                                  value={form.cn_no ?? ""}
+                                  value={form.document_no ?? ""}
                                   onChange={(e) =>
                                     handleFormChange(
                                       idx,
-                                      "cn_no",
+                                      "document_no",
                                       e.target.value,
                                     )
                                   }
                                   required
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
-                                    "cn_no",
+                                    "document_no",
                                   )}`}
                                 />
                               </div>
@@ -2352,6 +2403,9 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                               <div className="relative">
                                 <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wide">
                                   Delivery Order No.
+                                  {isDoNoOptionalForInvoice(form.invoice_no)
+                                    ? " (Optional for this invoice)"
+                                    : ""}
                                 </label>
                                 <input
                                   type="text"
@@ -2363,7 +2417,9 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                                       e.target.value,
                                     )
                                   }
-                                  required
+                                  required={
+                                    !isDoNoOptionalForInvoice(form.invoice_no)
+                                  }
                                   className={`w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 focus:border-brand-400 focus:ring-4 focus:ring-brand-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500 dark:focus:ring-brand-900/30 hover:border-gray-300 dark:hover:border-gray-500 ${errorClass(
                                     idx,
                                     "do_no",
