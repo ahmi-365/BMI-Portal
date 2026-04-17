@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LineChart,
   List,
+  Megaphone,
   MoreHorizontal,
   Plus,
   Table,
@@ -83,6 +84,12 @@ const othersItems = [
     icon: <Users className="w-5 h-5" />,
     path: "/admin-users",
     permission: "list-admins",
+  },
+  {
+    name: "Announcements",
+    icon: <Megaphone className="w-5 h-5" />,
+    path: "/announcements",
+    alwaysVisible: true,
   },
   {
     name: "Administration",

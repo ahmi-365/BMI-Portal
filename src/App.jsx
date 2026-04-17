@@ -61,6 +61,9 @@ import CustomersShow from "./pages/customers/Show";
 
 // Admin Users
 import AdminUsersIndex from "./pages/admin-users/Index";
+import AnnouncementsEdit from "./pages/announcements/Edit";
+import AnnouncementsIndex from "./pages/announcements/Index";
+import AnnouncementsShow from "./pages/announcements/Show";
 
 // User Panel Auth
 import UserLogin from "./pages/UserPages/UserLogin";
@@ -132,6 +135,15 @@ export default function App() {
                   <AdminUsersIndex />
                 </RouteGuard>
               }
+            />
+            <Route path="/announcements/*" element={<AnnouncementsIndex />} />
+            <Route
+              path="/announcements/edit/:id"
+              element={<AnnouncementsEdit />}
+            />
+            <Route
+              path="/announcements/show/:id"
+              element={<AnnouncementsShow />}
             />
             <Route
               path="/admins/show/:id"

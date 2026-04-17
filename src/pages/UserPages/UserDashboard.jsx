@@ -5,11 +5,13 @@ import {
   CreditCard,
   DollarSign,
   FileText,
+  Megaphone,
   Package,
   TrendingUp,
   User,
+  X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CountUp from "react-countup";
 import { Link } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
@@ -17,7 +19,7 @@ import { twMerge } from "tailwind-merge";
 import { DateRangePicker } from "../../components/common/DateRangePicker";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import { userAuthAPI } from "../../services/api";
+import { userAnnouncementsAPI, userAuthAPI } from "../../services/api";
 
 // Utility for cleaner tailwind classes
 function cn(...inputs) {
@@ -30,6 +32,27 @@ const formatDate = (date) => {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+};
+
+const DISMISSED_ANNOUNCEMENTS_KEY = "bmi_user_dismissed_announcements";
+
+const readDismissedAnnouncements = () => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const stored = window.localStorage.getItem(DISMISSED_ANNOUNCEMENTS_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const shortAnnouncementText = (text, maxLength = 140) => {
+  if (!text) return "";
+  const normalized = String(text).replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength).trimEnd()}...`;
 };
 
 // --- Sub Components ---
@@ -96,6 +119,11 @@ const StatCard = ({ title, value, icon: Icon, colorClass, subtitle, to }) => {
 export default function UserDashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [announcements, setAnnouncements] = useState([]);
+  const [dismissedAnnouncements, setDismissedAnnouncements] = useState(() =>
+    readDismissedAnnouncements(),
+  );
+  const [dismissLoadingId, setDismissLoadingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dateFrom, setDateFrom] = useState("");
@@ -150,6 +178,56 @@ export default function UserDashboard() {
     setActiveFilter(type);
   };
 
+  const normalizeAnnouncementList = (response) => {
+    const rows = response?.rows ?? response?.data ?? response ?? [];
+    return Array.isArray(rows) ? rows : [];
+  };
+
+  const visibleAnnouncement = useMemo(() => {
+    const dismissedSet = new Set(dismissedAnnouncements.map(String));
+    const sorted = [...announcements].sort((left, right) => {
+      const leftTime = new Date(
+        left?.created_at || left?.updated_at || 0,
+      ).getTime();
+      const rightTime = new Date(
+        right?.created_at || right?.updated_at || 0,
+      ).getTime();
+      return rightTime - leftTime;
+    });
+
+    return (
+      sorted.find(
+        (announcement) => !dismissedSet.has(String(announcement.id)),
+      ) || null
+    );
+  }, [announcements, dismissedAnnouncements]);
+
+  const dismissAnnouncement = async (announcement) => {
+    if (!announcement?.id) return;
+
+    setDismissedAnnouncements((prev) => {
+      const next = Array.from(new Set([...prev, announcement.id]));
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          DISMISSED_ANNOUNCEMENTS_KEY,
+          JSON.stringify(next),
+        );
+      }
+      return next;
+    });
+
+    try {
+      setDismissLoadingId(announcement.id);
+      await userAnnouncementsAPI.changeStatus(announcement.id, {
+        is_read: true,
+      });
+    } catch (announcementError) {
+      console.error("Failed to update announcement status:", announcementError);
+    } finally {
+      setDismissLoadingId(null);
+    }
+  };
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -184,6 +262,17 @@ export default function UserDashboard() {
 
       const data = await dashboardResponse.json();
       setDashboardData(data);
+
+      try {
+        const announcementResponse = await userAnnouncementsAPI.list({
+          page: 1,
+          perPage: 10,
+        });
+        setAnnouncements(normalizeAnnouncementList(announcementResponse));
+      } catch (announcementError) {
+        console.error("Error fetching announcements:", announcementError);
+        setAnnouncements([]);
+      }
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
       setError(err.message);
@@ -237,7 +326,7 @@ export default function UserDashboard() {
     <>
       <PageMeta title="User Dashboard" />
 
-      <div className="min-h-screen mt-12">
+      <div className="mt-12">
         <div className="mx-auto max-w-7xl space-y-8">
           {/* Top Header Section */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -258,6 +347,44 @@ export default function UserDashboard() {
               </div>
             </div>
           </div>
+
+          {visibleAnnouncement && (
+            <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-amber-50 p-4 shadow-sm dark:border-amber-900/50 dark:from-amber-950/30 dark:via-gray-900 dark:to-amber-950/20">
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                    <Megaphone className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="mb-2 inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                      Announcement
+                    </div>
+                    <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {visibleAnnouncement.subject ||
+                        visibleAnnouncement.title ||
+                        "Important update"}
+                    </h2>
+                    <p className="mt-1 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-300">
+                      {shortAnnouncementText(
+                        visibleAnnouncement.content ||
+                          visibleAnnouncement.message,
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => dismissAnnouncement(visibleAnnouncement)}
+                  disabled={dismissLoadingId === visibleAnnouncement.id}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-200 bg-white text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-800 dark:bg-gray-900 dark:text-amber-300 dark:hover:bg-amber-900/30"
+                  aria-label="Dismiss announcement"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Filter Section */}
           <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">

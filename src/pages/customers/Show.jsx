@@ -19,9 +19,9 @@ const fileArrayRender = (files, data) => {
   if (!files || (Array.isArray(files) && files.length === 0)) {
     return "-";
   }
-  
+
   const fileArray = Array.isArray(files) ? files : [files];
-  
+
   return (
     <div className="flex flex-col gap-2">
       {fileArray.map((file, index) => (
@@ -39,7 +39,6 @@ const fileArrayRender = (files, data) => {
   );
 };
 
-
 const FIELDS = [
   // { name: "id", label: "ID" },
   { name: "name", label: "Company/Business Name" },
@@ -48,25 +47,26 @@ const FIELDS = [
   { name: "phone", label: "Contact No." },
   // { name: "created_at", label: "Created At" },
   {
-  name: "status",
-  label: "Status",
-  render: (value) => {
-    const isActive = Number(value) !== 0;
+    name: "status",
+    label: "Status",
+    render: (value) => {
+      const isActive = Number(value) !== 0;
 
-    return (
-      <span
-        className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full
-          ${isActive
-            ? "bg-green-100 text-green-700"
-            : "bg-yellow-100 text-yellow-700"}
+      return (
+        <span
+          className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full
+          ${
+            isActive
+              ? "bg-green-100 text-green-700"
+              : "bg-yellow-100 text-yellow-700"
+          }
         `}
-      >
-        {isActive ? "ACTIVE" : "PENDING"}
-      </span>
-    );
+        >
+          {isActive ? "ACTIVE" : "PENDING"}
+        </span>
+      );
+    },
   },
-}
-,
   { name: "customer_no", label: "Customer No." },
 
   { name: "email", label: "Business Email (Primary)" },
@@ -90,33 +90,33 @@ const FIELDS = [
   //     </span>
   //   ),
   // },
- {
+  {
     name: "created_at",
     label: "Created At",
     // CHANGE: Use formatDate for consistent DMY format
     render: (value) => formatDate(value),
   },
   { name: "payment_term", label: "Payment Term (Days)" },
-  { 
-    name: "letter_of_guarantee", 
-    label: "Letter of Guarantee", 
-    render: fileRender 
+  {
+    name: "letter_of_guarantee",
+    label: "Letter of Guarantee",
+    render: fileRender,
   },
-  { 
-    name: "credit_application_files", 
-    label: "Credit Application Files", 
-    render: fileArrayRender 
+  {
+    name: "credit_application_files",
+    label: "Credit Application Files",
+    render: fileArrayRender,
   },
-  { 
-    name: "registration_files", 
-    label: "Registration Files", 
-    render: fileArrayRender 
+  {
+    name: "registration_files",
+    label: "Registration Files (9/24/44/49)",
+    render: fileArrayRender,
   },
-  { 
-    name: "pdpa", 
-    label: "PDPA/Consent Letter", 
-    render: fileRender 
-  }
+  {
+    name: "pdpa",
+    label: "PDPA/Consent Letter",
+    render: fileRender,
+  },
 ];
 
 export default function CustomersShow() {

@@ -5,7 +5,7 @@ import Button from "../ui/button/Button";
 // --- Clean, Sharp Icons ---
 const FileIcon = () => (
   <svg
-    className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors"
+    className="w-6 h-6 text-gray-400 dark:text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
@@ -64,23 +64,35 @@ const CheckIcon = () => (
 );
 
 // --- Sub-Component: File Tile ---
-const FileTile = ({ label, fileName }) => {
+const getFileNameFromUrl = (url) => {
+  if (!url || typeof url !== "string") return "N/A";
+  const parts = url.split("/");
+  const last = parts[parts.length - 1] || "";
+  return decodeURIComponent(last.split("?")[0]) || "N/A";
+};
+
+const FileTile = ({ label, fileName, fileUrl }) => {
   const hasFile = fileName && fileName !== "N/A";
 
   if (!hasFile) return null;
 
   return (
-    <div className="group flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg bg-gray-50 hover:bg-blue-50 hover:border-blue-200 transition-all cursor-pointer text-center h-28">
+    <a
+      href={fileUrl || "#"}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex flex-col items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/60 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-700 transition-all cursor-pointer text-center h-28"
+    >
       <div className="mb-2">
         <FileIcon />
       </div>
-      <span className="text-xs font-semibold text-gray-700 group-hover:text-blue-700 line-clamp-2 px-1">
+      <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 group-hover:text-blue-700 dark:group-hover:text-blue-300 line-clamp-2 px-1">
         {fileName}
       </span>
-      <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">
+      <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 uppercase tracking-wider">
         {label}
       </span>
-    </div>
+    </a>
   );
 };
 
@@ -98,9 +110,30 @@ export default function UserAddressCard({ userData }) {
     setTimeout(() => setCopiedField(null), 2000);
   };
 
-  const hasFiles = [1, 2, 3, 4, 5].some(
-    (i) => userData[`file${i}`] && userData[`file${i}`] !== "N/A"
-  );
+  const documentTiles = [
+    {
+      label: "Letter of Guarantee",
+      fileUrl: userData.letter_of_guarantee,
+    },
+    {
+      label: "PDPA",
+      fileUrl: userData.pdpa,
+    },
+    ...(Array.isArray(userData.credit_application_files)
+      ? userData.credit_application_files.map((url, index) => ({
+          label: `Credit Application ${index + 1}`,
+          fileUrl: url,
+        }))
+      : []),
+    ...(Array.isArray(userData.registration_files)
+      ? userData.registration_files.map((url, index) => ({
+          label: `Registration ${index + 1}`,
+          fileUrl: url,
+        }))
+      : []),
+  ].filter((item) => item.fileUrl);
+
+  const hasFiles = documentTiles.length > 0;
 
   return (
     <div className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden flex flex-col md:flex-row">
@@ -237,11 +270,12 @@ export default function UserAddressCard({ userData }) {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {hasFiles ? (
-              [1, 2, 3, 4, 5].map((idx) => (
+              documentTiles.map((doc, idx) => (
                 <FileTile
-                  key={idx}
-                  label={`Slot ${idx}`}
-                  fileName={userData[`file${idx}`]}
+                  key={`${doc.label}-${idx}`}
+                  label={doc.label}
+                  fileName={getFileNameFromUrl(doc.fileUrl)}
+                  fileUrl={doc.fileUrl}
                 />
               ))
             ) : (

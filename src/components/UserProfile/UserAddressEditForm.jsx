@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../ui/button/Button";
-import Input from "../form/input/InputField";
-import Label from "../form/Label";
 import { userAuthAPI } from "../../services/api";
 import Toast from "../common/Toast";
+import Input from "../form/input/InputField";
+import Label from "../form/Label";
+import Button from "../ui/button/Button";
 
 // --- Minimalist Icons ---
 const Icons = {
@@ -55,37 +55,94 @@ const Icons = {
   ),
 };
 
+const getFileName = (value) => {
+  if (!value) return null;
+  if (value instanceof File) return value.name;
+  if (typeof value === "string") {
+    const urlParts = value.split("/");
+    const last = urlParts[urlParts.length - 1] || "";
+    return decodeURIComponent(last.split("?")[0]) || "Existing file";
+  }
+  return null;
+};
+
 // --- Updated File Upload (Transparent Background) ---
-const FileUploadField = ({ label, name, onChange, selectedFile }) => (
-  <div className="w-full">
-    <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-      {label}
-    </Label>
-    <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-transparent hover:border-gray-400 dark:hover:border-gray-500 transition-all group">
-      <div className="flex flex-col items-center justify-center pt-2 pb-3">
-        {selectedFile ? (
-          <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm">
-            <Icons.File />
-            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate max-w-[150px]">
-              {selectedFile.name}
-            </p>
-          </div>
-        ) : (
-          <>
-            <Icons.Upload />
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                Click to upload
-              </span>{" "}
-              or drag file
-            </p>
-          </>
-        )}
-      </div>
-      <input type="file" name={name} className="hidden" onChange={onChange} />
-    </label>
-  </div>
-);
+const FileUploadField = ({
+  label,
+  name,
+  onChange,
+  selectedFile,
+  multiple = false,
+}) => {
+  const selectedFiles = Array.isArray(selectedFile)
+    ? selectedFile
+    : selectedFile
+      ? [selectedFile]
+      : [];
+
+  return (
+    <div className="w-full">
+      <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        {label}
+      </Label>
+      <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-transparent hover:border-gray-400 dark:hover:border-gray-500 transition-all group">
+        <div className="flex flex-col items-center justify-center pt-2 pb-3 w-full px-2">
+          {selectedFiles.length > 0 ? (
+            <div className="w-full space-y-1">
+              {selectedFiles.slice(0, 2).map((fileItem, index) => {
+                const fileName = getFileName(fileItem);
+                return (
+                  <div
+                    key={`${name}-${index}`}
+                    className="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm"
+                  >
+                    <Icons.File />
+                    {typeof fileItem === "string" ? (
+                      <a
+                        href={fileItem}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 dark:text-blue-400 font-medium truncate max-w-[150px] hover:underline"
+                      >
+                        {fileName}
+                      </a>
+                    ) : (
+                      <p className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate max-w-[150px]">
+                        {fileName}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+              {selectedFiles.length > 2 && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  +{selectedFiles.length - 2} more file(s)
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              <Icons.Upload />
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors text-center">
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  Click to upload
+                </span>{" "}
+                {multiple ? "files" : "a file"}
+              </p>
+            </>
+          )}
+        </div>
+        <input
+          type="file"
+          name={name}
+          multiple={multiple}
+          className="hidden"
+          onChange={onChange}
+        />
+      </label>
+    </div>
+  );
+};
 
 export default function UserAddressEditForm({ userData, onBack }) {
   const navigate = useNavigate();
@@ -99,10 +156,9 @@ export default function UserAddressEditForm({ userData, onBack }) {
     address: "",
     email2: "",
     email3: "",
-    cc1: null,
-    form_24: null,
-    financial_statement: null,
-    form_9: null,
+    letter_of_guarantee: null,
+    credit_application_files: [],
+    registration_files: [],
     pdpa: null,
   };
 
@@ -118,11 +174,16 @@ export default function UserAddressEditForm({ userData, onBack }) {
         address: userData?.address || "",
         email2: userData?.email2 || "",
         email3: userData?.email3 || "",
-        cc1: null,
-        form_24: null,
-        financial_statement: null,
-        form_9: null,
-        pdpa: null,
+        letter_of_guarantee: userData?.letter_of_guarantee || null,
+        credit_application_files: Array.isArray(
+          userData?.credit_application_files,
+        )
+          ? userData.credit_application_files
+          : [],
+        registration_files: Array.isArray(userData?.registration_files)
+          ? userData.registration_files
+          : [],
+        pdpa: userData?.pdpa || null,
       });
     }
   }, [userData]);
@@ -134,6 +195,11 @@ export default function UserAddressEditForm({ userData, onBack }) {
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
+    if (name === "credit_application_files" || name === "registration_files") {
+      setFormData((prev) => ({ ...prev, [name]: Array.from(files || []) }));
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [name]: files?.[0] || null }));
   };
 
@@ -150,18 +216,38 @@ export default function UserAddressEditForm({ userData, onBack }) {
         address: { type: "text", value: formData.address },
         email2: { type: "text", value: formData.email2 },
         email3: { type: "text", value: formData.email3 },
-        cc1: { type: "file", value: formData.cc1 },
-        form_24: { type: "file", value: formData.form_24 },
-        financial_statement: {
+        letter_of_guarantee: {
           type: "file",
-          value: formData.financial_statement,
+          value: formData.letter_of_guarantee,
         },
-        form_9: { type: "file", value: formData.form_9 },
+        credit_application_files: {
+          type: "multi-file",
+          value: formData.credit_application_files,
+        },
+        registration_files: {
+          type: "multi-file",
+          value: formData.registration_files,
+        },
         pdpa: { type: "file", value: formData.pdpa },
       };
 
       Object.keys(fieldMappings).forEach((key) => {
         const field = fieldMappings[key];
+        if (field.type === "multi-file") {
+          const files = Array.isArray(field.value)
+            ? field.value.filter((item) => item instanceof File)
+            : [];
+          files.forEach((file) => payload.append(`${key}[]`, file));
+          return;
+        }
+
+        if (field.type === "file") {
+          if (field.value instanceof File) {
+            payload.append(key, field.value);
+          }
+          return;
+        }
+
         if (field.value !== null && field.value !== "") {
           payload.append(key, field.value);
         }
@@ -366,28 +452,24 @@ export default function UserAddressEditForm({ userData, onBack }) {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FileUploadField
-                  label="Credit Application (CC1)"
-                  name="cc1"
+                  label="Letter of Guarantee"
+                  name="letter_of_guarantee"
                   onChange={handleFileChange}
-                  selectedFile={formData.cc1}
+                  selectedFile={formData.letter_of_guarantee}
                 />
                 <FileUploadField
-                  label="Form 24"
-                  name="form_24"
+                  label="Credit Application Files"
+                  name="credit_application_files"
                   onChange={handleFileChange}
-                  selectedFile={formData.form_24}
+                  selectedFile={formData.credit_application_files}
+                  multiple
                 />
                 <FileUploadField
-                  label="Financial Statement"
-                  name="financial_statement"
+                  label="Registration Files"
+                  name="registration_files"
                   onChange={handleFileChange}
-                  selectedFile={formData.financial_statement}
-                />
-                <FileUploadField
-                  label="Form 9"
-                  name="form_9"
-                  onChange={handleFileChange}
-                  selectedFile={formData.form_9}
+                  selectedFile={formData.registration_files}
+                  multiple
                 />
                 <FileUploadField
                   label="PDPA"

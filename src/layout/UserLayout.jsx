@@ -8,13 +8,13 @@ const LayoutContent = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
   return (
-    <div className="min-h-screen xl:flex">
+    <div className="h-screen overflow-hidden xl:flex">
       <div>
         <UserSidebar />
         <Backdrop />
       </div>
       <div
-        className={`flex-1 transition-all duration-300 ease-in-out ${
+        className={`flex-1 h-screen overflow-y-auto transition-all duration-300 ease-in-out ${
           isExpanded || isHovered ? "lg:ml-[250px]" : "lg:ml-[90px]"
         } ${isMobileOpen ? "ml-0" : ""}`}
       >

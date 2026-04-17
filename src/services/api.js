@@ -640,6 +640,30 @@ export const customersAPI = {
     }),
 };
 
+// Announcements APIs
+export const announcementsAPI = {
+  list: (params) => listResource("announcements", params),
+
+  show: (id) => apiCall(`/announcements/show/${id}`),
+
+  create: (data) =>
+    apiCall("/announcements/create", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  update: (id, data) =>
+    apiCall(`/announcements/update/${id}`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id) =>
+    apiCall(`/announcements/delete/${id}`, {
+      method: "DELETE",
+    }),
+};
+
 // Companies API (for dropdowns and lookups)
 export const companiesAPI = {
   list: () => apiCall("/companies"),
@@ -1296,6 +1320,19 @@ export const userNotificationsAPI = {
   markAllAsRead: () =>
     userApiCall("/user/notifications/read-all", {
       method: "POST",
+    }),
+};
+
+// User Announcements APIs
+export const userAnnouncementsAPI = {
+  list: (params) => userListResource("user/announcements", params),
+
+  show: (id) => userApiCall(`/user/announcements/show/${id}`),
+
+  changeStatus: (id, data) =>
+    userApiCall(`/user/announcements/change-status/${id}`, {
+      method: "POST",
+      body: JSON.stringify(data),
     }),
 };
 

@@ -5,15 +5,9 @@ import { ResourceForm } from "../../components/common/ResourceForm";
 import { customersAPI } from "../../services/api";
 
 // Define file field categories based on PHP backend logic
-const SINGLE_FILE_FIELDS = [
-  "letter_of_guarantee",
-  "pdpa",
-];
+const SINGLE_FILE_FIELDS = ["letter_of_guarantee", "pdpa"];
 
-const MULTI_FILE_FIELDS = [
-  "credit_application_files",
-  "registration_files",
-];
+const MULTI_FILE_FIELDS = ["credit_application_files", "registration_files"];
 
 // Change Password Modal Component
 function ChangePasswordModal({ isOpen, onClose, userId }) {
@@ -238,11 +232,11 @@ export default function CustomersAdd() {
       maxFiles: 2, // Hint for ResourceForm
     },
     {
-      name: "registration_files", // Grouped Form 9/24/49
-      label: "Upload Company Registration Form (9/24/49)",
+      name: "registration_files", // Grouped Form 9/24/44/49
+      label: "Upload Company Registration Form (9/24/44/49)",
       type: "file",
       multiple: true,
-      maxFiles: 3, // Hint for ResourceForm
+      maxFiles: 4, // Hint for ResourceForm
     },
     {
       name: "letter_of_guarantee",
@@ -264,7 +258,7 @@ export default function CustomersAdd() {
   const handleSubmit = async (formData) => {
     // Build FormData for file uploads
     const fd = new FormData();
-    
+
     Object.keys(formData).forEach((key) => {
       const val = formData[key];
 

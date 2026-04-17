@@ -1,6 +1,7 @@
-import { Edit, X } from "lucide-react";
+import { Edit, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import Swal from "sweetalert2";
 import { getResourceById } from "../../services/api";
 import PageBreadcrumb from "./PageBreadCrumb";
 
@@ -9,22 +10,21 @@ export const ShowPage = ({
   fields,
   title = "Details",
   showEdit = true,
+  showDelete = false,
   backPath,
   apiCall,
+  onDelete,
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const returnTo = searchParams.get('returnTo');
+  const returnTo = searchParams.get("returnTo");
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  
 
   useEffect(() => {
     loadData();
   }, [id]);
-
-  
 
   const loadData = async () => {
     try {
@@ -40,7 +40,50 @@ export const ShowPage = ({
   };
 
   // Determine if edit button should be shown
-  const shouldShowEdit = showEdit && !(resourceName === 'payments' && (data?.status === 0 || data?.status === 1));
+  const shouldShowEdit =
+    showEdit &&
+    !(
+      resourceName === "payments" &&
+      (data?.status === 0 || data?.status === 1)
+    );
+  const shouldShowDelete = showDelete && typeof onDelete === "function";
+
+  const handleDelete = async () => {
+    const confirmed = await Swal.fire({
+      icon: "warning",
+      title: "Delete Record?",
+      text: `This will permanently delete this ${title.toLowerCase()}.`,
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Delete",
+    });
+
+    if (!confirmed.isConfirmed) return;
+
+    try {
+      await onDelete(id);
+      Swal.fire({
+        icon: "success",
+        title: "Deleted",
+        text: `${title} deleted successfully.`,
+        timer: 1800,
+        showConfirmButton: false,
+      });
+
+      if (returnTo) {
+        navigate(decodeURIComponent(returnTo));
+      } else {
+        navigate(backPath || `/${resourceName}/view`);
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Delete failed",
+        text: error?.message || `Failed to delete ${title.toLowerCase()}.`,
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -88,20 +131,31 @@ export const ShowPage = ({
             Record ID: {id}
           </p>
         </div>
-        {shouldShowEdit && (
-          <button
-            onClick={() => {
-              const editUrl = returnTo 
-                ? `/${resourceName}/edit/${id}?returnTo=${returnTo}`
-                : `/${resourceName}/edit/${id}`;
-              navigate(editUrl);
-            }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-700 hover:shadow-lg transition-all duration-200"
-          >
-            <Edit className="w-4 h-4" />
-            Edit
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {shouldShowDelete && (
+            <button
+              onClick={handleDelete}
+              className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-5 py-2.5 font-medium text-red-700 transition-all duration-200 hover:bg-red-100 hover:shadow-lg dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </button>
+          )}
+          {shouldShowEdit && (
+            <button
+              onClick={() => {
+                const editUrl = returnTo
+                  ? `/${resourceName}/edit/${id}?returnTo=${returnTo}`
+                  : `/${resourceName}/edit/${id}`;
+                navigate(editUrl);
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-700 hover:shadow-lg transition-all duration-200"
+            >
+              <Edit className="w-4 h-4" />
+              Edit
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Clean Table Layout */}
@@ -164,10 +218,18 @@ export const ShowPage = ({
           >
             Close
           </button>
+          {shouldShowDelete && (
+            <button
+              onClick={handleDelete}
+              className="px-5 py-2.5 rounded-xl border border-red-200 bg-red-50 font-medium text-red-700 hover:bg-red-100 transition-all duration-200 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300"
+            >
+              Delete Record
+            </button>
+          )}
           {shouldShowEdit && (
             <button
               onClick={() => {
-                const editUrl = returnTo 
+                const editUrl = returnTo
                   ? `/${resourceName}/edit/${id}?returnTo=${encodeURIComponent(returnTo)}`
                   : `/${resourceName}/edit/${id}`;
                 navigate(editUrl);
