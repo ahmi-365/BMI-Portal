@@ -339,7 +339,8 @@ export default function UserDashboard() {
               />
               <div className="mt-2">
                 <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-                  Welcome back, {userData?.name || "User"}!
+                  Welcome back, {userData?.name || "User"}
+                  {userData?.customer_no ? ` (${userData.customer_no})` : ""}!
                 </h1>
                 <p className="mt-1 text-gray-500 dark:text-gray-400">
                   Here is an overview of your account activity today.
