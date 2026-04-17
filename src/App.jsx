@@ -20,6 +20,7 @@ import AdminShow from "./pages/admins/AdminShow";
 import SignIn from "./pages/AuthPages/SignIn";
 import Home from "./pages/Dashboard/Home";
 import NotFound from "./pages/OtherPage/NotFound";
+import PrivacyPolicy from "./pages/OtherPage/PrivacyPolicy";
 import UserProfiles from "./pages/UserProfiles";
 
 // Payment Records
@@ -83,6 +84,7 @@ import UserInvoiceShow from "./pages/UserPages/UserInvoiceShow";
 import UserPaymentAdd from "./pages/UserPages/UserPaymentAdd";
 import UserPayments from "./pages/UserPages/UserPayments";
 import UserPaymentShow from "./pages/UserPages/UserPaymentShow";
+import UserPrivacyTerms from "./pages/UserPages/UserPrivacyTerms";
 import UserProfileEdit from "./pages/UserPages/UserProfileEdit";
 import UserStatements from "./pages/UserPages/UserStatements";
 import UserStatementShow from "./pages/UserPages/UserStatementShow";
@@ -455,6 +457,7 @@ export default function App() {
 
           {/* User Panel */}
           <Route path="/user/login" element={<UserLogin />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
           {/* User Panel Protected Routes */}
           <Route
@@ -499,6 +502,7 @@ export default function App() {
             <Route path="/user/statements" element={<UserStatements />} />
             <Route path="/user/ppi" element={<UserPPIs />} />
             <Route path="/user/ppis/show/:id" element={<UserPpiShow />} />
+            <Route path="/user/privacy-terms" element={<UserPrivacyTerms />} />
             <Route
               path="/user/statements/show/:id"
               element={<UserStatementShow />}

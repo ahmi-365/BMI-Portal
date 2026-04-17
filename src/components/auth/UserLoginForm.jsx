@@ -1,18 +1,172 @@
 import { ArrowDown, Eye, EyeOff, FileText, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { userAuthAPI } from "../../services/api";
 import { userAuth } from "../../services/auth";
-import ConfirmationModal from "../common/ConfirmationModal";
 import Label from "../form/Label";
 import Checkbox from "../form/input/Checkbox";
 import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
 
+const TERMS_ACCEPTED_KEY = "bmi_user_terms_accepted";
+
+const TERMS_TEXT = `Customer Portal Terms of Use
+BMI Roofing Systems Sdn. Bhd. Effective Date: [DATE] | Version 1.0
+1. Acceptance of Terms
+1.1 These Terms of Use ("Terms"), effective [DATE] (Version 1.0), govern the use of the
+Customer Portal ("Portal") provided by BMI Roofing Systems Sdn. Bhd. (Registration No.
+197401002179 (19163-M)) ("Company"). "User" or "you" refers to any authorized individual or
+entity accessing the Portal on behalf of a customer.
+1.2 By clicking "I Accept" or registering for an account, you confirm that you have read,
+understood, and agree to be bound by these Terms. If you do not agree, do not access or use
+the Portal.
+2. Purpose of the Portal and Permitted Use
+2.1 The Portal enables authorized customers to access and download financial and
+transaction-related documents issued by the Company, including but not limited to:
+(a) Invoices (including LHDN-compliant e-Invoices);
+(b) Credit Notes;
+(c) Debit Notes;
+(d) Statements of Account; and
+(e) Prompt Payment Incentives.
+2.2 Documents accessible via the Portal are provided in compliance with the requirements of
+the Inland Revenue Board of Malaysia ("LHDN") where applicable. The Portal is intended solely
+for use by customers of the Company in connection with their business transactions with the
+Company.
+2.3 Documents are for reference, record-keeping, and internal business purposes. Users must
+not:
+(a) alter, manipulate, or misrepresent any documents;
+(b) use documents for fraudulent or unlawful purposes; or
+(c) distribute documents to third parties except for accounting, auditing, LHDN tax compliance,
+or as required by law.
+3. User Access and Account Responsibility
+3.1 Access is provided through user accounts created by the Company. An initial username and
+password will be assigned to the customer by the Company.
+3.2 Users must change their password upon first login. Users agree to:
+(a) keep their login credentials confidential;
+(b) not share account access with unauthorized persons;
+(c) be responsible for all activities conducted under their account; and
+(d) notify the Company immediately upon suspecting unauthorized access.
+3.3 The Company shall not be liable for unauthorized access caused by the customer's failure to
+safeguard login credentials. The Company reserves the right to suspend or terminate accounts
+suspected of misuse or violation of these Terms, with reasonable prior notice where practicable.
+3.6 Personal data collected for account creation and management shall be processed in
+accordance with the Personal Data Protection Act 2010 ("PDPA") and the Company's Privacy
+Notice, which is available at [URL/link] and will be provided to Users at the point of account
+registration.
+4. Accuracy of Information
+4.1 The Company makes reasonable efforts to ensure the accuracy of information available on
+the Portal but does not guarantee that all documents are free from errors or omissions. In the
+event of a discrepancy, the Company's official records shall prevail. The Company will notify the
+affected customer of the discrepancy within a reasonable time of discovery and provide
+corrected documents promptly.
+5. System Availability
+5.1 The Company aims to ensure the Portal is accessible at all times but may experience
+downtime due to:
+(a) scheduled maintenance;
+(b) technical issues;
+(c) security updates; or
+(d) Force Majeure Events (as defined in Clause 10).
+5.2 The Company is not liable for losses from temporary unavailability, except to the extent
+caused by the Company's wilful default or gross negligence.
+6. Data Security and Personal Data Protection
+6.1 Users must ensure that downloaded documents are stored securely within their own
+systems. The Company will implement appropriate technical and organizational measures to
+protect the Portal and personal data in accordance with the Security Principle under the PDPA.
+In the event of a data breach affecting User personal data, the Company will notify affected
+Users and relevant authorities as required by applicable law. The Company does not guarantee
+absolute protection against unauthorized access or cyber threats.
+6.2 The Company collects, processes, and stores personal data in connection with Portal
+access and use, including but not limited to: name, email address, contact number, company
+name, designation, login credentials, and usage logs.
+6.3 Personal data is collected for the following purposes:
+(a) account creation, authentication, and administration;
+(b) provision of Portal services and document access;
+(c) communication regarding the Portal, documents, or the customer relationship;
+(d) security monitoring and fraud prevention; and
+(e) compliance with legal and regulatory obligations, including requirements of the LHDN.
+6.4 The Company will not disclose personal data to third parties except:
+(a) to service providers engaged by the Company for Portal hosting, maintenance, or support,
+subject to appropriate confidentiality obligations;
+(b) where required by law, regulation, or court order; or
+(c) with the User's consent.
+6.5 Users have the right under the PDPA to:
+(a) request access to their personal data held by the Company;
+(b) request correction of personal data that is inaccurate, incomplete, or misleading; and
+(c) withdraw consent to the processing of personal data, subject to any legal or contractual
+restrictions.
+6.6 Requests under Clause 6.5 may be directed to the Company contact detailed in Clause 14.
+The Company will respond to such requests within 21 days of receipt, or such longer period as
+permitted under the PDPA.
+6.7 The Company will retain personal data only for as long as necessary to fulfil the purposes
+set out in Clause 6.3, or as required by applicable law. Upon account termination, personal data
+will be securely deleted or anonymized within 90 days, unless retention is required for legal,
+regulatory, or audit purposes.
+6.8 For further details, Users are directed to the Company's Privacy Notice available at
+[URL/link].
+7. Intellectual Property
+7.1 All Portal design, software, and systems are and remain the intellectual property of the
+Company. Users are granted a limited, non-exclusive, non-transferable right to access and
+download documents for legitimate business use.
+8. Suspension and Termination
+8.1 The Company may suspend or terminate Portal access if:
+(a) the User breaches these Terms and fails to remedy such breach within 14 days of written
+notice;
+(b) unauthorized or suspicious activity is detected, in which case immediate suspension without
+notice is permitted; or
+(c) the customer relationship with the Company ends.
+8.2 Upon termination, Users will be given 30 days to download their documents before access is
+permanently revoked.
+9. Limitation of Liability
+9.1 The Company's total aggregate liability arising out of or in connection with the Portal shall
+not exceed the total fees paid by the customer to the Company in the preceding 12 months, or
+RM10,000, whichever is greater.
+9.2 The Company shall not be liable for indirect, consequential, or incidental loss, including loss
+of profit, revenue, or data.
+9.3 Nothing in these Terms excludes liability for: (a) death or personal injury from negligence; (b)
+fraud; (c) wilful default or gross negligence; or (d) any liability that cannot be excluded under
+Malaysian law.
+10. Force Majeure
+10.1 Neither party is liable for failure or delay caused by events beyond reasonable control,
+including natural disasters, pandemics, war, government orders, telecommunications failure,
+cyberattacks (provided reasonable security was maintained), or power outages ("Force Majeure
+Event").
+10.2 The affected party must notify the other promptly and take reasonable steps to mitigate. If a
+Force Majeure Event continues for more than 60 days, either party may terminate by 14 days'
+written notice.
+11. Amendments
+11.1 The Company may amend these Terms from time to time. Users will be notified of material
+changes via email or Portal notification before the updated Terms take effect. Users who
+disagree may discontinue use and request account closure.
+12. Governing Law and Disputes
+12.1 These Terms shall be governed by and interpreted in accordance with the laws of
+Malaysia.
+12.2 Any disputes arising from the use of the Portal shall be subject to the exclusive
+jurisdiction of the courts of Malaysia.
+13. General
+13.1 Severability: If any provision is found invalid or unenforceable, it shall be severed and the
+remaining provisions continue in full force.
+13.2 Entire Agreement: These Terms and the Company's Privacy Notice constitute the entire
+agreement regarding Portal use and supersede all prior representations or agreements. Nothing
+in this clause excludes liability for fraudulent misrepresentation.
+13.3 Notices: Notices must be in writing, delivered by email (to the User's registered email or to
+Company's email. Email notices are deemed received the next business day.
+14. Contact Information
+BMI Roofing Systems Sdn. Bhd. (Registration No. 197401002179 (19163-M))
+Registered Address: 802, 8th Floor, Block C, Kelana Square, 17 Jalan SS7/26, Petaling
+Jaya, 47301 Selangor
+Email: invoicing.malaysia@bmigroup.com
+Tel: 03-2176 0600 (Invoicing Department)`;
+
 export default function UserLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false); // Keep me logged in
-  const [tcChecked, setTcChecked] = useState(false); // Terms & Conditions
+  const [tcChecked, setTcChecked] = useState(() => {
+    try {
+      return localStorage.getItem(TERMS_ACCEPTED_KEY) === "true";
+    } catch (e) {
+      return false;
+    }
+  }); // Terms & Conditions
   const [showTcModal, setShowTcModal] = useState(false); // T&C Modal state
   const [canAcceptTc, setCanAcceptTc] = useState(false); // Tracks if scrolled to bottom
 
@@ -20,7 +174,6 @@ export default function UserLoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showModal, setShowModal] = useState(false);
 
   const navigate = useNavigate();
   const tcScrollRef = useRef(null);
@@ -55,7 +208,7 @@ export default function UserLoginForm() {
       return;
     }
 
-    setShowModal(true);
+    await performLogin();
   };
 
   const performLogin = async () => {
@@ -91,11 +244,6 @@ export default function UserLoginForm() {
     }
   };
 
-  const handleConfirm = () => {
-    setShowModal(false);
-    performLogin();
-  };
-
   const handleTcCheckboxChange = (val) => {
     if (val) {
       setShowTcModal(true);
@@ -106,9 +254,83 @@ export default function UserLoginForm() {
 
   const handleAcceptTc = () => {
     setTcChecked(true);
+    localStorage.setItem(TERMS_ACCEPTED_KEY, "true");
     setShowTcModal(false);
     setError("");
   };
+
+  const renderLinkedText = (text, keyPrefix = "terms-link") => {
+    const chunks = String(text).split("[URL/link]");
+    return chunks.map((chunk, index) => (
+      <span key={`${keyPrefix}-${index}`}>
+        {chunk}
+        {index < chunks.length - 1 && (
+          <Link
+            to="/privacy-policy"
+            className="font-medium text-blue-600 underline decoration-blue-400 underline-offset-4 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            onClick={() => setShowTcModal(false)}
+          >
+            /privacy-policy
+          </Link>
+        )}
+      </span>
+    ));
+  };
+
+  const parseTerms = (text) => {
+    const lines = String(text)
+      .split("\n")
+      .map((line) => line.trim());
+
+    const lead = [];
+    const sections = [];
+    let current = null;
+
+    lines.forEach((line) => {
+      if (!line) return;
+
+      if (/^\d+\.\s/.test(line)) {
+        if (current) sections.push(current);
+        current = { title: line, lines: [] };
+        return;
+      }
+
+      if (current) {
+        current.lines.push(line);
+      } else {
+        lead.push(line);
+      }
+    });
+
+    if (current) sections.push(current);
+
+    const normalizeSectionLines = (lines) => {
+      const merged = [];
+
+      lines.forEach((line) => {
+        const isClause = /^\d+\.\d+/.test(line);
+        const isAlphaItem = /^\([a-z]\)/i.test(line);
+
+        if (isClause || isAlphaItem || merged.length === 0) {
+          merged.push(line);
+          return;
+        }
+
+        merged[merged.length - 1] = `${merged[merged.length - 1]} ${line}`;
+      });
+
+      return merged;
+    };
+
+    const normalizedSections = sections.map((section) => ({
+      ...section,
+      lines: normalizeSectionLines(section.lines),
+    }));
+
+    return { lead, sections: normalizedSections };
+  };
+
+  const termsContent = parseTerms(TERMS_TEXT);
 
   return (
     <div className="flex flex-col flex-1">
@@ -220,23 +442,10 @@ export default function UserLoginForm() {
         </div>
       </div>
 
-      <ConfirmationModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onConfirm={handleConfirm}
-        title="Acknowledgement Required"
-        message="Please acknowledge the following before proceeding with login."
-        confirmText="Login"
-        cancelText="Cancel"
-        isLoading={loading}
-        requireAcknowledgement={true}
-        acknowledgementText="I acknowledge that amounts are converted to MYR and I have read and accept the Bribery Act / Code of Conduct."
-      />
-
       {/* --- Terms and Conditions Modal --- */}
       {showTcModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4 backdrop-blur-sm transition-opacity duration-300">
-          <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900 flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-6xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900 flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -256,65 +465,70 @@ export default function UserLoginForm() {
             <div
               ref={tcScrollRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto p-6 text-sm text-gray-600 dark:text-gray-400 space-y-4 custom-scrollbar"
+              className="flex-1 overflow-y-auto scroll-smooth p-6 text-sm text-gray-600 dark:text-gray-300 custom-scrollbar"
             >
-              <p>
-                <strong>1. Acceptance of Terms</strong>
-                <br />
-                By accessing and using this portal, you accept and agree to be
-                bound by the terms and provision of this agreement.
-              </p>
-              <p>
-                <strong>2. Use of the Portal</strong>
-                <br />
-                You agree to use the portal only for lawful purposes. You are
-                strictly prohibited from using our portal for any illegal or
-                unauthorized purpose.
-              </p>
-              <p>
-                <strong>3. User Account Security</strong>
-                <br />
-                You are responsible for maintaining the confidentiality of your
-                login credentials and are fully responsible for all activities
-                that occur under your account.
-              </p>
-              <p>
-                <strong>4. Data Privacy</strong>
-                <br />
-                We respect your privacy and are committed to protecting your
-                personal data. Any personal information provided to or gathered
-                by this portal is controlled in accordance with our Privacy
-                Policy.
-              </p>
-              <p>
-                <strong>5. Modifications to Service</strong>
-                <br />
-                We reserve the right to modify or discontinue, temporarily or
-                permanently, the service (or any part thereof) with or without
-                notice at any time.
-              </p>
-              <p>
-                <strong>6. Limitation of Liability</strong>
-                <br />
-                We shall not be liable for any direct, indirect, incidental,
-                special, or consequential damages resulting from the use or
-                inability to use the portal.
-              </p>
-              <p>
-                <strong>7. Code of Conduct</strong>
-                <br />
-                You agree to comply with our Bribery Act and Code of Conduct
-                policies at all times while utilizing this service. Any breach
-                of these policies will result in immediate termination of your
-                account access.
-              </p>
-              <p className="pb-4">
-                <em>
-                  Please read these terms carefully. By clicking "Continue &
-                  Accept" below, you confirm that you have read, understood, and
-                  agreed to these conditions.
-                </em>
-              </p>
+              <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50/70 p-4 dark:border-blue-900/40 dark:bg-blue-900/15">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                  Customer Portal Legal Terms
+                </p>
+                <div className="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-200">
+                  {termsContent.lead.map((line, idx) => (
+                    <p key={`terms-lead-${idx}`}>
+                      {renderLinkedText(line, `lead-${idx}`)}
+                    </p>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {termsContent.sections.map((section, sIdx) => (
+                  <article
+                    key={`terms-section-${sIdx}`}
+                    className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/60 dark:hover:border-blue-800"
+                  >
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {section.title}
+                    </h4>
+                    <div className="mt-3 space-y-2.5 text-[13px] leading-6 text-gray-700 dark:text-gray-300">
+                      {section.lines.map((line, lIdx) => {
+                        const isSubClause = /^\d+\.\d+/.test(line);
+                        const isAlphaItem = /^\([a-z]\)/i.test(line);
+
+                        if (isSubClause) {
+                          return (
+                            <p
+                              key={`terms-line-${sIdx}-${lIdx}`}
+                              className="font-medium text-gray-800 dark:text-gray-100"
+                            >
+                              {renderLinkedText(line, `sub-${sIdx}-${lIdx}`)}
+                            </p>
+                          );
+                        }
+
+                        if (isAlphaItem) {
+                          return (
+                            <div
+                              key={`terms-line-${sIdx}-${lIdx}`}
+                              className="flex items-start gap-2"
+                            >
+                              <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
+                              <p>
+                                {renderLinkedText(line, `item-${sIdx}-${lIdx}`)}
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <p key={`terms-line-${sIdx}-${lIdx}`}>
+                            {renderLinkedText(line, `line-${sIdx}-${lIdx}`)}
+                          </p>
+                        );
+                      })}
+                    </div>
+                  </article>
+                ))}
+              </div>
             </div>
 
             {/* Modal Footer */}

@@ -1,21 +1,20 @@
+import {
+  Box,
+  ChartBar,
+  ChevronDown,
+  CreditCard,
+  Download,
+  Eye,
+  FileText,
+  LayoutDashboard,
+  LineChart,
+  List,
+  Plus,
+  Table,
+  Upload,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  LayoutDashboard,
-  List,
-  Table,
-  Box,
-  FileText,
-  CreditCard,
-  MoreHorizontal,
-  ChevronDown,
-  ChartBar,
-  Eye,
-  Plus,
-  Upload,
-  LineChart,
-  Download,
-} from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 
 const navItems = [
@@ -57,6 +56,7 @@ const othersItems = [
     icon: <FileText className="w-5 h-5" />,
     path: "/user/statements",
   },
+
   {
     name: "Payments",
     icon: <CreditCard className="w-5 h-5" />,
@@ -66,6 +66,11 @@ const othersItems = [
     name: "Export Report",
     icon: <Download className="w-5 h-5" />,
     path: "/user/export-report",
+  },
+  {
+    name: "Privacy Terms",
+    icon: <FileText className="w-5 h-5" />,
+    path: "/user/privacy-terms",
   },
 ];
 
@@ -79,7 +84,7 @@ const UserSidebar = () => {
 
   const isActive = useCallback(
     (path) => location.pathname === path,
-    [location.pathname]
+    [location.pathname],
   );
 
   useEffect(() => {
@@ -286,8 +291,8 @@ const UserSidebar = () => {
           isExpanded || isMobileOpen
             ? "w-[250px]"
             : isHovered
-            ? "w-[250px]"
-            : "w-[90px]"
+              ? "w-[250px]"
+              : "w-[90px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}

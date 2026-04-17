@@ -6,11 +6,8 @@ import {
   DollarSign,
   FileText,
   Package,
-  ShieldCheck,
   TrendingUp,
   User,
-  X,
-  Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import CountUp from "react-countup";
@@ -105,18 +102,8 @@ export default function UserDashboard() {
   const [dateTo, setDateTo] = useState("");
   const [activeFilter, setActiveFilter] = useState("");
 
-  // New State for the Welcome Modal
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-
   useEffect(() => {
     fetchDashboardData();
-
-    // Check local storage to see if they've seen the welcome message
-    const hasSeenWelcome = localStorage.getItem("hasSeenPortalUpgrade");
-    if (!hasSeenWelcome) {
-      // Small delay makes the animation feel smoother on initial load
-      setTimeout(() => setShowWelcomeModal(true), 500);
-    }
   }, []);
 
   useEffect(() => {
@@ -206,12 +193,6 @@ export default function UserDashboard() {
     }
   };
 
-  // Close Welcome Modal Handler
-  const handleCloseWelcomeModal = () => {
-    setShowWelcomeModal(false);
-    localStorage.setItem("hasSeenPortalUpgrade", "true");
-  };
-
   if (error) {
     return (
       <div className="flex h-[80vh] flex-col items-center justify-center gap-4 text-center">
@@ -255,92 +236,6 @@ export default function UserDashboard() {
   return (
     <>
       <PageMeta title="User Dashboard" />
-
-      {/* --- Welcome/Upgrade Modal Overlay --- */}
-      {showWelcomeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4 backdrop-blur-sm transition-opacity duration-300">
-          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-gray-900 animate-in zoom-in-95 duration-300">
-            {/* Decorative Header */}
-            <div className=" overflow-hidden">
-              <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/20 blur-2xl"></div>
-              <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-blue-400/30 blur-2xl"></div>
-              <button
-                onClick={handleCloseWelcomeModal}
-                className="absolute top-4 right-4 rounded-full bg-white/20 p-2 text-white hover:bg-white/30 transition"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="px-8 pb-8 pt-6 relative">
-              {/* Floating Icon */}
-
-              <div className="mt-8">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Welcome to our new portal!
-                </h2>
-                <p className="mt-2 text-gray-600 dark:text-gray-300">
-                  We've upgraded our system to provide you with a faster,
-                  cleaner, and more powerful experience.
-                </p>
-
-                <div className="mt-6 space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-lg bg-blue-100 p-2 dark:bg-blue-900/30">
-                      <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                        Lightning Fast
-                      </h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Navigate your invoices and orders instantly.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-lg bg-emerald-100 p-2 dark:bg-emerald-900/30">
-                      <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                        Better Insights
-                      </h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Track your financials easily on your new dashboard.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-lg bg-purple-100 p-2 dark:bg-purple-900/30">
-                      <ShieldCheck className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                        Enhanced Security
-                      </h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Your documents are safer and more accessible than ever.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8">
-                  <button
-                    onClick={handleCloseWelcomeModal}
-                    className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3.5 px-4 font-semibold text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:from-blue-700 hover:to-indigo-700 transition-all duration-200"
-                  >
-                    Explore the New Portal
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="min-h-screen mt-12">
         <div className="mx-auto max-w-7xl space-y-8">
