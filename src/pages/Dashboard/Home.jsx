@@ -49,13 +49,13 @@ const StatCard = ({ title, value, icon: Icon, colorClass, subtitle, to }) => {
         "relative overflow-hidden rounded-2xl border border-white/20 bg-white p-6 shadow-sm transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-xl",
         "dark:border-gray-800 dark:bg-gray-900/80 dark:backdrop-blur-xl",
-        "group cursor-pointer"
+        "group cursor-pointer",
       )}
     >
       <div
         className={cn(
           "absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-2xl transition-all group-hover:opacity-20",
-          colorClass.replace("bg-", "bg-")
+          colorClass.replace("bg-", "bg-"),
         )}
       />
 
@@ -79,7 +79,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass, subtitle, to }) => {
         <div
           className={cn(
             "rounded-xl p-3 shadow-sm transition-transform group-hover:scale-110",
-            colorClass
+            colorClass,
           )}
         >
           <Icon className="h-6 w-6 text-white" />
@@ -138,9 +138,14 @@ export default function AdminDashboard() {
       const list = response?.data ?? response ?? [];
       const userOptions = Array.isArray(list)
         ? list.map((user) => ({
-          value: user.id,
-          label: user.company || user.name || user.email || `User ${user.id}`,
-        }))
+            value: user.id,
+            label: [
+              user.company || user.name || user.email || `User ${user.id}`,
+              user.customer_no ? `(${user.customer_no})` : null,
+            ]
+              .filter(Boolean)
+              .join(" "),
+          }))
         : [];
       setUsers(userOptions);
     } catch (err) {
@@ -164,8 +169,9 @@ export default function AdminDashboard() {
       if (dateTo) params.append("date_to", dateTo);
       selectedUserIds.forEach((id) => params.append("user_ids[]", id));
 
-      const url = `${BASE_URL}/dashboard${params.toString() ? `?${params.toString()}` : ""
-        }`;
+      const url = `${BASE_URL}/dashboard${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -211,16 +217,14 @@ export default function AdminDashboard() {
 
     return (
       <span className="flex flex-wrap items-center gap-1">
-        <strong>Users:</strong>{" "}
-        <span>{displayedNames.join(", ")}</span>
-
+        <strong>Users:</strong> <span>{displayedNames.join(", ")}</span>
         {/* Show "... & X others" if truncated */}
         {!showAllUsers && hiddenCount > 0 && (
           <span className="text-gray-500">
-            {" "}& {hiddenCount} {hiddenCount === 1 ? "other" : "others"}
+            {" "}
+            & {hiddenCount} {hiddenCount === 1 ? "other" : "others"}
           </span>
         )}
-
         {/* Toggle Button */}
         {allSelectedNames.length > VISIBLE_LIMIT && (
           <button
@@ -297,14 +301,15 @@ export default function AdminDashboard() {
                 "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-sm disabled:active:scale-100",
                 loading
                   ? "text-blue-600 dark:text-blue-400"
-                  : "text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white"
+                  : "text-gray-700 hover:text-gray-900 dark:text-gray-200 dark:hover:text-white",
               )}
             >
               <RefreshCw
                 className={cn(
                   "h-4 w-4 transition-all duration-300",
                   loading && "animate-spin text-blue-600 dark:text-blue-400",
-                  !loading && "group-hover:rotate-180 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                  !loading &&
+                    "group-hover:rotate-180 group-hover:text-blue-600 dark:group-hover:text-blue-400",
                 )}
               />
               <span className="relative">
@@ -320,7 +325,6 @@ export default function AdminDashboard() {
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-end">
             {/* Wrapper for both inputs */}
             <div className="flex w-full flex-col gap-6 lg:flex-row lg:items-end">
-
               {/* Date Range: Keeps a consistent width on desktop, full width on mobile */}
               <div className="flex flex-col w-full lg:w-auto lg:min-w-[280px]">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
@@ -362,8 +366,8 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => {
                     // Clear all filters
-                    setDateFrom('');
-                    setDateTo('');
+                    setDateFrom("");
+                    setDateTo("");
                     setSelectedUserIds([]);
                   }}
                   className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium transition-colors"

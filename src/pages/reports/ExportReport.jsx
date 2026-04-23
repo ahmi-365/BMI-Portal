@@ -46,7 +46,16 @@ export default function ExportReport() {
         const res = await companiesAPI.list();
         const list = res?.data ?? res ?? [];
         const opts = Array.isArray(list)
-          ? list.map((c) => ({ value: c.id, label: c.company || c.name }))
+          ? list.map((c) => {
+              const label = c.company || c.name || c.email || `User ${c.id}`;
+              const customerNo = c.customer_no || c.customerNo || c.code || "";
+              return {
+                value: c.id,
+                label,
+                customerNo,
+                searchText: `${label} ${customerNo} ${c.id}`.toLowerCase(),
+              };
+            })
           : [];
         setUsers(opts);
       } catch (error) {
@@ -60,18 +69,10 @@ export default function ExportReport() {
     loadUsers();
   }, []);
 
-  const userLookup = useMemo(() => {
-    const map = new Map();
-    users.forEach((u) => map.set(u.value, u.label));
-    return map;
-  }, [users]);
-
   const filteredUsers = useMemo(() => {
-    return users.filter(
-      (user) =>
-        user.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.value.toString().includes(searchTerm),
-    );
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return users;
+    return users.filter((user) => user.searchText?.includes(query));
   }, [users, searchTerm]);
 
   const handleToggleUser = (id) => {
@@ -325,7 +326,7 @@ export default function ExportReport() {
                   <div className="max-w-xs">
                     <SearchBar
                       onSearch={setSearchTerm}
-                      placeholder="Search users..."
+                      placeholder="Search customer no or name..."
                     />
                   </div>
                 </div>
@@ -362,7 +363,9 @@ export default function ExportReport() {
                                 : "text-gray-700 dark:text-gray-200"
                             }`}
                           >
-                            {user.label}
+                            {user.customerNo
+                              ? `${user.customerNo} - ${user.label}`
+                              : user.label}
                           </p>
                           <p className="text-[10px] text-gray-400 truncate">
                             ID: {user.value}

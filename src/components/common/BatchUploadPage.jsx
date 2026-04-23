@@ -903,12 +903,16 @@ export const BatchUploadPage = ({ resourceName, title }) => {
           "user_id",
           "customer_no",
           "amount",
-          "ref_no",
           "cn_no",
           "cn_date",
           "payment_term",
           "cn_doc",
         ];
+        // ref_no is optional if cn_no starts with "15"
+        const cnNoStartsWith15 = form.cn_no?.toString().startsWith("15");
+        if (!cnNoStartsWith15) {
+          required.push("ref_no");
+        }
         missing = required.filter((f) => isFieldEmpty(form[f]));
       } else if (resourceName === "debitnotes") {
         const required = [
