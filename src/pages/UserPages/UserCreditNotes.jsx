@@ -17,7 +17,11 @@ const COLUMNS = [
     sortable: true,
     render: (row) => row.user?.customer_no || "-",
   },
-  { header: "Credit Note No.", accessor: "cn_no", filterKey: "cn_no", sortable: true },
+  { header: "CN No.", accessor: "cn_no", filterKey: "cn_no", sortable: true },
+  { header: "DO No.", accessor: "do_no", filterKey: "do_no", sortable: true
+    ,render: (row) => row.deliveryorder?.do_no || "-"
+   },
+
   {
     header: "CN Doc",
     accessor: "cn_doc",
