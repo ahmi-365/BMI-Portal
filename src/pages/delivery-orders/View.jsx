@@ -18,7 +18,7 @@ const COLUMNS = [
     render: (row) => row.user?.customer_no || row.customer_no || "-",
   },
   {
-    header: "Company",
+    header: "Company Name",
     accessor: "company",
     filterKey: "company",
     sortable: true,

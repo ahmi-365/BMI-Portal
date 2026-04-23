@@ -11,18 +11,19 @@ import { userDownloadBlob } from "../../services/api";
 
 const COLUMNS = [
   {
-    header: "Company",
-    accessor: "user.company",
-    filterKey: "company",
-    sortable: true,
-    render: (row) => row.user?.company || "-",
-  },
-  {
     header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
     sortable: true,
   },
+  {
+    header: "Company Name",
+    accessor: "user.company",
+    filterKey: "company",
+    sortable: true,
+    render: (row) => row.user?.company || "-",
+  },
+  
   {
     header: "PO No.",
     accessor: "po_no",

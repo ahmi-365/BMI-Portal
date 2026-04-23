@@ -9,6 +9,8 @@ import { formatDate } from "../../lib/dateUtils";
 
 
 const COLUMNS = [
+  { header: "Customer No.", accessor: "customer_no" },
+
   {
     header: "Statement Doc",
     accessor: "statement_doc",
@@ -32,7 +34,6 @@ const COLUMNS = [
     filterType: "date-range",
     render: (row) => formatDate(row.statement_date),
   },
-  { header: "Customer No.", accessor: "customer_no" },
   // { header: "Remarks", accessor: "remarks", filterKey: "remarks" },
   {
     header: "Created At",

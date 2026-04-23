@@ -10,6 +10,13 @@ import { userDownloadBlob } from "../../services/api";
 
 
 const COLUMNS = [
+  {
+    header: "Customer No.",
+    accessor: "customer_no",
+    filterKey: "customer_no",
+    sortable: true,
+    render: (row) => row.user?.customer_no || "-",
+  },
   { header: "Credit Note No.", accessor: "cn_no", filterKey: "cn_no", sortable: true },
   {
     header: "CN Doc",
@@ -63,13 +70,7 @@ const COLUMNS = [
   //     });
   //   },
   // },
-  {
-    header: "Customer No.",
-    accessor: "customer_no",
-    filterKey: "customer_no",
-    sortable: true,
-    render: (row) => row.user?.customer_no || "-",
-  },
+  
   { header: "PO No.", accessor: "po_no", filterKey: "po_no", sortable: true },
   { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no", sortable: true },
   {

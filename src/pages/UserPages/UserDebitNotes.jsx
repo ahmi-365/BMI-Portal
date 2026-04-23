@@ -10,6 +10,12 @@ import { userDownloadBlob } from "../../services/api";
 
 
 const COLUMNS = [
+  {
+    header: "Customer No.",
+    accessor: "customer_no",
+    filterKey: "customer_no",
+    sortable: true,
+  },
   { header: "Debit Note No.", accessor: "dn_no", filterKey: "dn_no", sortable: true },
   {
     header: "DN Doc",
@@ -42,12 +48,7 @@ const COLUMNS = [
     sortable: true,
     render: (row) => formatDate(row.payment_term),
   },
-  {
-    header: "Customer No.",
-    accessor: "customer_no",
-    filterKey: "customer_no",
-    sortable: true,
-  },
+  
   { header: "PO No.", accessor: "po_no", filterKey: "po_no", sortable: true },
   { header: "Ref No.", accessor: "ref_no", filterKey: "ref_no", sortable: true },
   {
