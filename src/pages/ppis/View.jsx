@@ -13,18 +13,19 @@ import { formatDate } from "../../lib/dateUtils";
 
 const COLUMNS = [
   {
-    header: "Company",
-    accessor: "user.company",
-    filterKey: "company",
-    sortable: true,
-    render: (row) => row.user?.company || "-",
-  },
-  {
     header: "Customer No.",
     accessor: "customer_no",
     filterKey: "customer_no",
     sortable: true,
   },
+  {
+    header: "Company Name",
+    accessor: "user.company",
+    filterKey: "company",
+    sortable: true,
+    render: (row) => row.user?.company || "-",
+  },
+  
   {
     header: "Document No.",
     accessor: "document_no",
