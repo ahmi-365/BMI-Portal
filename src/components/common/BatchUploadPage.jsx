@@ -69,6 +69,57 @@ const extractAmount = (raw) => {
   return num;
 };
 
+const formatDuplicateEntry = (entry) => {
+  if (entry === undefined || entry === null) return "";
+
+  if (typeof entry === "string" || typeof entry === "number") {
+    return String(entry).trim();
+  }
+
+  if (typeof entry === "object") {
+    const cnNo = entry.cn_no ?? entry.cnNo ?? entry.credit_note_no;
+    const dnNo = entry.dn_no ?? entry.dnNo ?? entry.debit_note_no;
+    const invoiceNo = entry.invoice_no ?? entry.invoiceNo;
+    const customerNo = entry.customer_no ?? entry.customerNo;
+
+    if (cnNo && customerNo) {
+      return `CN ${cnNo} (Customer ${customerNo})`;
+    }
+    if (dnNo && customerNo) {
+      return `DN ${dnNo} (Customer ${customerNo})`;
+    }
+    if (cnNo) return `CN ${cnNo}`;
+    if (dnNo) return `DN ${dnNo}`;
+    if (invoiceNo) return `Invoice ${invoiceNo}`;
+
+    if (entry.document_no) return `Document ${entry.document_no}`;
+    if (entry.index !== undefined && entry.index !== null) {
+      const idx = Number(entry.index);
+      return Number.isNaN(idx) ? `Row ${entry.index}` : `Row ${idx + 1}`;
+    }
+
+    try {
+      return JSON.stringify(entry);
+    } catch (_) {
+      return "";
+    }
+  }
+
+  return "";
+};
+
+const extractDuplicateList = (data) => {
+  const source = Array.isArray(data?.duplicate_invoices)
+    ? data.duplicate_invoices
+    : Array.isArray(data?.duplicate_cn)
+      ? data.duplicate_cn
+      : Array.isArray(data?.duplicates)
+        ? data.duplicates
+        : [];
+
+  return source.map(formatDuplicateEntry).filter(Boolean);
+};
+
 const getAPI = (resourceName) => {
   switch (resourceName) {
     case "debitnotes":
@@ -1136,22 +1187,13 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       console.log("Result Duplicates:", result?.duplicates); // ADD THIS LINE
       // Handle backend-declared errors (e.g., duplicate invoices)
       const status = result?.status?.toLowerCase?.();
-      const duplicateInvoices = result?.duplicate_invoices;
-      const duplicateCN = result?.duplicate_cn;
-      const duplicates = result?.duplicates;
 
       // Prioritize error field over message field
       const displayError = result?.error || result?.message || "Upload failed.";
       const backendMessage = result?.message || "Upload failed.";
 
       if (status === "error" || status === "fail" || status === "false") {
-        const dupList = Array.isArray(duplicateInvoices)
-          ? duplicateInvoices.map((d) => String(d))
-          : Array.isArray(duplicateCN)
-            ? duplicateCN.map((d) => String(d))
-            : Array.isArray(duplicates)
-              ? duplicates.map((d) => String(d))
-              : [];
+        const dupList = extractDuplicateList(result);
 
         // Parse validation errors from the errors object and extract index
         const { validationMap, messages: normalizedMessages } =
@@ -1258,13 +1300,7 @@ export const BatchUploadPage = ({ resourceName, title }) => {
       }
 
       if (errorData) {
-        const dupList = Array.isArray(errorData?.duplicate_invoices)
-          ? errorData.duplicate_invoices.map((d) => String(d))
-          : Array.isArray(errorData?.duplicate_cn)
-            ? errorData.duplicate_cn.map((d) => String(d))
-            : Array.isArray(errorData?.duplicates)
-              ? errorData.duplicates.map((d) => String(d))
-              : [];
+        const dupList = extractDuplicateList(errorData);
 
         // Parse validation errors from the errors object and extract index
         const { validationMap, messages: normalizedMessages } =
@@ -1587,12 +1623,25 @@ export const BatchUploadPage = ({ resourceName, title }) => {
                       form.file ||
                       form.do_doc ||
                       "";
-                    const isDuplicate =
-                      (recordNumber &&
-                        duplicateList.includes(String(recordNumber))) ||
-                      duplicateList.some(
-                        (dup) => docName.includes(dup) || dup.includes(docName),
+                    const normalizedRecord = String(recordNumber || "")
+                      .trim()
+                      .toLowerCase();
+                    const normalizedDoc = String(docName || "")
+                      .trim()
+                      .toLowerCase();
+
+                    const isDuplicate = duplicateList.some((dup) => {
+                      const normalizedDup = String(dup).trim().toLowerCase();
+                      if (!normalizedDup) return false;
+
+                      return (
+                        (normalizedRecord &&
+                          normalizedDup.includes(normalizedRecord)) ||
+                        (normalizedDoc &&
+                          (normalizedDup.includes(normalizedDoc) ||
+                            normalizedDoc.includes(normalizedDup)))
                       );
+                    });
                     return (
                       <div
                         key={idx}
